@@ -181,6 +181,13 @@ signal_data<-reactive({
   data.frame(Timestamp = tmp$timestamp, Frequency = round((tmp$signal_freq+tmp$center_freq)/1000), Station = tmp$Name, Strength = tmp$max_signal, Duration = tmp$duration, Bandwidth = tmp$signal_bw, Longitude = tmp$pos_x, Latitude = tmp$pos_y, Orientation = tmp$orientation, Receiver = substrLeft(tmp$device,17))
 })
 
+keepalive_data<-reactive({
+  tmp<-get_mysql_data()
+  tmp<-subset(get_mysql_data(),signal_freq==0)
+  tmp$timestamp<-as.POSIXct(tmp$timestamp)
+  data.frame(Timestamp = tmp$timestamp,Station = tmp$Name, Receiver = substrLeft(tmp$device,17))
+})
+
 output$live_tab_remote_entries_table <- renderDataTable({
   validate(need(get_info_of_entries(), "Please provide remote connection data file."))
   get_info_of_entries()
@@ -191,3 +198,7 @@ output$live_tab_mysql_data <- renderDataTable({
   signal_data()
 }, options = list(pageLength = 10))
 
+output$live_tab_keepalive<- renderDataTable({
+  validate(need(keepalive_data(), "Please check connections first"))
+  keepalive_data()
+}, options = list(pageLength = 10))

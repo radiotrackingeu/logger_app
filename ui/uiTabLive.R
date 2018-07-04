@@ -30,6 +30,9 @@ tabPanel("Live Data",
              tabPanel("List of Data",
                       dataTableOutput("live_tab_mysql_data")
              ),
+             tabPanel("List of Keepalives",
+                      dataTableOutput("live_tab_keepalive")
+             ),
              tabPanel("Help",
                       "1) First select the data source on the right",
                       br(),
