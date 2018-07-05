@@ -4,5 +4,7 @@ tabPanel("Bearings",
            sidebarPanel(
              ),
            mainPanel(
+             dataTableOutput("angle"),
+             plotOutput("doa_plot")
            )
          ))

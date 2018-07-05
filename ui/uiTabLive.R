@@ -10,16 +10,22 @@ tabPanel("Live Data",
                selected = "Multiple"
              ),
              uiOutput('single_multiple_con_tags'),
-             checkboxInput("app_live_mod", "Live Mode"),
-             actionButton("load_mysql_data","Load once"),
-             numericInput("live_update_intervall", "Data update intervall:", 5, 1, 60),
              numericInput("live_last_points", "Number of entries to read", 50, 1, 10000),
-             h5("Filters:"),
+             actionButton("load_mysql_data","Connect to DBs"),
+             checkboxInput("app_live_mod", "Live Mode"),
+             conditionalPanel("input.app_live_mod",
+                              numericInput("live_update_intervall", "Data update intervall:", 5, 1, 60)
+                              ),
+             tags$b("DBs-Filters:"),
              br(),
-             br(),
-             checkboxInput("query_filter_duration", "Duration"),
-             sliderInput("filter_duration", "Duration",min=0.003,max = 0.04, value=c(0.01,0.025)),
-             checkboxInput("query_filter_max_signal", "Signal Strength"),
+             checkboxInput("check_sql_duration", "Duration"),
+             conditionalPanel("input.check_sql_duration",
+                              sliderInput("query_filter_duration", "Duration",min=0.003,max = 0.04, value=c(0.01,0.025))
+                              ),
+             checkboxInput("check_sql_strength", "Strength"),
+             conditionalPanel("input.check_sql_strength",
+                              sliderInput("query_filter_strength", "Strength",min=0,max = 100, value=c(15,90))
+             ),
              checkboxInput("query_filter_freq", "Frequencies")
            ),
            mainPanel(

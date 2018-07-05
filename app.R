@@ -82,6 +82,8 @@ server <- function(input, output, session) {
   source(file.path("server", "srvFilters.R"),local=TRUE)$value
   source(file.path("server", "srvPlots.R"),local=TRUE)$value
   source(file.path("server", "srvTabFilter.R"),local=TRUE)$value
+  source(file.path("server", "srvDoA.R"),local=TRUE)$value
+  source(file.path("server", "srvTabBearings.R"),local=TRUE)$value
   #source(file.path("server", "srvTabMap.R"),local=TRUE)$value
   #source(file.path("server", "srvDownload.R"), local=TRUE)$value
   source(file.path("server", "srvFunctions.R"),local=TRUE)$value
