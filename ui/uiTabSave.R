@@ -1,8 +1,4 @@
 ############ tabSave.R ############
 tabPanel("Save Data",
-         sidebarLayout(
-           sidebarPanel(
-             ),
-           mainPanel(
-           )
-         ))
+         downloadButton("filtered_data_sqlite", "Download SQLite")
+        )

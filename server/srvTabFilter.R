@@ -1,27 +1,49 @@
 ############ srvTabFilter.R ############
 
-#update ui-elements
+# update UIs
 
-output$single_freq_num_input <- renderUI(
-  if(input$filter_one_freq){
-    numericInput("single_freq", "", value = 150175)
-  }
-)
+observe({
+  validate(
+   need(global$signals, "Please provide file with antennae specifications.")
+  )
+  min_date<-min(global$signals$timestamp)-1
+  max_date<-max(global$signals$timestamp)+1
+  updateSliderInput(session, "slider_datetime",min=min_date,max=max_date,value = c(min_date,max_date) )
+})
 
-#observe({
-#  validate(
-#    need(signal_data(), "Please provide file with antennae specifications.")
-#  )
-#  min_date<-min(signal_data()$timestamp)-1
-#  max_date<-max(signal_data()$timestamp)+1
-#  updateSliderInput(session, "slider_datetime",min=min_date,max=max_date,value = c(min_date,max_date) )
-#})
+observe({
+  validate(
+    need(global$signals, "Please provide file with antennae specifications.")
+  )
+  rec_names <- c("all",as.character(unique(global$signals$receiver)))
+  station_names <- c("all",as.character(unique(global$signals$Name)))
+  updateSelectInput(session, "input_select_receiver", label = "Select Receiver", choices = rec_names, selected = "all")
+  updateSelectInput(session, "input_select_station", label = "Select Station", choices = station_names, selected = "all")
+})
+
+observeEvent(input$filter_freq,
+             {
+               validate(
+                 need(filtered_data(), "Please provide frequency information in data tab.")
+               )
+               updateSelectInput(session, "choose_tag", label = "Select Tag", choices = c("all",unique(filtered_data()$freq_tag)))
+})
 
 # applying filters
 filtered_data <- reactive({
-  if (is.null(signal_data()))
+  if (is.null(global$signals))
     return(NULL)
-  tempo<-signal_data()
+  tempo<-global$signals
+  #filter receivers
+  if(!any(input$input_select_receiver=="all")){
+    tempo<-subset(tempo,tempo$receiver==input$input_select_receiver)
+  }
+  #filter stations
+  if(!any(input$input_select_receiver=="all")){
+    tempo<-subset(tempo,tempo$receiver==input$input_select_receiver)
+  }
+  #filter date/time
+  tempo<-subset(tempo, (tempo$timestamp>=input$slider_datetime[1])&(tempo$timestamp<=input$slider_datetime[2]) )
   
   if(input$filter_length){
     tempo<-filter_data_length(tempo,input$signal_length)
@@ -30,16 +52,22 @@ filtered_data <- reactive({
     tempo<-filter_data_freq(tempo,input$single_freq,input$freq_error,input$center_freq,paste0(input$single_freq/1000," MHz"))
   }
   if(input$filter_freq){
-    tempo<-filter_data_freq(tempo,freqs()[["freq"]],input$freq_error,input$center_freq,freqs()[["label"]])
+    tempo<-filter_data_freq(tempo,global$frequencies$Frequency,input$freq_error,input$center_freq,global$frequencies$Name)
   }
   if(input$filter_strength){
     tempo<-filter_signal_strength(tempo,input$signal_strength)
   }
   if(input$filter_bw){
-    tempo<-filter_signal_bandwidth(tempo,input$Bandwidth)
+    tempo<-filter_signal_bandwidth(tempo,input$signal_bw)
+  }
+  if(input$filter_interval){
+    tempo<-filter_data_time_interval(tempo,input$signal_interval)
   }
   if(input$filter_freq&&input$filter_one_freq){
     return(NULL)
+  }
+  if(input$choose_tag!="all"&& !is.null(input$choose_tag) && input$choose_tag!=""){
+    tempo<-subset(tempo,tempo$freq_tag==input$choose_tag)
   }
   validate(
     need(nrow(tempo)[1]>0, "Oh no, there is no data to plot! Did you filter it all out?")
@@ -47,48 +75,39 @@ filtered_data <- reactive({
   return(tempo)
 })
 
-
-output$facet <- renderPlot({
-  if(is.null(filtered_data()))
-    return(NULL)
-  if(input$filter_freq){
-    plot_time_signal(filtered_data(),TRUE)
-  }
-  else{
-    plot_time_signal(filtered_data(),input$filter_one_freq)
-  }
-})
-
 output$histo <- renderPlot({
   if(is.null(filtered_data()))
     return(NULL)
-  ggplot(filtered_data()) + geom_histogram(aes(Frequency),bins=200)+ scale_y_log10()
+  ggplot(filtered_data()) + geom_histogram(aes(signal_freq),bins=200)+ scale_y_log10()
 })
 
 output$histo_length <- renderPlot({
-  if(is.null(signal_data())){
+  if(is.null(global$signals)){
     return(NULL)
   }
-  ggplot(filtered_data()) + geom_histogram(aes(Duration),bins= 100)
+  
+  ggplot(filtered_data()) + geom_histogram(aes(duration),bins= 100)
 })
 
 output$histo_strength <- renderPlot({
   if (is.null(filtered_data()))
     return(NULL)
-  ggplot(filtered_data()) + geom_histogram(aes(Strength),bins= 200)
+  
+  ggplot(filtered_data()) + geom_histogram(aes(max_signal),bins= 200)
 })
 
 output$histo_bandwidth<- renderPlot({
   if (is.null(filtered_data()))
     return(NULL)
-  ggplot(filtered_data()) + geom_histogram(aes(Bandwidth),bins= 200)
+  
+  ggplot(filtered_data()) + geom_histogram(aes(signal_bw),bins= 200)
 })
 
 output$total_counts<-renderText({
-  if (is.null(signal_data()))
+  if (is.null(global$signals))
     return(NULL)
-  return(paste("Number of observations in plot",dim(filtered_data())[1],"of total", dim(signal_data())[1]))
+  
+  return(paste("Number of observations in plot",dim(filtered_data())[1],"of total", dim(global$signals)[1]))
 })
-
 
 

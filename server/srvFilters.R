@@ -1,6 +1,6 @@
 ############ filters.R ############
 filter_data_length <- function(data,pulse_length){
-  return(subset(data, (data$Duration>(pulse_length[1])) & (data$Duration<(pulse_length[2]))))
+  return(subset(data, (duration>(pulse_length[1])) & (duration<(pulse_length[2]))))
 }
 
 filter_data_time_interval <- function(data,time_distance){
@@ -85,7 +85,7 @@ output$timediffs_plot <- renderPlot({
 
 
 filter_signal_bandwidth <- function(data,pulse_bandwidth){
-  return(subset(data, (data$Bandwidth>(pulse_bandwidth[1])) & (data$Bandwidth<(pulse_bandwidth[2]))))
+  return(subset(data, (data$signal_bw>(pulse_bandwidth[1])) & (data$signal_bw<(pulse_bandwidth[2]))))
 }
 
 filter_signal_strength <- function(data,pulse_strength){
@@ -96,7 +96,7 @@ filter_signal_strength <- function(data,pulse_strength){
 filter_data_freq <- function(data,freq,freq_error,mid_freq,freq_labels = NULL){
   freq_sorted<-NULL
   for(i in freq){
-    tmp<-subset(data, (data$Frequency>(i-freq_error)) & (data$Frequency<(i+freq_error)))
+    tmp<-subset(data, (data$signal_freq>(i-freq_error)) & (data$signal_freq<(i+freq_error)))
     if(nrow(tmp)>0){
       if(is.null(freq_labels)){
         tmp$freq_tag<-paste0((i+mid_freq/1000)," MHz")
