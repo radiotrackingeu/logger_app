@@ -1,7 +1,16 @@
 ############ FileIO ############
 options(shiny.maxRequestSize = 3000 * 1024 ^ 2)
 #reads and reformats data from file. Adds col timestamp with posix-style readable time
-read_logger_data <- function(filepath) {
+
+read_logger_data <- function(filepaths){
+  tmp<-NULL
+  for(i in 1:length(filepaths)){
+    tmp<-rbind(read_logger_data_single(filepaths[i]),tmp)
+  }
+  return(tmp)
+}
+
+read_logger_data_single <- function(filepath) {
   lines_to_skip <- findHeader(filepath) #skip meta data in files
   if (lines_to_skip < 0) return(NULL)
   mid_freq <- findMidFreq(filepath) # find center frequency of tuner
@@ -19,6 +28,7 @@ read_logger_data <- function(filepath) {
   data$timestamp <-
     as.POSIXct(data$timestamp, tz = "UTC")
   data$signal_freq <- (data$signal_freq + mid_freq) / 1000
+  data$freq_tag<-NA
   return(data)
 }
 

@@ -26,7 +26,7 @@ tabPanel("File Input",
                fileInput(
                  "logger_filepath",
                  "Upload data",
-                 multiple = FALSE, #would be awsome to select and combine multiple files - check for duplicates
+                 multiple = TRUE, #would be awsome to select and combine multiple files - check for duplicates
                  accept = NULL,
                  width = NULL
                ),
