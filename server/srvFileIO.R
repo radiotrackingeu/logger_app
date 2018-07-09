@@ -2,6 +2,14 @@
 options(shiny.maxRequestSize = 3000 * 1024 ^ 2)
 #reads and reformats data from file. Adds col timestamp with posix-style readable time
 
+read_logger_folder <-function(filepaths){
+  list_of_folders<-list.dirs("data/logger/",full.names = FALSE, recursive =FALSE)
+  for(i in list_of_folders){
+    list_of_files<-list.files(paste0("data/logger/",i))
+    read_logger_data(list_of_files)
+  }
+}
+
 read_logger_data <- function(filepaths){
   tmp<-NULL
   for(i in 1:length(filepaths)){

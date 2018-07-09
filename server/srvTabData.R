@@ -14,17 +14,23 @@ global <- reactiveValues()
 
 ### observe and add data ###
 
+# Add Data Button is pressed
 observeEvent(input$add_data,{
+  # add connections
   global$connections<-unique.data.frame(rbind(remote_connections(),global$connections))
+  # add receivers/antennas
   global$receivers<-unique.data.frame(rbind(receiver_list(),global$receivers))
+  # add frequencies
   global$frequencies<-unique.data.frame(rbind(frequencies_list(),global$frequencies))
-  if(input$data_type_input=="Logger Files"||input$data_type_input=="SQLite File"){
+  # add signal data if either SQLite or Logger Files has been selected
+  if(input$data_type_input=="Logger Files"||input$data_type_input=="SQLite File"&&!input$read_data_folder){
     global$signals<-unique.data.frame(rbind(cbind(get_signals(),receiver = input$receiver_name_input, Name = input$station_name_input),global$signals))
   }
 })
 
 ### get data stored in the data folder ### 
 
+# get remote connection info
 remote_connections <- reactive({
   tmp<-NULL
   if(input$read_data_folder){
@@ -78,7 +84,6 @@ frequencies_list <- reactive({
            }
     )
   }
-  print(tmp)
   return(tmp)
 })
 
