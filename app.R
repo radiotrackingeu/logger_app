@@ -1,4 +1,4 @@
-required_packages<-c("shiny", "readxl", "ggplot2", "DBI", "RSQLite", "shinyjs", "RMySQL")
+required_packages <- c("shiny", "shinyjs", "readxl", "ggplot2", "DBI", "RSQLite", "RMySQL")
 
 # try to load packages and install missing ones
 for (package in required_packages) {
@@ -15,7 +15,7 @@ ui <- tagList(
   useShinyjs(),
   includeCSS("style.css"),
   extendShinyjs("script.js"),
-  navbarPage(id="navbar", "rteu-logger-app v1.0",
+  navbarPage(id = "navbar", "rteu-logger-app v1.0",
     source("ui/uiTabData.R")$value,
     source("ui/uiTabLive.R")$value,
     source("ui/uiTabFilter.R")$value,

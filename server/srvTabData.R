@@ -31,7 +31,38 @@ observeEvent(input$add_data,{
   if(input$data_type_input=="Logger Files"||input$data_type_input=="SQLite File"&&!input$read_data_folder){
     global$signals<-unique.data.frame(rbind(cbind(get_signals(),receiver = input$receiver_name_input, Name = input$station_name_input),global$signals))
   }
+
+  update_tab_titles_colours()
 })
+
+js$mark_invalid("Frequencies")
+js$mark_invalid("Receivers")
+js$mark_invalid("Connections")
+js$mark_invalid("Logger data")
+
+update_tab_titles_colours <- function() {
+    if (!is.null(global$frequencies)) {
+        js$mark_valid("Frequencies")
+    }
+    else {
+        js$mark_invalid("Frequencies")
+    }
+
+    if (!is.null(global$connections)) {
+        js$mark_valid("Connections")
+    }
+    else {
+        js$mark_invalid("Connections")
+    }
+
+    if (!is.null(global$receivers)) {
+        js$mark_valid("Receivers")
+    }
+    else {
+        js$mark_invalid("Receivers")
+    }
+}
+
 
 ### get data stored in the data folder ###
 
@@ -53,8 +84,9 @@ remote_connections <- reactive({
            },
            "Excel Files" = {
              if(input$excel_data_content=="Connections") {
-               if(is.null(input$excel_filepath_remote))
+               if(is.null(input$excel_filepath_remote)) {
                  return(NULL)
+               }
                tmp<-safe_read_excel(input$excel_filepath_remote$datapath)
              }
            }
@@ -66,7 +98,8 @@ remote_connections <- reactive({
 frequencies_list <- reactive({
   tmp<-NULL
   if(input$read_data_folder){
-    tmp<-read_excel("data/Frequencies.xlsx")
+    tmp<-safe_read_excel("data/Frequencies.xlsx")
+    js$mark_valid("Frequencies")
   }else{
     switch(input$data_type_input,
            "SQLite File" = {
@@ -110,6 +143,7 @@ receiver_list <- reactive({
              if(input$excel_data_content=="Receivers"){
                if(is.null(input$excel_filepath_receivers))
                  return(NULL)
+
                tmp<-safe_read_excel(input$excel_filepath_receivers$datapath)
              }
            }

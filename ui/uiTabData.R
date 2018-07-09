@@ -90,6 +90,7 @@ tabPanel("File Input",
            ),
            mainPanel(
              tabsetPanel(
+             id = "data_tab_tabset",
              tabPanel("Preview of upload",
                       dataTableOutput("data_tab_preview")),
              tabPanel("All Logger Data",

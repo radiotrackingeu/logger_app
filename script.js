@@ -3,16 +3,16 @@ shinyjs.mark_valid = function(tab_name) {
 
     switch (tab_name[0]) {
         case "Logger data":
-            tabset_panel[0].children[0].className = "available";
-            break;
-        case "Receivers":
             tabset_panel[1].children[0].className = "available";
             break;
-        case "Frequencies":
+        case "Receivers":
             tabset_panel[2].children[0].className = "available";
             break;
         case "Connections":
             tabset_panel[3].children[0].className = "available";
+            break;
+        case "Frequencies":
+            tabset_panel[4].children[0].className = "available";
             break;
     }
 }
@@ -23,16 +23,16 @@ shinyjs.mark_invalid = function(tab_name) {
 
     switch (tab_name[0]) {
         case "Logger data":
-            tabset_panel[0].children[0].className = "needed";
-            break;
-        case "Receivers":
             tabset_panel[1].children[0].className = "needed";
             break;
-        case "Frequencies":
+        case "Receivers":
             tabset_panel[2].children[0].className = "needed";
             break;
         case "Connections":
             tabset_panel[3].children[0].className = "needed";
+            break;
+        case "Frequencies":
+            tabset_panel[4].children[0].className = "needed";
             break;
     }
 }
