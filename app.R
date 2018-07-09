@@ -1,90 +1,44 @@
-required_packages<-c("shiny",
-                     "readxl",
-                     "ggplot2",
-                     #"leaflet",
-                     #"rgdal",
-                     "DBI",
-                     "RSQLite",
-                     #"htmlwidgets",
-                     "shinyjs",
-                     "RMySQL"
-                     #"pool",
-                     #"tools"
-                     )
+required_packages<-c("shiny", "readxl", "ggplot2", "DBI", "RSQLite", "shinyjs", "RMySQL")
 
-install_and_load_packages <- function(x){
-  for( i in x ){
-    #  require returns TRUE invisibly if it was able to load package
-    if( ! require( i , character.only = TRUE ) ){
-      #  If package was not able to be loaded then re-install
-      install.packages( i , dependencies = TRUE )
-      #  Load package after installing
-      require( i , character.only = TRUE )
+# try to load packages and install missing ones
+for (package in required_packages) {
+    # require tries to load a package, and returns a boolean indicating success
+    if (!require(package, character.only = TRUE)) {
+        install.packages(package , dependencies = TRUE)
+        require(package, character.only = TRUE)
     }
-  }
 }
 
-jscode <- "
-shinyjs.disableTab = function(name) {
-var tab = $('.nav li a[data-value=' + name + ']');
-tab.bind('click.tab', function(e) {
-e.preventDefault();
-return false;
-});
-tab.addClass('disabled');
-}
-
-shinyjs.enableTab = function(name) {
-var tab = $('.nav li a[data-value=' + name + ']');
-tab.unbind('click.tab');
-tab.removeClass('disabled');
-}
-
-shinyjs.disableButton = function(name) {
-var btn = $()
-}
-"
-
-css <- "
-.nav li a.disabled {
-background-color: #f8f8f8 !important;
-color: #999 !important;
-cursor: not-allowed !important;
-border-color: #f8f8f8 !important;
-}"
-
-# Loads and installs all required packages as stated above
-install_and_load_packages(required_packages)
-
-options(digits.secs=3)
+options(digits.secs = 3)
 
 ui <- tagList(
   useShinyjs(),
-  extendShinyjs(text=jscode),
-  inlineCSS(css),
+  includeCSS("style.css"),
+  extendShinyjs("script.js"),
   navbarPage(id="navbar", "rteu-logger-app v1.0",
-    source(file.path("ui", "uiTabData.R"),local=TRUE)$value,
-    source(file.path("ui", "uiTabLive.R"),local=TRUE)$value,
-    source(file.path("ui", "uiTabFilter.R"),local=TRUE)$value,
-    source(file.path("ui", "uiTabResults.R"),local=TRUE)$value,
-    source(file.path("ui", "uiTabBearings.R"),local=TRUE)$value,
-    source(file.path("ui", "uiTabTriangulation.R"),local=TRUE)$value,
-    source(file.path("ui", "uiTabMap.R"),local=TRUE)$value,
-    source(file.path("ui", "uiTabSave.R"),local=TRUE)$value
+    source("ui/uiTabData.R")$value,
+    source("ui/uiTabLive.R")$value,
+    source("ui/uiTabFilter.R")$value,
+    source("ui/uiTabResults.R")$value,
+    source("ui/uiTabBearings.R")$value,
+    source("ui/uiTabTriangulation.R")$value,
+    source("ui/uiTabMap.R")$value,
+    source("ui/uiTabSave.R")$value
   )
 )
 
 server <- function(input, output, session) {
-  source(file.path("server", "srvTabData.R"),local=TRUE)$value
-  source(file.path("server", "srvTabLive.R"),local=TRUE)$value
-  source(file.path("server", "srvFileIO.R"),local=TRUE)$value
-  source(file.path("server", "srvFilters.R"),local=TRUE)$value
-  source(file.path("server", "srvTabFilter.R"),local=TRUE)$value
-  source(file.path("server", "srvTabResults.R"),local=TRUE)$value
-  source(file.path("server", "srvDoA.R"),local=TRUE)$value
-  source(file.path("server", "srvTabBearings.R"),local=TRUE)$value
-  #source(file.path("server", "srvTabMap.R"),local=TRUE)$value
+  source("server/srvTabData.R", local = TRUE)$value
+  source("server/srvTabLive.R", local = TRUE)$value
+  source("server/srvFileIO.R", local = TRUE)$value
+  source("server/srvFilters.R", local = TRUE)$value
+  source("server/srvTabFilter.R", local = TRUE)$value
+  source("server/srvTabResults.R", local = TRUE)$value
+  source("server/srvDoA.R", local = TRUE)$value
+  source("server/srvTabBearings.R", local = TRUE)$value
   source(file.path("server", "srvFunctions.R"),local=TRUE)$value
+  #source("server/srvTabMap.R", local = TRUE)$value
+
   #close all open connections at the end
   onStop(function() {
     close_all_dbs()
@@ -92,4 +46,4 @@ server <- function(input, output, session) {
   })
 }
 
-shinyApp(ui=ui, server=server)
+shinyApp(ui = ui, server = server)
