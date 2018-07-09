@@ -26,7 +26,7 @@ single_multiple_con_tags <- reactive({
         "rteuv2!"
       ),
       actionButton(
-        "connect_to_db", 
+        "connect_to_db",
         "Load Data from DB"
       ),
       br(),
@@ -85,7 +85,7 @@ get_info_of_entries <- reactive({
   if(!is.null(global$connections)){
     for(i in global$connections$Name){
       if(is.null(open_connections()[[i]])){
-        results<-data.frame(Name=i,id=NA,timestamp="offline",size="unkown",running="unkown")
+        results<-data.frame(Name=i,id=NA,timestamp="offline",size="unknown",running="unknown")
         tmp<-rbind(tmp,results)
         next
       }else{
@@ -131,7 +131,7 @@ get_mysql_data <- reactive({
       }
       query_max_signal_filter<-paste(and,"max_signal >",input$query_filter_strength[1],"AND max_signal <",input$query_filter_strength[2])
     }
-    
+
     if(!is.null(get_info_of_entries())){
       for(i in get_info_of_entries()[get_info_of_entries()$timestamp!="offline",]$Name){
         if(is.null(open_connections()[[i]])){
