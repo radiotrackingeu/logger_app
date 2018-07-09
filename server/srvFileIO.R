@@ -2,29 +2,34 @@
 options(shiny.maxRequestSize = 3000 * 1024 ^ 2)
 #reads and reformats data from file. Adds col timestamp with posix-style readable time
 
-read_logger_folder <-function(filepaths){
-  list_of_folders<-list.dirs("data/logger/",full.names = FALSE, recursive =FALSE)
-  for(i in list_of_folders){
-    list_of_files<-list.files(paste0("data/logger/",i))
-    read_logger_data(list_of_files)
+read_logger_folder <-function(){
+  path<-file.path("data","logger")
+  list_of_stations<-list.dirs(path,full.names = FALSE, recursive =FALSE)
+  tmp_data<-NULL
+  for(i in list_of_stations){
+    list_of_receivers<-list.dirs(file.path(path,i), full.names = F, recursive = F)
+    for (j in list_of_receivers) {
+      list_of_records <- list.files(file.path(path,i,j), no..=T)
+      for (k in list_of_records) {
+        p<-file.path(path,i,j,k)
+        tmp_data<-rbind(cbind(read_logger_data(p), receiver = j, Name = i),tmp_data)
+      }
+    }
   }
+  return(tmp_data)
 }
 
-read_logger_data <- function(filepaths){
-  tmp<-NULL
-  for(i in 1:length(filepaths)){
-    tmp<-rbind(read_logger_data_single(filepaths[i]),tmp)
-  }
-  return(tmp)
-}
-
-read_logger_data_single <- function(filepath) {
+read_logger_data <- function(filepath) {
   lines_to_skip <- findHeader(filepath) #skip meta data in files
+  # print('srvFileIO::read_logger_data says')
+  # print(paste('path:',filepath,'lines',lines_to_skip))
   if (lines_to_skip < 0) return(NULL)
+  
   mid_freq <- findMidFreq(filepath) # find center frequency of tuner
+  # print('srvFileIO::read_logger_data says')
+  # print(paste('path:',filepath,'mid_freq',mid_freq))
   if (mid_freq < 0) return(NULL)
-  print('srvFileIO::read_logger_data says')
-  print(paste('path:',filepath,'lines',lines_to_skip))
+  
   data <-
     read.csv2(
       filepath,
@@ -44,13 +49,15 @@ findHeader <- function(file) {
   n<--1
   tryCatch(
     {
-      tmp <- readLines(file, n = 30)
-      n <- grep("timestamp;samples;duration;signal_freq;signal_bw;max_signal", tmp) - 1
+      tmp <- readLines(file, n = 30, warn=F)
+      n <- grep(pattern="timestamp;samples;duration;signal_freq;signal_bw;max_signal", x=tmp, fixed=T) - 1
       if (length(n)==0) n<--1
     }, warning = function(w) {
+      print(w$message)
       n<--1
     }, error = function(e) {
       n<--1
+      print(e$message)
     }, finally = {
       return(n)
     }
@@ -60,12 +67,14 @@ findHeader <- function(file) {
 findMidFreq <- function(file) {
   MidFreq<--1
   tryCatch({
-    tmp <- readLines(file, n = 30)
+    tmp <- readLines(file, n = 30, warn=F)
     n <- grep("Tuned to", tmp)
     MidFreq <- as.numeric(gsub("[a-z,A-Z,., ]", "", tmp[n]))
   }, warning = function(w) {
+    print(w$message)
     MidFreq<--1
   }, error = function(e) {
+    print(e$message)
     MidFreq<--1
   }, finally = {
     return(MidFreq)

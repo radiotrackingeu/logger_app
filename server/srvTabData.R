@@ -22,6 +22,11 @@ observeEvent(input$add_data,{
   global$receivers<-unique.data.frame(rbind(receiver_list(),global$receivers))
   # add frequencies
   global$frequencies<-unique.data.frame(rbind(frequencies_list(),global$frequencies))
+  # add signal data from data/logger folder 
+  if(input$read_data_folder && !is.null(local_logger_data())) {
+    global$signals<-unique.data.frame(rbind(local_logger_data(),global$signals))
+    print(paste("Added",nrow(local_logger_data()),"points of data from local files."))
+  }
   # add signal data if either SQLite or Logger Files has been selected
   if(input$data_type_input=="Logger Files"||input$data_type_input=="SQLite File"&&!input$read_data_folder){
     global$signals<-unique.data.frame(rbind(cbind(get_signals(),receiver = input$receiver_name_input, Name = input$station_name_input),global$signals))
@@ -114,6 +119,15 @@ receiver_list <- reactive({
   }
   return(tmp)
 })
+
+local_logger_data <- reactive({
+  tmp<-NULL
+  if (input$read_data_folder){
+    tmp<-read_logger_folder()
+  }
+  return(tmp)
+})
+
 ### read Signal data from files ###
 
 get_signals <- reactive({ 
