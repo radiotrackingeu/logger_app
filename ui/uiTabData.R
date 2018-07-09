@@ -74,7 +74,7 @@ tabPanel("File Input",
                ),
                conditionalPanel(
                  condition = "input.excel_data_content == 'Calibrations'",
-                 h6("Calibration of receiver's sensetivity"),
+                 h6("Calibration of receiver's sensitivity"),
                  fileInput(
                    "excel_filepath_calibrations",
                    "",
@@ -85,7 +85,7 @@ tabPanel("File Input",
                )
              ),
              actionButton(
-               "add_data", 
+               "add_data",
                h4("    Add Data    ")
              )
            ),
