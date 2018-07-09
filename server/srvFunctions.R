@@ -6,7 +6,7 @@ substrLeft <- function(x, n){
   )
 }
 
-close_all_dbs<- function(){
+close_all_dbs <- function(){
     all_con <- dbListConnections(MySQL())
 
     for (con in all_con) {
