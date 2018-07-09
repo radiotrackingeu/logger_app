@@ -1,8 +1,7 @@
-############ tabData.R ############
 tabPanel("File Input",
          sidebarLayout(
            sidebarPanel(
-             checkboxInput("read_data_folder", "read data stored in the apps data-folder"),
+             checkboxInput("read_data_folder", "read data stored in the data folder"),
              radioButtons(
                "data_type_input",
                choices = c("SQLite File", "Excel Files", "Logger Files"),
@@ -15,7 +14,7 @@ tabPanel("File Input",
                fileInput(
                  "SQLite_filepath",
                  "Upload data",
-                 multiple = FALSE, #would be awsome to select and combine multiple files - check for duplicates
+                 multiple = FALSE, # would be awesome to select and combine multiple files - check for duplicates
                  accept = NULL,
                  width = NULL
                )
@@ -26,7 +25,7 @@ tabPanel("File Input",
                fileInput(
                  "logger_filepath",
                  "Upload data",
-                 multiple = TRUE, #would be awsome to select and combine multiple files - check for duplicates
+                 multiple = TRUE, # would be awesome to select and combine multiple files - check for duplicates
                  accept = NULL,
                  width = NULL
                ),
