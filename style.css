@@ -1,0 +1,44 @@
+.outer {
+    position:   fixed;
+    top:        51px;
+    left:       0;
+    right:      0;
+    bottom:     0;
+    overflow:   hidden;
+    padding:    0;
+}
+
+.controls {
+    padding: 20px;
+    cursor: move;
+    opacity: 0.65;
+    zoom: 0.9;
+
+    transition: opacity 500ms 1s;
+    transition-delay: 0;
+}
+
+.controls:hover {
+    opacity: 0.95;
+    transition-delay: 0;
+}
+
+.needed {
+    color: red !important;
+}
+
+.available {
+    color: green !important;
+}
+
+#slider_timestamp_output {
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.nav li a.disabled {
+    background-color: #f8f8f8 !important;
+    color: #999 !important;
+    cursor: not-allowed !important;
+    border-color: #f8f8f8 !important;
+}

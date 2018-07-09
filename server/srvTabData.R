@@ -22,7 +22,7 @@ observeEvent(input$add_data,{
   global$receivers<-unique.data.frame(rbind(receiver_list(),global$receivers))
   # add frequencies
   global$frequencies<-unique.data.frame(rbind(frequencies_list(),global$frequencies))
-  # add signal data from data/logger folder 
+  # add signal data from data/logger folder
   if(input$read_data_folder && !is.null(local_logger_data())) {
     global$signals<-unique.data.frame(rbind(local_logger_data(),global$signals))
     print(paste("Added",nrow(local_logger_data()),"points of data from local files."))
@@ -108,7 +108,6 @@ receiver_list <- reactive({
            },
            "Excel Files" = {
              if(input$excel_data_content=="Receivers"){
-               print(input$excel_filepath_receivers$datapath)
                if(is.null(input$excel_filepath_receivers))
                  return(NULL)
                tmp<-safe_read_excel(input$excel_filepath_receivers$datapath)

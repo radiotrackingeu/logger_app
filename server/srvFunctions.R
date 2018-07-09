@@ -6,11 +6,12 @@ substrLeft <- function(x, n){
   )
 }
 
-close_all_dbs<- function(){
-  to_close<-dbListConnections(RMySQL::MySQL())
-  for(i in 1:length(to_close)){
-    dbDisconnect(to_close[[i]])
-  }
+close_all_dbs <- function(){
+    all_con <- dbListConnections(MySQL())
+
+    for (con in all_con) {
+        dbDisconnect(con)
+    }
 }
 
 show_error <- function(message) {
