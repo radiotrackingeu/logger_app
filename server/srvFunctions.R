@@ -12,3 +12,20 @@ close_all_dbs<- function(){
     dbDisconnect(to_close[[i]])
   }
 }
+
+show_error <- function(message) {
+    show_notification(message, "error")
+}
+
+show_warning <- function(message) {
+    show_notification(message, "warning")
+}
+
+show_message <- function(message) {
+    show_notification(message, "message")
+}
+
+show_notification <- function(message, type) {
+    showNotification(message, type = type, duration = 3)
+    NULL
+}

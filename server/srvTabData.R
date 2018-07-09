@@ -4,13 +4,13 @@
 
 global <- reactiveValues()
 
-#maybe predifine content of tables
+# maybe predefine content of tables
 
 #global$connections to store information how to connect to dbs
 #global$receivers to list all used receivers with the orientation and location
 #global$frequencies to list the transmitters porperties like frequency, etc.
 #global$calibration to list the sensitivy of each receiver
-#global$signals is a the dataframe to store all received signals 
+#global$signals is a the dataframe to store all received signals
 
 ### observe and add data ###
 
@@ -33,13 +33,13 @@ observeEvent(input$add_data,{
   }
 })
 
-### get data stored in the data folder ### 
+### get data stored in the data folder ###
 
 # get remote connection info
 remote_connections <- reactive({
   tmp<-NULL
   if(input$read_data_folder){
-    tmp<-read_excel("data/RemoteConnections.xlsx", sheet = 1)
+    tmp<-safe_read_excel("data/RemoteConnections.xlsx")
   }else{
     switch(input$data_type_input,
            "SQLite File" = {
@@ -52,11 +52,10 @@ remote_connections <- reactive({
              dbDisconnect(con)
            },
            "Excel Files" = {
-             if(input$excel_data_content=="Connections"){
-               
+             if(input$excel_data_content=="Connections") {
                if(is.null(input$excel_filepath_remote))
                  return(NULL)
-               tmp<-read_excel(input$excel_filepath_remote$datapath, sheet = 1)
+               tmp<-safe_read_excel(input$excel_filepath_remote$datapath)
              }
            }
     )
@@ -67,7 +66,7 @@ remote_connections <- reactive({
 frequencies_list <- reactive({
   tmp<-NULL
   if(input$read_data_folder){
-    tmp<-read_excel("data/Frequencies.xlsx", sheet = 1)
+    tmp<-read_excel("data/Frequencies.xlsx")
   }else{
     switch(input$data_type_input,
            "SQLite File" = {
@@ -81,10 +80,9 @@ frequencies_list <- reactive({
            },
            "Excel Files" = {
              if(input$excel_data_content=="Frequencies"){
-               
                if(is.null(input$excel_filepath_frequencies))
                  return(NULL)
-               tmp<-read_excel(input$excel_filepath_frequencies$datapath, sheet = 1)
+               tmp<-safe_read_excel(input$excel_filepath_frequencies$datapath)
              }
            }
     )
@@ -93,11 +91,12 @@ frequencies_list <- reactive({
 })
 
 receiver_list <- reactive({
-  tmp<-NULL
-  if(input$read_data_folder){
-    tmp<-read_excel("data/Antennas.xlsx", sheet = 1)
-  }else{
-    switch(input$data_type_input,
+    tmp<-NULL
+    if(input$read_data_folder){
+        tmp<-safe_read_excel("data/Antennas.xlsx")
+    }
+    else {
+        switch(input$data_type_input,
            "SQLite File" = {
              if (is.null(input$SQLite_filepath))
                return(NULL)
@@ -112,7 +111,7 @@ receiver_list <- reactive({
                print(input$excel_filepath_receivers$datapath)
                if(is.null(input$excel_filepath_receivers))
                  return(NULL)
-               tmp<-read_excel(input$excel_filepath_receivers$datapath, sheet = 1)
+               tmp<-safe_read_excel(input$excel_filepath_receivers$datapath)
              }
            }
     )
@@ -130,7 +129,7 @@ local_logger_data <- reactive({
 
 ### read Signal data from files ###
 
-get_signals <- reactive({ 
+get_signals <- reactive({
   switch (input$data_type_input,
           'Logger Files' = {
             inFile <- input$logger_filepath
