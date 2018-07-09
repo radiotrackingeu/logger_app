@@ -36,10 +36,9 @@ server <- function(input, output, session) {
   source("server/srvTabResults.R", local = TRUE)$value
   source("server/srvDoA.R", local = TRUE)$value
   source("server/srvTabBearings.R", local = TRUE)$value
-  source(file.path("server", "srvFunctions.R"),local=TRUE)$value
+  source("server/srvFunctions.R", local = TRUE)$value
   #source("server/srvTabMap.R", local = TRUE)$value
 
-  #close all open connections at the end
   onStop(function() {
     close_all_dbs()
     print("DB Connections closed")
