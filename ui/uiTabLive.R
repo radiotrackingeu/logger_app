@@ -1,4 +1,3 @@
-############ tabData.R ############
 tabPanel("Live Data",
          sidebarLayout(
            sidebarPanel(
@@ -15,7 +14,7 @@ tabPanel("Live Data",
              actionButton("load_mysql_data","Load Data"), #render UI
              checkboxInput("app_live_mod", "Live Mode"),
              conditionalPanel("input.app_live_mod",
-                              numericInput("live_update_intervall", "Data update intervall:", 5, 1, 60)
+                              numericInput("live_update_intervall", "Data update interval:", 5, 1, 60)
                               ),
              tags$b("DBs-Filters:"),
              br(),
