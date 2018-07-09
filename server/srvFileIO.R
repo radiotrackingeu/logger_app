@@ -1,6 +1,7 @@
 ############ FileIO ############
+# sets the maximal upload size to 3GB
 options(shiny.maxRequestSize = 3000 * 1024 ^ 2)
-#reads and reformats data from file. Adds col timestamp with posix-style readable time
+# reads and reformats data from file. Adds col timestamp with posix-style readable time
 
 read_logger_folder <-function(filepaths){
   list_of_folders<-list.dirs("data/logger/",full.names = FALSE, recursive =FALSE)
@@ -69,7 +70,6 @@ findMidFreq <- function(file) {
     MidFreq<--1
   }, finally = {
     return(MidFreq)
-    
   }
   )
 }
@@ -116,5 +116,17 @@ output$filtered_data_sqlite <- downloadHandler(
     }
     dbDisconnect(con)
   }
-  
 )
+
+safe_read_excel <- function(filepath) {
+    tryCatch({
+            read_excel(filepath, sheet = 1)
+        },
+        warning = function(cond) {
+            show_warning(paste("Warning while uploading ", filepath, ": ", cond[1]))
+        },
+        error = function(cond) {
+            show_error(paste(filepath, " couldn't be uploaded: ", cond[1]))
+        }
+    )
+}

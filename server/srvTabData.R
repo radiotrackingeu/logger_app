@@ -34,7 +34,7 @@ observeEvent(input$add_data,{
 remote_connections <- reactive({
   tmp<-NULL
   if(input$read_data_folder){
-    tmp<-read_excel("data/RemoteConnections.xlsx", sheet = 1)
+    tmp<-safe_read_excel("data/RemoteConnections.xlsx")
   }else{
     switch(input$data_type_input,
            "SQLite File" = {
@@ -50,7 +50,7 @@ remote_connections <- reactive({
              if(input$excel_data_content=="Connections") {
                if(is.null(input$excel_filepath_remote))
                  return(NULL)
-               tmp<-read_excel(input$excel_filepath_remote$datapath, sheet = 1)
+               tmp<-safe_read_excel(input$excel_filepath_remote$datapath)
              }
            }
     )
@@ -61,7 +61,7 @@ remote_connections <- reactive({
 frequencies_list <- reactive({
   tmp<-NULL
   if(input$read_data_folder){
-    tmp<-read_excel("data/Frequencies.xlsx", sheet = 1)
+    tmp<-read_excel("data/Frequencies.xlsx")
   }else{
     switch(input$data_type_input,
            "SQLite File" = {
@@ -77,7 +77,7 @@ frequencies_list <- reactive({
              if(input$excel_data_content=="Frequencies"){
                if(is.null(input$excel_filepath_frequencies))
                  return(NULL)
-               tmp<-read_excel(input$excel_filepath_frequencies$datapath, sheet = 1)
+               tmp<-safe_read_excel(input$excel_filepath_frequencies$datapath)
              }
            }
     )
@@ -88,7 +88,7 @@ frequencies_list <- reactive({
 receiver_list <- reactive({
     tmp<-NULL
     if(input$read_data_folder){
-        tmp<-read_excel("data/Antennas.xlsx", sheet = 1)
+        tmp<-safe_read_excel("data/Antennas.xlsx")
     }
     else {
         switch(input$data_type_input,
@@ -106,7 +106,7 @@ receiver_list <- reactive({
                print(input$excel_filepath_receivers$datapath)
                if(is.null(input$excel_filepath_receivers))
                  return(NULL)
-               tmp<-read_excel(input$excel_filepath_receivers$datapath, sheet = 1)
+               tmp<-safe_read_excel(input$excel_filepath_receivers$datapath)
              }
            }
     )
