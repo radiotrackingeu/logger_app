@@ -8,12 +8,17 @@ read_logger_folder <-function(){
   list_of_stations<-list.dirs(path,full.names = FALSE, recursive =FALSE)
   tmp_data<-NULL
   for(i in list_of_stations){
-    list_of_receivers<-list.dirs(file.path(path,i), full.names = F, recursive = F)
+    list_of_receivers<-list.dirs(file.path(path,i), full.names = FALSE, recursive = FALSE)
     for (j in list_of_receivers) {
       list_of_records <- list.files(file.path(path,i,j), no..=T)
       for (k in list_of_records) {
         p<-file.path(path,i,j,k)
-        tmp_data<-rbind(cbind(read_logger_data(p), receiver = j, Name = i),tmp_data)
+        data<-read_logger_data(p)
+        if(!is.null(data)){
+          tmp_data<-rbind(cbind(data, receiver = j, Name = i),tmp_data)
+        }
+        print(str(tmp_data))
+        print(p)
       }
     }
   }
@@ -23,7 +28,7 @@ read_logger_folder <-function(){
 read_logger_data <- function(filepath) {
   lines_to_skip <- findHeader(filepath) #skip meta data in files
   # print('srvFileIO::read_logger_data says')
-  # print(paste('path:',filepath,'lines',lines_to_skip))
+  print(paste('path:',filepath,'lines',lines_to_skip))
   if (lines_to_skip < 0) return(NULL)
   
   mid_freq <- findMidFreq(filepath) # find center frequency of tuner

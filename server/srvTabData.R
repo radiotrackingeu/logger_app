@@ -130,30 +130,36 @@ local_logger_data <- reactive({
 ### read Signal data from files ###
 
 get_signals <- reactive({
-  switch (input$data_type_input,
-          'Logger Files' = {
-            inFile <- input$logger_filepath
-            if (is.null(inFile))
-              return(NULL)
-            data <- read_logger_data(inFile$datapath)
-            if (is.null(data)) return(NULL)
-          },
-          'SQLite File' = {
-            inFile <- input$SQLite_filepath
-            if (is.null(inFile))
-              return(NULL)
-            # open db
-            con <- dbConnect(RSQLite::SQLite(), inFile$datapath)
-            if(!dbExistsTable(con, "rteu_logger_data")) {
-              print("wrong sqlite db selected")
+  if(input$read_data_folder){
+    data<-read_logger_folder()
+  }
+  else
+  {
+    switch (input$data_type_input,
+            'Logger Files' = {
+              inFile <- input$logger_filepath
+              if (is.null(inFile))
+                return(NULL)
+              data <- read_logger_data(inFile$datapath)
+              if (is.null(data)) return(NULL)
+            },
+            'SQLite File' = {
+              inFile <- input$SQLite_filepath
+              if (is.null(inFile))
+                return(NULL)
+              # open db
+              con <- dbConnect(RSQLite::SQLite(), inFile$datapath)
+              if(!dbExistsTable(con, "rteu_logger_data")) {
+                print("wrong sqlite db selected")
+                dbDisconnect(con)
+                return(NULL)
+              }
+              data <- dbReadTable(con, "rteu_logger_data")
+              data$timestamp <- as.POSIXct(data$timestamp, tz = "UTC", origin = "1970-01-01")
               dbDisconnect(con)
-              return(NULL)
             }
-            data <- dbReadTable(con, "rteu_logger_data")
-            data$timestamp <- as.POSIXct(data$timestamp, tz = "UTC", origin = "1970-01-01")
-            dbDisconnect(con)
-          }
-  )
+    )
+  }
   data
 })
 
