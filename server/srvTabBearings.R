@@ -1,20 +1,22 @@
 ############ srvTabLive.R ############
 
 #calculate calibration factors
-calibration_factors <- reactive({
+observeEvent(input$correct_signal_strength,{
   maxis<-NULL
-  for(i in unique(as.character(filtered_data()$Receiver))){
-    tmp<-subset(filtered_data(),Receiver == i)
-    maxis<-rbind(maxis,tmp[which.max(tmp$Strength),])
+  for(i in unique(as.character(filtered_data()$receiver))){
+    tmp<-subset(filtered_data(),receiver == i)
+    str(tmp)
+    maxis<-rbind(maxis,tmp[which.max(tmp$max_signal),])
   }
-  print(maxis)
-  maxis
+  max_max<-maxis[which.max(maxis$max_signal),]
+  maxis<-data.frame(correction = max_max$max_signal-maxis$max_signal, receiver=maxis$receiver, station = maxis$Name)
+  global$calibration<-maxis
 })
 
 output$cal_factors <- renderDataTable({
-  if (is.null(calibration_factors()))
+  if (is.null(global$calibration))
     return(NULL)
-  calibration_factors()
+  global$calibration
 })
 
 # calculate time match and DoA #1

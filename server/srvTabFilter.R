@@ -69,6 +69,13 @@ filtered_data <- reactive({
   if(input$choose_tag!="all"&& !is.null(input$choose_tag) && input$choose_tag!=""){
     tempo<-subset(tempo,tempo$freq_tag==input$choose_tag)
   }
+  if(input$correct_signal_strength){
+    if(!is.null(global$calibration)){
+      for(i in unique(global$calibration$receiver)){
+        tempo[tempo$receiver==i,]$max_signal<-global$calibration[global$calibration$receiver==i,]$correction+tempo[tempo$receiver==i,]$max_signal
+      }
+    }
+  }
   validate(
     need(nrow(tempo)[1]>0, "Oh no, there is no data to plot! Did you filter it all out?")
   )
