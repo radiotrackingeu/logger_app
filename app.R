@@ -1,9 +1,10 @@
-required_packages <- c("shiny", 
-                       "shinyjs", 
-                       "readxl", 
-                       "ggplot2", 
-                       "DBI", 
-                       "RSQLite", 
+required_packages <- c("shiny",
+                       "shinyjs",
+                       "readxl",
+                       "ggplot2",
+                       "DBI",
+                       "RSQLite",
+                       "shinyFiles",
                        "RMySQL")
 
 # try to load packages and install missing ones
