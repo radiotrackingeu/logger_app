@@ -29,12 +29,10 @@ read_logger_folder <-function(){
 read_logger_data <- function(filepath) {
   lines_to_skip <- findHeader(filepath) #skip meta data in files
   if (lines_to_skip < 0) return(NULL)
-  
+
   mid_freq <- findMidFreq(filepath) # find center frequency of tuner
-  # print('srvFileIO::read_logger_data says')
-  # print(paste('path:',filepath,'mid_freq',mid_freq))
   if (mid_freq < 0) return(NULL)
-  
+
   data <-
     read.csv2(
       filepath,

@@ -158,11 +158,12 @@ get_signals <- reactive({
   {
     switch (input$data_type_input,
             'Logger Files' = {
-              inFile <- input$logger_filepath
-              if (is.null(inFile))
-                return(NULL)
-              data <- read_logger_data(inFile$datapath)
-              if (is.null(data)) return(NULL)
+              data <- data.frame()
+              for (file in input$logger_filepath[, "datapath"]) {
+                data <- read_logger_data(file)
+              }
+              data <- unique(data)
+              data
             },
             'SQLite File' = {
               inFile <- input$SQLite_filepath

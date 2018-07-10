@@ -44,7 +44,7 @@ filtered_data <- reactive({
   }
   #filter date/time
   tempo<-subset(tempo, (tempo$timestamp>=input$slider_datetime[1])&(tempo$timestamp<=input$slider_datetime[2]) )
-  
+
   if(input$filter_length){
     tempo<-filter_data_length(tempo,input$signal_length)
   }
@@ -98,28 +98,28 @@ output$histo_length <- renderPlot({
   if(is.null(global$signals)){
     return(NULL)
   }
-  
+
   ggplot(filtered_data()) + geom_histogram(aes(duration),bins= 100)
 })
 
 output$histo_strength <- renderPlot({
   if (is.null(filtered_data()))
     return(NULL)
-  
+
   ggplot(filtered_data()) + geom_histogram(aes(max_signal),bins= 200)
 })
 
 output$histo_bandwidth<- renderPlot({
   if (is.null(filtered_data()))
     return(NULL)
-  
+
   ggplot(filtered_data()) + geom_histogram(aes(signal_bw),bins= 200)
 })
 
 output$total_counts<-renderText({
   if (is.null(global$signals))
     return(NULL)
-  
+
   return(paste("Number of observations in plot",dim(filtered_data())[1],"of total", dim(global$signals)[1]))
 })
 
