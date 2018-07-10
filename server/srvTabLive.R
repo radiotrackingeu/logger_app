@@ -85,7 +85,7 @@ get_info_of_entries <- reactive({
   if(!is.null(global$connections)){
     for(i in global$connections$Name){
       if(is.null(open_connections()[[i]])){
-        results<-data.frame(Name=i,id=NA,timestamp="offline",size="unknown",running="unknown")
+        results<-data.frame(Name=i,id=NA,timestamp="unknown",size="unknown",running="unknown")
         tmp<-rbind(tmp,results)
         next
       }else{
