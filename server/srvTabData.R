@@ -119,13 +119,18 @@ receiver_list <- reactive({
     else {
         switch(input$data_type_input,
            "SQLite File" = {
-             if (is.null(input$SQLite_filepath))
-               return(NULL)
-             con <- dbConnect(RSQLite::SQLite(), input$SQLite_filepath$datapath)
-             if (dbExistsTable(con, "rteu_antenna")) {
-               tmp <- dbReadTable(con, "rteu_antenna")
-             }
-             dbDisconnect(con)
+              data <- data.frame()
+              for (file in input$logger_filepath[, "datapath"]) {
+                data <- read_logger_data(file)
+
+                con <- dbConnect(RSQLite::SQLite(), input$SQLite_filepath$datapath)
+                if (dbExistsTable(con, "rteu_antenna")) {
+                    data <- rbind(dbReadTable(con, "rteu_antenna"))
+                }
+                dbDisconnect(con)
+              }
+              data <- unique(data)
+              data
            },
            "Excel Files" = {
              if(input$excel_data_content=="Receivers"){
@@ -160,7 +165,7 @@ get_signals <- reactive({
             'Logger Files' = {
               data <- data.frame()
               for (file in input$logger_filepath[, "datapath"]) {
-                data <- read_logger_data(file)
+                data <- rbind(data, read_logger_data(file))
               }
               data <- unique(data)
               data
