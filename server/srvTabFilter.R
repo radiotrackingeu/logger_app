@@ -69,6 +69,12 @@ filtered_data <- reactive({
   if(input$choose_tag!="all"&& !is.null(input$choose_tag) && input$choose_tag!=""){
     tempo<-subset(tempo,tempo$freq_tag==input$choose_tag)
   }
+  if(input$input_select_receiver!="all"&& !is.null(input$input_select_receiver) && input$input_select_receiver!=""){
+    tempo<-subset(tempo,tempo$receiver==input$input_select_receiver)
+  }
+  if(input$input_select_station!="all"&& !is.null(input$input_select_station) && input$input_select_receiver!=""){
+    tempo<-subset(tempo,tempo$Name==input$input_select_station)
+  }
   if(input$correct_signal_strength){
     if(!is.null(global$calibration)){
       for(i in unique(global$calibration$receiver)){

@@ -81,18 +81,5 @@ tabPanel("Filter",
                   #numericInput("temp_cal_a","Enter Coefficient A",value=20.307)
                   #numericInput("temp_cal_b","Enter Coefficient B",value=0.0408)
            )
-         ),
-         column(1),
-         column(10,
-                sliderInput("slider_datetime", "Date & Time:",
-                            min=as.POSIXlt("2017-09-24 00:00:00", "UTC"),
-                            max=as.POSIXlt("2017-09-29 23:59:59", "UTC"),
-                            value=c(as.POSIXlt("2017-09-24 00:00:00", "UTC"),
-                                    as.POSIXlt("2017-09-29 23:59:59", "UTC")
-                            ),
-                            timezone = "UTC",
-                            dragRange = TRUE,
-                            animate = TRUE,
-                            width = "100%")),
-         column(1)
+         )
 )

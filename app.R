@@ -1,4 +1,10 @@
-required_packages <- c("shiny", "shinyjs", "readxl", "ggplot2", "DBI", "RSQLite", "RMySQL")
+required_packages <- c("shiny", 
+                       "shinyjs", 
+                       "readxl", 
+                       "ggplot2", 
+                       "DBI", 
+                       "RSQLite", 
+                       "RMySQL")
 
 # try to load packages and install missing ones
 for (package in required_packages) {
@@ -9,13 +15,14 @@ for (package in required_packages) {
     }
 }
 
+#timestamps to be shown with 3 digits
 options(digits.secs = 3)
 
 ui <- tagList(
   useShinyjs(),
   includeCSS("style.css"),
   extendShinyjs("script.js"),
-  navbarPage(id = "navbar", "rteu-logger-app v1.0",
+  navbarPage(id = "navbar", "rteu-logger-app v1.1",
     source("ui/uiTabData.R")$value,
     source("ui/uiTabLive.R")$value,
     source("ui/uiTabFilter.R")$value,
