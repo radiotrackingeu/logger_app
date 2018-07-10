@@ -4,7 +4,6 @@ required_packages <- c("shiny",
                        "ggplot2",
                        "DBI",
                        "RSQLite",
-                       "shinyFiles",
                        "RMySQL")
 
 # try to load packages and install missing ones

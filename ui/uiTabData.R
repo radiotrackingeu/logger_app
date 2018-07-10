@@ -14,7 +14,7 @@ tabPanel("File Input",
                fileInput(
                  "SQLite_filepath",
                  "Upload data",
-                 multiple = FALSE, # would be awesome to select and combine multiple files - check for duplicates
+                 multiple = TRUE,
                  accept = NULL,
                  width = NULL
                )
@@ -25,7 +25,7 @@ tabPanel("File Input",
                fileInput(
                  "logger_filepath",
                  "Upload data",
-                 multiple = TRUE, # would be awesome to select and combine multiple files - check for duplicates
+                 multiple = TRUE,
                  accept = NULL,
                  width = NULL
                ),

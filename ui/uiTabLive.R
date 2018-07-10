@@ -1,7 +1,6 @@
 tabPanel("Live Data",
          sidebarLayout(
            sidebarPanel(
-             
              radioButtons(
                "live_data_number",
                choices = c("Multiple", "Single"),
