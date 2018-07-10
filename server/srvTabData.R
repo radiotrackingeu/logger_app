@@ -62,13 +62,16 @@ remote_connections <- reactive({
   }else{
     switch(input$data_type_input,
            "SQLite File" = {
-             if (is.null(input$SQLite_filepath))
-               return(NULL)
-             con <- dbConnect(RSQLite::SQLite(), input$SQLite_filepath$datapath)
-             if (dbExistsTable(con, "rteu_connections")) {
-               tmp <- dbReadTable(con, "rteu_connections")
-             }
-             dbDisconnect(con)
+              tmp <- NULL
+              for (file in input$SQLite_filepath[, "datapath"]) {
+                con <- dbConnect(RSQLite::SQLite(), file)
+                if (dbExistsTable(con, "rteu_connections")) {
+                    tmp <- rbind(tmp, dbReadTable(con, "rteu_connections"))
+                }
+                dbDisconnect(con)
+              }
+              tmp <- unique(tmp)
+              tmp
            },
            "Excel Files" = {
              if(input$excel_data_content=="Connections") {
@@ -91,13 +94,15 @@ frequencies_list <- reactive({
   }else{
     switch(input$data_type_input,
            "SQLite File" = {
-             if (is.null(input$SQLite_filepath))
-               return(NULL)
-             con <- dbConnect(RSQLite::SQLite(), input$SQLite_filepath$datapath)
-             if (dbExistsTable(con, "rteu_freqs")) {
-               tmp <- dbReadTable(con, "rteu_freqs")
-             }
-             dbDisconnect(con)
+              for (file in input$SQLite_filepath[, "datapath"]) {
+                con <- dbConnect(RSQLite::SQLite(), file)
+                if (dbExistsTable(con, "rteu_freqs")) {
+                    tmp <- rbind(tmp, dbReadTable(con, "rteu_freqs"))
+                }
+                dbDisconnect(con)
+              }
+              tmp <- unique(tmp)
+              tmp
            },
            "Excel Files" = {
              if(input$excel_data_content=="Frequencies"){
@@ -119,18 +124,15 @@ receiver_list <- reactive({
     else {
         switch(input$data_type_input,
            "SQLite File" = {
-              data <- data.frame()
-              for (file in input$logger_filepath[, "datapath"]) {
-                data <- read_logger_data(file)
-
-                con <- dbConnect(RSQLite::SQLite(), input$SQLite_filepath$datapath)
+              for (file in input$SQLite_filepath[, "datapath"]) {
+                con <- dbConnect(RSQLite::SQLite(), file)
                 if (dbExistsTable(con, "rteu_antenna")) {
-                    data <- rbind(dbReadTable(con, "rteu_antenna"))
+                    tmp <- rbind(tmp, dbReadTable(con, "rteu_antenna"))
                 }
                 dbDisconnect(con)
               }
-              data <- unique(data)
-              data
+              tmp <- unique(tmp)
+              tmp
            },
            "Excel Files" = {
              if(input$excel_data_content=="Receivers"){
@@ -163,7 +165,7 @@ get_signals <- reactive({
   {
     switch (input$data_type_input,
             'Logger Files' = {
-              data <- data.frame()
+              data <- NULL
               for (file in input$logger_filepath[, "datapath"]) {
                 data <- rbind(data, read_logger_data(file))
               }
@@ -171,19 +173,19 @@ get_signals <- reactive({
               data
             },
             'SQLite File' = {
-              inFile <- input$SQLite_filepath
-              if (is.null(inFile))
-                return(NULL)
-              # open db
-              con <- dbConnect(RSQLite::SQLite(), inFile$datapath)
-              if(!dbExistsTable(con, "rteu_logger_data")) {
-                print("wrong sqlite db selected")
-                dbDisconnect(con)
-                return(NULL)
-              }
-              data <- dbReadTable(con, "rteu_logger_data")
-              data$timestamp <- as.POSIXct(data$timestamp, tz = "UTC", origin = "1970-01-01")
-              dbDisconnect(con)
+                data <- NULL
+                for (file in input$SQLite_filepath[, "datapath"]) {
+                    con <- dbConnect(RSQLite::SQLite(), file)
+                    if (dbExistsTable(con, "rteu_logger_data")) {
+                        data <- rbind(data, dbReadTable(con, "rteu_logger_data"))
+                    }
+                    dbDisconnect(con)
+                }
+                if (!is.null(data)) {
+                    data <- unique(data)
+                    data$timestamp <- as.POSIXct(data$timestamp, tz = "UTC", origin = "1970-01-01")
+                }
+                data
             }
     )
   }
