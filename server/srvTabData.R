@@ -31,21 +31,12 @@ observeEvent(input$add_data,{
   if(input$data_type_input=="Logger Files"||input$data_type_input=="SQLite File"&&!input$read_data_folder){
     global$signals<-unique.data.frame(rbind(cbind(get_signals(),receiver = input$receiver_name_input, Name = input$station_name_input),global$signals))
   }
-
-  update_tab_titles_colours()
 })
 
 js$mark_invalid("Frequencies")
 js$mark_invalid("Receivers")
 js$mark_invalid("Connections")
 js$mark_invalid("Logger data")
-
-update_tab_titles_colours <- function() {
-    update_single_tab_title_colour(global$signals, "Logger data")
-    update_single_tab_title_colour(global$receivers, "Receivers")
-    update_single_tab_title_colour(global$connections, "Connections")
-    update_single_tab_title_colour(global$frequencies, "Frequencies")
-}
 
 update_single_tab_title_colour <- function(data, label) {
     if (!is.null(data)) {
@@ -56,6 +47,10 @@ update_single_tab_title_colour <- function(data, label) {
     }
 }
 
+observe({update_single_tab_title_colour(global$signals, "Logger data")})
+observe({update_single_tab_title_colour(global$receivers, "Receivers")})
+observe({update_single_tab_title_colour(global$connections, "Connections")})
+observe({update_single_tab_title_colour(global$frequencies, "Frequencies")})
 
 ### get data stored in the data folder ###
 
