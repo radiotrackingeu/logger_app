@@ -1,15 +1,17 @@
 required_packages<-c("shiny",
                      "readxl",
                      "ggplot2",
-                     #"leaflet",
-                     #"rgdal",
+                     "leaflet",
+                     "rgdal",
                      "DBI",
                      "RSQLite",
                      #"htmlwidgets",
                      "shinyjs",
-                     "RMySQL"
+                     "DT",
+                     "tools",
+					 "htmltools",
                      #"pool",
-                     #"tools"
+                     "RMySQL"
                      )
 
 install_and_load_packages <- function(x){
@@ -83,6 +85,8 @@ server <- function(input, output, session) {
   source(file.path("server", "srvTabResults.R"),local=TRUE)$value
   source(file.path("server", "srvDoA.R"),local=TRUE)$value
   source(file.path("server", "srvTabBearings.R"),local=TRUE)$value
+  source(file.path("server", "srvTriangulation.R"),local=TRUE)$value
+  source(file.path("server", "srvTabTriangulation.R"),local=TRUE)$value
   #source(file.path("server", "srvTabMap.R"),local=TRUE)$value
   source(file.path("server", "srvFunctions.R"),local=TRUE)$value
   #close all open connections at the end
