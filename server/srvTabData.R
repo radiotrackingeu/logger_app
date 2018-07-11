@@ -22,7 +22,7 @@ observeEvent(input$add_data,{
   global$receivers<-unique.data.frame(rbind(receiver_list(),global$receivers))
   # add frequencies
   global$frequencies<-unique.data.frame(rbind(frequencies_list(),global$frequencies))
-  # add signal data from data/logger folder 
+  # add signal data from data/logger folder
   if(input$read_data_folder && !is.null(local_logger_data())) {
     global$signals<-unique.data.frame(rbind(local_logger_data(),global$signals))
     print(paste("Added",nrow(local_logger_data()),"points of data from local files."))
@@ -32,6 +32,25 @@ observeEvent(input$add_data,{
     global$signals<-unique.data.frame(rbind(cbind(get_signals(),receiver = input$receiver_name_input, Name = input$station_name_input),global$signals))
   }
 })
+
+js$mark_invalid("Frequencies")
+js$mark_invalid("Receivers")
+js$mark_invalid("Connections")
+js$mark_invalid("Logger data")
+
+update_single_tab_title_colour <- function(data, label) {
+    if (!is.null(data)) {
+        js$mark_valid(label)
+    }
+    else {
+        js$mark_invalid(label)
+    }
+}
+
+observe({update_single_tab_title_colour(global$signals, "Logger data")})
+observe({update_single_tab_title_colour(global$receivers, "Receivers")})
+observe({update_single_tab_title_colour(global$connections, "Connections")})
+observe({update_single_tab_title_colour(global$frequencies, "Frequencies")})
 
 ### get data stored in the data folder ###
 
@@ -43,18 +62,22 @@ remote_connections <- reactive({
   }else{
     switch(input$data_type_input,
            "SQLite File" = {
-             if (is.null(input$SQLite_filepath))
-               return(NULL)
-             con <- dbConnect(RSQLite::SQLite(), input$SQLite_filepath$datapath)
-             if (dbExistsTable(con, "rteu_connections")) {
-               tmp <- dbReadTable(con, "rteu_connections")
-             }
-             dbDisconnect(con)
+              tmp <- NULL
+              for (file in input$SQLite_filepath[, "datapath"]) {
+                con <- dbConnect(RSQLite::SQLite(), file)
+                if (dbExistsTable(con, "rteu_connections")) {
+                    tmp <- rbind(tmp, dbReadTable(con, "rteu_connections"))
+                }
+                dbDisconnect(con)
+              }
+              tmp <- unique(tmp)
+              tmp
            },
            "Excel Files" = {
              if(input$excel_data_content=="Connections") {
-               if(is.null(input$excel_filepath_remote))
+               if(is.null(input$excel_filepath_remote)) {
                  return(NULL)
+               }
                tmp<-safe_read_excel(input$excel_filepath_remote$datapath)
              }
            }
@@ -66,17 +89,20 @@ remote_connections <- reactive({
 frequencies_list <- reactive({
   tmp<-NULL
   if(input$read_data_folder){
-    tmp<-read_excel("data/Frequencies.xlsx")
+    tmp<-safe_read_excel("data/Frequencies.xlsx")
+    js$mark_valid("Frequencies")
   }else{
     switch(input$data_type_input,
            "SQLite File" = {
-             if (is.null(input$SQLite_filepath))
-               return(NULL)
-             con <- dbConnect(RSQLite::SQLite(), input$SQLite_filepath$datapath)
-             if (dbExistsTable(con, "rteu_freqs")) {
-               tmp <- dbReadTable(con, "rteu_freqs")
-             }
-             dbDisconnect(con)
+              for (file in input$SQLite_filepath[, "datapath"]) {
+                con <- dbConnect(RSQLite::SQLite(), file)
+                if (dbExistsTable(con, "rteu_freqs")) {
+                    tmp <- rbind(tmp, dbReadTable(con, "rteu_freqs"))
+                }
+                dbDisconnect(con)
+              }
+              tmp <- unique(tmp)
+              tmp
            },
            "Excel Files" = {
              if(input$excel_data_content=="Frequencies"){
@@ -98,19 +124,21 @@ receiver_list <- reactive({
     else {
         switch(input$data_type_input,
            "SQLite File" = {
-             if (is.null(input$SQLite_filepath))
-               return(NULL)
-             con <- dbConnect(RSQLite::SQLite(), input$SQLite_filepath$datapath)
-             if (dbExistsTable(con, "rteu_antenna")) {
-               tmp <- dbReadTable(con, "rteu_antenna")
-             }
-             dbDisconnect(con)
+              for (file in input$SQLite_filepath[, "datapath"]) {
+                con <- dbConnect(RSQLite::SQLite(), file)
+                if (dbExistsTable(con, "rteu_antenna")) {
+                    tmp <- rbind(tmp, dbReadTable(con, "rteu_antenna"))
+                }
+                dbDisconnect(con)
+              }
+              tmp <- unique(tmp)
+              tmp
            },
            "Excel Files" = {
              if(input$excel_data_content=="Receivers"){
-               print(input$excel_filepath_receivers$datapath)
                if(is.null(input$excel_filepath_receivers))
                  return(NULL)
+
                tmp<-safe_read_excel(input$excel_filepath_receivers$datapath)
              }
            }
@@ -130,30 +158,37 @@ local_logger_data <- reactive({
 ### read Signal data from files ###
 
 get_signals <- reactive({
-  switch (input$data_type_input,
-          'Logger Files' = {
-            inFile <- input$logger_filepath
-            if (is.null(inFile))
-              return(NULL)
-            data <- read_logger_data(inFile$datapath)
-            if (is.null(data)) return(NULL)
-          },
-          'SQLite File' = {
-            inFile <- input$SQLite_filepath
-            if (is.null(inFile))
-              return(NULL)
-            # open db
-            con <- dbConnect(RSQLite::SQLite(), inFile$datapath)
-            if(!dbExistsTable(con, "rteu_logger_data")) {
-              print("wrong sqlite db selected")
-              dbDisconnect(con)
-              return(NULL)
+  if(input$read_data_folder){
+    data<-read_logger_folder()
+  }
+  else
+  {
+    switch (input$data_type_input,
+            'Logger Files' = {
+              data <- NULL
+              for (file in input$logger_filepath[, "datapath"]) {
+                data <- rbind(data, read_logger_data(file))
+              }
+              data <- unique(data)
+              data
+            },
+            'SQLite File' = {
+                data <- NULL
+                for (file in input$SQLite_filepath[, "datapath"]) {
+                    con <- dbConnect(RSQLite::SQLite(), file)
+                    if (dbExistsTable(con, "rteu_logger_data")) {
+                        data <- rbind(data, dbReadTable(con, "rteu_logger_data"))
+                    }
+                    dbDisconnect(con)
+                }
+                if (!is.null(data)) {
+                    data <- unique(data)
+                    data$timestamp <- as.POSIXct(data$timestamp, tz = "UTC", origin = "1970-01-01")
+                }
+                data
             }
-            data <- dbReadTable(con, "rteu_logger_data")
-            data$timestamp <- as.POSIXct(data$timestamp, tz = "UTC", origin = "1970-01-01")
-            dbDisconnect(con)
-          }
-  )
+    )
+  }
   data
 })
 
@@ -178,7 +213,7 @@ output$data_tab_preview <- renderDataTable({
     tmp <- get_signals()
   }
   if(input$data_type_input=="SQLite File"){
-    #overview of proterties of file or sub tabs to show content?
+    #overview of properties of file or sub tabs to show content?
     tmp <- get_signals()
   }
   validate(need(tmp, "Please provide file"))

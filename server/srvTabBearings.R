@@ -1,7 +1,7 @@
 ############ srvTabLive.R ############
 
 #calculate calibration factors
-observeEvent(input$correct_signal_strength,{
+observeEvent(input$calibrate_signal_strength,{
   maxis<-NULL
   for(i in unique(as.character(filtered_data()$receiver))){
     tmp<-subset(filtered_data(),receiver == i)

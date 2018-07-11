@@ -23,7 +23,7 @@ addBearing <-function(m, data, strength=25, color="red") {
   utmcoords<-cbind(utmcoords, pos_x_2=utmcoords$X+cospi((90-data$angle)/180)*data$strength*str_mod, pos_y_2=utmcoords$Y+sinpi((90-data$angle)/180)*data$strength*str_mod)
   data<-cbind(data, pos2=utmtowgs(utmcoords$pos_x_2,utmcoords$pos_y_2,utmcoords$zone)[,c(1,2)])
   for (i in 1:nrow(data)) {
-    print(paste("adding line for",data[i,]$freq))
+    # print(paste("adding line for",data[i,]$freq))
     m<-m %>% addPolylines(lng=c(data[i,]$pos_x,data[i,]$pos2.X),lat=c(data[i,]$pos_y,data[i,]$pos2.Y),color=color,group = "bearings",weight = 2, label = htmltools::HTML(sprintf("angle: %i <br/> strength: %.2f",data[i,]$angle, data[i,]$strength)))
   }
   for (i in unique(data$station)){
