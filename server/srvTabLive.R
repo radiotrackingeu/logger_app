@@ -133,52 +133,64 @@ get_mysql_data <- reactive({
     }
 
     if(!is.null(get_info_of_entries())){
-      for(i in get_info_of_entries()[get_info_of_entries()$timestamp!="offline",]$Name){
-        if(is.null(open_connections()[[i]])){
-          results<-data.frame(Name=i,id=NA,timestamp="offline")
-          tmp<-rbind(tmp,results)
-          next
-        }else{
-          if(dbIsValid(open_connections()[[i]])){
-            query_freq_filter<-""
-            if(input$query_filter_freq){
-              for(k in global$frequencies$Frequency){
-                error<-2000
-                center<-150120000
-                and<-""
-                if(any(input$check_sql_duration,input$check_sql_strength)){
-                  and<-"AND("
+        withProgress(
+            expr = {
+                for(i in get_info_of_entries()[get_info_of_entries()$timestamp!="offline",]$Name) {
+                    if(is.null(open_connections()[[i]])) {
+                        print(open_connections()[[i]])
+                        results<-data.frame(Name=i,id=NA,timestamp="offline")
+                        tmp<-rbind(tmp,results)
+                        next
+                    }
+                    else {
+                        if(dbIsValid(open_connections()[[i]])) {
+                            query_freq_filter<-""
+                            if(input$query_filter_freq){
+                                for(k in global$frequencies$Frequency){
+                                    error<-2000
+                                    center<-150120000
+                                    and<-""
+                                    if(any(input$check_sql_duration,input$check_sql_strength)) {
+                                        and<-"AND("
+                                    }
+                                    if(nrow(global$frequencies)>1&&query_freq_filter!=""){
+                                        and<-"OR"
+                                    }
+                                    query_freq_filter<-paste(query_freq_filter,and,"(signal_freq >",k*1000-error-center,"AND signal_freq <",k*1000+error-center,")")
+                                }
+                                if(any(input$check_sql_duration,input$check_sql_strength)){
+                                    query_freq_filter<-paste(query_freq_filter,")")
+                                }
+                            }
+                            where<-""
+                            if(any(input$check_sql_duration,input$check_sql_strength,input$query_filter_freq)){
+                                where<-"WHERE"
+                            }
+                            mysql_query_signals<-paste("SELECT * FROM `signals`",where,query_duration_filter,query_max_signal_filter,query_freq_filter,"ORDER BY id DESC LIMIT",input$live_last_points,";")
+                            print(mysql_query_signals)
+                            signals<-dbGetQuery(open_connections()[[i]],mysql_query_signals)
+                            mysql_query_runs<-paste("SELECT * FROM `runs` ORDER BY id DESC LIMIT",input$live_last_points,";")
+                            runs<-dbGetQuery(open_connections()[[i]],mysql_query_runs)
+                            if(nrow(signals)>0){
+                                results<-merge(signals,runs,by.x="run",by.y="id")
+                                results$Name<-i
+                                tmp<-rbind(tmp,results)
+                            }
+                        }
+                        else{
+                            results<-data.frame(Name=i,id=NA,timestamp="offline")
+                            tmp<-rbind(tmp,results)
+                        }
+                    }
+                    incProgress(amount=1)
                 }
-                if(nrow(global$frequencies)>1&&query_freq_filter!=""){
-                  and<-"OR"
-                }
-                query_freq_filter<-paste(query_freq_filter,and,"(signal_freq >",k*1000-error-center,"AND signal_freq <",k*1000+error-center,")")
-              }
-              if(any(input$check_sql_duration,input$check_sql_strength)){
-                query_freq_filter<-paste(query_freq_filter,")")
-              }
-            }
-            where<-""
-            if(any(input$check_sql_duration,input$check_sql_strength,input$query_filter_freq)){
-              where<-"WHERE"
-            }
-            mysql_query_signals<-paste("SELECT * FROM `signals`",where,query_duration_filter,query_max_signal_filter,query_freq_filter,"ORDER BY id DESC LIMIT",input$live_last_points,";")
-            print(mysql_query_signals)
-            signals<-dbGetQuery(open_connections()[[i]],mysql_query_signals)
-            mysql_query_runs<-paste("SELECT * FROM `runs` ORDER BY id DESC LIMIT",input$live_last_points,";")
-            runs<-dbGetQuery(open_connections()[[i]],mysql_query_runs)
-            if(nrow(signals)>0){
-              results<-merge(signals,runs,by.x="run",by.y="id")
-              results$Name<-i
-              tmp<-rbind(tmp,results)
-            }
-          }else{
-            results<-data.frame(Name=i,id=NA,timestamp="offline")
-            tmp<-rbind(tmp,results)
-          }
-        }
-      }
-    }else{
+            },
+            message = "Loading data: ",
+            max = nrow(get_info_of_entries()[get_info_of_entries()$timestamp!="offline",]),
+            value = 0
+        )
+    }
+    else{
       tmp<-NULL
     }
     return(tmp)
