@@ -1,10 +1,18 @@
-required_packages <- c("shiny", 
-                       "shinyjs", 
-                       "readxl", 
-                       "ggplot2", 
-                       "DBI", 
-                       "RSQLite", 
-                       "RMySQL")
+required_packages<-c("shiny",
+                     "readxl",
+                     "ggplot2",
+                     "leaflet",
+                     "rgdal",
+                     "DBI",
+                     "RSQLite",
+                     #"htmlwidgets",
+                     "shinyjs",
+                     "DT",
+                     #"tools",
+					           "htmltools",
+                     #"pool",
+                     "RMySQL"
+                     )
 
 # try to load packages and install missing ones
 for (package in required_packages) {
@@ -43,6 +51,7 @@ server <- function(input, output, session) {
   source("server/srvTabResults.R", local = TRUE)$value
   source("server/srvDoA.R", local = TRUE)$value
   source("server/srvTabBearings.R", local = TRUE)$value
+  source("server/srvTabTriangulation.R",local = TRUE)$value
   source("server/srvFunctions.R", local = TRUE)$value
   #source("server/srvTabMap.R", local = TRUE)$value
 

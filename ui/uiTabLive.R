@@ -1,7 +1,6 @@
 tabPanel("Live Data",
          sidebarLayout(
            sidebarPanel(
-             
              radioButtons(
                "live_data_number",
                choices = c("Multiple", "Single"),
@@ -11,7 +10,7 @@ tabPanel("Live Data",
              uiOutput('single_multiple_con_tags'),
              numericInput("live_last_points", "Number of entries to read", 50, 1, 10000),
              actionButton("connect_mysql","Connect to DBs"),
-             actionButton("load_mysql_data","Load Data"), #render UI
+             actionButton("load_mysql_data","Load Data"),
              checkboxInput("app_live_mod", "Live Mode"),
              conditionalPanel("input.app_live_mod",
                               numericInput("live_update_intervall", "Data update interval:", 5, 1, 60)
