@@ -16,13 +16,11 @@ global <- reactiveValues()
 
 # Add Data Button is pressed
 observeEvent(input$add_data,{
-  # add connections
   global$connections<-unique.data.frame(rbind(remote_connections(),global$connections))
-  # add receivers/antennas
   global$receivers<-unique.data.frame(rbind(receiver_list(),global$receivers))
-  # add frequencies
   global$frequencies<-unique.data.frame(rbind(frequencies_list(),global$frequencies))
-  # add signal data from data/logger folder
+  global$calibration <- unique.data.frame(rbind(calibrations_list(), global$calibration))
+
   if(input$read_data_folder && !is.null(local_logger_data())) {
     global$signals<-unique.data.frame(rbind(local_logger_data(),global$signals))
     print(paste("Added",nrow(local_logger_data()),"points of data from local files."))
@@ -147,6 +145,25 @@ receiver_list <- reactive({
   return(tmp)
 })
 
+calibrations_list <- reactive({
+    tmp <- NULL
+
+    if (input$read_data_folder) {
+        tmp <- safe_read_excel("data/Calibrations.xlsx")
+    }
+    else {
+        switch(input$data_type_input,
+            # TODO SQLite File
+            "Excel Files" = {
+                if (input$excel_data_content == "Calibrations" && !is.null(input$excel_filepath_calibrations)) {
+                    tmp <- safe_read_excel(input$excel_filepath_calibrations$datapath)
+                }
+            }
+        )
+    }
+    tmp
+})
+
 local_logger_data <- reactive({
   tmp<-NULL
   if (input$read_data_folder){
@@ -206,6 +223,9 @@ output$data_tab_preview <- renderDataTable({
            },
            Connections = {
              tmp <- remote_connections()
+           },
+           Calibrations = {
+             tmp <- calibrations_list()
            }
     )
   }
