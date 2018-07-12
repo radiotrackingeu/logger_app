@@ -7,7 +7,7 @@ required_packages<-c("shiny",
                      "RSQLite",
                      #"htmlwidgets",
                      "shinyjs",
-                     "DT",
+                     #"DT",
                      #"tools",
 					           "htmltools",
                      #"pool",
@@ -52,6 +52,8 @@ server <- function(input, output, session) {
   source("server/srvDoA.R", local = TRUE)$value
   source("server/srvTabBearings.R", local = TRUE)$value
   source("server/srvTabTriangulation.R",local = TRUE)$value
+  source("server/srvMapFuncs.R",local=TRUE)$value
+  source("server/srvTriangulation.R",local=TRUE)$value
   source("server/srvFunctions.R", local = TRUE)$value
   #source("server/srvTabMap.R", local = TRUE)$value
 

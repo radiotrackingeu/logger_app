@@ -61,7 +61,7 @@ tabPanel("Triangulation",
       height="auto",
       HTML('<b data-toggle="collapse" data-target="#tri_signals_content" style="cursor:pointer">Signals</b>'),
       div(id = 'tri_signals_content',  class="collapse in",
-        DTOutput("tri_positions_and_angles")
+        dataTableOutput("tri_positions_and_angles")
       )
     ),
     absolutePanel(
