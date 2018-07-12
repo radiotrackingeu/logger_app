@@ -136,6 +136,7 @@ get_mysql_data <- reactive({
         withProgress(
             expr = {
                 for(i in get_info_of_entries()[get_info_of_entries()$timestamp!="offline",]$Name) {
+                    setProgress(detail=i)
                     if(is.null(open_connections()[[i]])) {
                         print(open_connections()[[i]])
                         results<-data.frame(Name=i,id=NA,timestamp="offline")
