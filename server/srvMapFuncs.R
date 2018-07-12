@@ -11,27 +11,81 @@ addAntennaeCones<- function(m) {
   return(m)
 }
 
-# adds a line representing a bearing. Starts at station position, with the given angle. Length is adjusted according to signal strength
-addBearing <-function(m, data, strength=25, color="red") {
+#' adds lines representing bearings. Starts at station position, with the given angle. Length is adjusted according to signal strength
+#'
+#' @param m the map to add to
+#' @param data data.frame with at least columns station(char),angle(num),pos_x(num),pos_y(num),utm.X(num),utm.Y(num),utm.zone(num). Values in station must be from global$receivers. column strength(num) is optional
+#' @param strength determines length of line drawn. default is 25
+#' @param color color to be used for the lines. default is "red"
+#' @param group leaflet group for the lines, default is "bearings"
+#'
+#' @return a map object containing m and the new lines
+addBearings <-function(m, data, strength=25, color="red", group="bearings") {
   if (is.null(data))
     return(m)
   str_mod<-50
-  data<-merge(data,global$receivers[,c("receiver","pos_x","pos_y")],by.x="station",by.y="receiver")
   if(!("strength" %in% colnames(data)))
     data<-cbind(data, strength=strength)
-  utmcoords<-wgstoutm(data[,"pos_x"],data[,"pos_y"])
-  utmcoords<-cbind(utmcoords, pos_x_2=utmcoords$X+cospi((90-data$angle)/180)*data$strength*str_mod, pos_y_2=utmcoords$Y+sinpi((90-data$angle)/180)*data$strength*str_mod)
-  data<-cbind(data, pos2=utmtowgs(utmcoords$pos_x_2,utmcoords$pos_y_2,utmcoords$zone)[,c(1,2)])
+  data<-cbind(data, utm2.X=data$utm.X+cospi((90-data$angle)/180)*data$strength*str_mod, utm2.Y=data$utm.Y+sinpi((90-data$angle)/180)*data$strength*str_mod)
+  data<-cbind(data, pos2=utmtowgs(data$utm2.X,data$utm2.Y,data$utm.zone))
   for (i in 1:nrow(data)) {
-    # print(paste("adding line for",data[i,]$freq))
-    m<-m %>% addPolylines(lng=c(data[i,]$pos_x,data[i,]$pos2.X),lat=c(data[i,]$pos_y,data[i,]$pos2.Y),color=color,group = "bearings",weight = 2, label = htmltools::HTML(sprintf("angle: %i <br/> strength: %.2f",data[i,]$angle, data[i,]$strength)))
-  }
-  for (i in unique(data$station)){
-    station<-global$receivers[global$receivers$receiver==i,]
-    m<-m %>% addCircles(lng=station$pos_x, lat=station$pos_y,label = i)
+    line<-data[i,]
+    m<-m %>% addPolylines(lng=c(line$pos_x,line$pos2.X),lat=c(line$pos_y,line$pos2.Y),color=color,group = group, weight = 2, label = htmltools::HTML(sprintf("angle: %i <br/> strength: %.2f",line$angle, line$strength)))
   }
   return(m)
 }
+
+
+#' Adds circles representing stations to given map.
+#'
+#' @param m the map to add to
+#' @param data data.frame with at least columns station(char),pos_x(num),pos_y(num). Values in station must be from global$receivers.
+#' @param color color to be used default "blue"
+#' @param size size of circle to be drawn, default 5
+#' @param group leaflet group, default "stations"
+#'
+#' @return a new map object containing the old plus the stations
+addStations <-function(m, data, color="blue", size=5, group="stations") {
+  data<-data[!duplicated(data[,"station"]),]
+  m<-m%>% addCircles(lng = data$pos_x, lat=data$pos_y, label=data$station, group = group)
+}
+
+addTriangulations <- function(m, data, colorDot="red", sizeDot=5, colorZone="blue", groupDot="triangulations", groupZone=triangulationsError) {
+  # list_of_timestamps<-unique(data$timestamp)
+  # 
+  # for (i in list_of_timestamps) {
+  #   
+  # }
+}
+
+tri_timeslot_data <- reactive ({
+  return_tmp<-data.frame(timestamp=NA,freq=NA,station=NA,angle=NA)
+  data<-tri_position_data()
+  #find for each receiver
+  list_of_stations<-unique(data$station)
+  #and each frequency
+  list_of_frequencies<-unique(data$freq)
+  #signals which appear betweeen time_distance[1] and time_distance[2] seconds
+  for (t in seq(min(data$timestamp),max(data$timestamp),5)) {
+    data_t<-subset(data, data$timestamp >= t & data$timestamp < t+5)
+    for (f in unique(data_t$freq)) {
+      data_tf <- subset(data_t, data_t$freq==f)
+      for (s in unique(data_tf$station)) {
+        data_tfs <- subset(data_tf, data_tf$station==s)
+        # print(data_tfs)
+        if (nrow(data_tfs > 0)) {
+          line<-c(timestamp=t,freq=f,station=s,angle=mean(data_tfs$angle))
+          # print(line)
+          return_tmp<-rbind(return_tmp,line)
+        }
+        else 
+          print(paste("No data for ",t,f,s))
+      }
+    }
+  }
+  print(return_tmp)
+})
+
 
 # calculates cone shapes
 antennae_cones<-reactive({
