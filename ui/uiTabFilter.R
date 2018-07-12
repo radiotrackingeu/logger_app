@@ -75,8 +75,6 @@ tabPanel("Filter",
                   #uiOutput("correction_list"),
                   #numericInput("dBLoss","dB between Antennas", 13 , min = 0 ,max = 50),
                   #numericInput("angle_sep","Anlge between Antennas", 90 , min = 0 ,max = 359),
-                  #downloadButton("download_filtered_data_csv"),
-                  downloadButton("download_filtered_data_sqlite")
                   #h5("y=A*exp(B*Temperature)"),
                   #numericInput("temp_cal_a","Enter Coefficient A",value=20.307)
                   #numericInput("temp_cal_b","Enter Coefficient B",value=0.0408)
