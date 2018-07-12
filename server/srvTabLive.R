@@ -83,38 +83,53 @@ open_connections <- reactive({
 get_info_of_entries <- reactive({
   tmp<-data.frame()
   if(!is.null(global$connections)){
-    for(i in global$connections$Name){
-      if(is.null(open_connections()[[i]])){
-        results<-data.frame(Name=i,id=NA,timestamp="unknown",size="unknown",running="unknown")
-        tmp<-rbind(tmp,results)
-        next
-      }else{
-        if(dbIsValid(open_connections()[[i]])){
-          results<-dbGetQuery(open_connections()[[i]],"SELECT id,timestamp FROM `signals` ORDER BY id DESC LIMIT 1;")
-          results$size <- dbGetQuery(open_connections()[[i]], '
-                SELECT ROUND(SUM(data_length + index_length) / 1024 / 1024, 1) "size"
-                FROM information_schema.tables;
-            ')$size
-          if(as.POSIXlt(Sys.time(), tz="UTC")-as.POSIXlt(results$timestamp, tz="UTC")<360){
-            results$running<-"Yes"
-          }else{
-            results$running<-"No"
+    withProgress(
+        expr = { for(i in global$connections$Name){
+          setProgress(detail=i)
+          if(is.null(open_connections()[[i]])){
+            results<-data.frame(Name=i,id=NA,timestamp="unknown",size="unknown",running="unknown")
+            tmp<-rbind(tmp,results)
+            next
           }
-          if(nrow(results)==0){
-            results<-data.frame(id = 0 , timestamp="logger not running")
+          else {
+            if(dbIsValid(open_connections()[[i]])) {
+              results<-dbGetQuery(open_connections()[[i]],"SELECT id,timestamp FROM `signals` ORDER BY id DESC LIMIT 1;")
+              results$size <- dbGetQuery(open_connections()[[i]], '
+                    SELECT ROUND(SUM(data_length + index_length) / 1024 / 1024, 1) "size"
+                    FROM information_schema.tables;
+                ')$size
+              if(as.POSIXlt(Sys.time(), tz="UTC")-as.POSIXlt(results$timestamp, tz="UTC")<360){
+                results$running<-"Yes"
+              }else{
+                results$running<-"No"
+              }
+              if(nrow(results)==0){
+                results<-data.frame(id = 0 , timestamp="logger not running")
+              }
+              results$Name<-i
+              tmp<-rbind(tmp,results)
+            }else{
+              results<-data.frame(Name=i,id=NA,timestamp="offline")
+              tmp<-rbind(tmp,results)
+            }
           }
-          results$Name<-i
-          tmp<-rbind(tmp,results)
-        }else{
-          results<-data.frame(Name=i,id=NA,timestamp="offline")
-          tmp<-rbind(tmp,results)
+          incProgress(amount=1)
         }
-      }
-    }
+        },
+      message = "Fetching additional informations: ",
+      max = nrow(global$connections),
+      value = 0
+    )
   }else{
     tmp<-NULL
   }
   return(tmp)
+})
+
+observe({
+    if (input$load_mysql_data) {
+        updateTabsetPanel(session, "live_tab_tabset", selected = "List of Data")
+    }
 })
 
 get_mysql_data <- reactive({
@@ -136,6 +151,7 @@ get_mysql_data <- reactive({
         withProgress(
             expr = {
                 for(i in get_info_of_entries()[get_info_of_entries()$timestamp!="offline",]$Name) {
+                    setProgress(detail=i)
                     if(is.null(open_connections()[[i]])) {
                         print(open_connections()[[i]])
                         results<-data.frame(Name=i,id=NA,timestamp="offline")
@@ -193,7 +209,7 @@ get_mysql_data <- reactive({
     else{
       tmp<-NULL
     }
-    return(tmp)
+    global$tmp_data <- tmp
   }
 })
 
@@ -212,7 +228,7 @@ keepalive_data<-reactive({
   tmp<-get_mysql_data()
   if(is.null(tmp)) return(NULL)
   if(nrow(tmp)==0) return(NULL)
-  tmp<-subset(get_mysql_data(),signal_freq==0)
+  tmp<-subset(get_mysql_data, signal_freq==0)
   tmp$timestamp<-as.POSIXct(tmp$timestamp)
   data.frame(Timestamp = tmp$timestamp,Station = tmp$Name, Receiver = substrLeft(tmp$device,17))
 })

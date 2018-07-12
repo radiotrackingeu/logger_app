@@ -29,6 +29,7 @@ tabPanel("Live Data",
            ),
            mainPanel(
              tabsetPanel(
+             id = "live_tab_tabset",
              tabPanel("List of Connections",
                       dataTableOutput("live_tab_remote_entries_table")
                       ),

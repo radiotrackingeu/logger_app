@@ -70,13 +70,11 @@ tabPanel("Filter",
                               value = c(0.8,1.2)),
                   selectInput("input_select_receiver", "Select Receiver/s", choices = NULL, multiple = TRUE, selectize = TRUE),
                   selectInput("input_select_station", "Select Station/s", choices = NULL, multiple = TRUE, selectize = TRUE),
-                  textOutput("total_counts"),
+                  textOutput("total_counts")
                   #checkboxInput("correct_signal_strength",strong("Signal Strength Correction"),value = FALSE),
                   #uiOutput("correction_list"),
                   #numericInput("dBLoss","dB between Antennas", 13 , min = 0 ,max = 50),
                   #numericInput("angle_sep","Anlge between Antennas", 90 , min = 0 ,max = 359),
-                  #downloadButton("download_filtered_data_csv"),
-                  downloadButton("download_filtered_data_sqlite")
                   #h5("y=A*exp(B*Temperature)"),
                   #numericInput("temp_cal_a","Enter Coefficient A",value=20.307)
                   #numericInput("temp_cal_b","Enter Coefficient B",value=0.0408)
