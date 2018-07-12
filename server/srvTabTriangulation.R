@@ -16,7 +16,7 @@ tri_filtered_data<-reactive({
 
 
 output$map_triangulation <- renderLeaflet({
-    m <- leaflet() %>% addTiles() 
+    m <- leaflet() %>% addTiles()
     m <- m %>% addBearing(tri_filtered_data())
 })
 
@@ -28,7 +28,7 @@ output$tri_positions_and_angles<-renderDT({
 
 observe({
   validate(need(global$frequencies, "Please provide frequency data."))
-    updateSelectizeInput(session, "tri_frequency", choices=global$frequencies$Name)
+    updateSelectizeInput(session, "tri_frequency", choices=global$frequencies$label)
 })
 
 output$tri_ui_timeline<-renderUI({
