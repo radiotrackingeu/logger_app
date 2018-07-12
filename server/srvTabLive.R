@@ -126,6 +126,12 @@ get_info_of_entries <- reactive({
   return(tmp)
 })
 
+observe({
+    if (input$load_mysql_data) {
+        updateTabsetPanel(session, "live_tab_tabset", selected = "List of Data")
+    }
+})
+
 get_mysql_data <- reactive({
   if(!is.null(get_info_of_entries())&&input$load_mysql_data){
     tmp<-data.frame()
@@ -203,7 +209,7 @@ get_mysql_data <- reactive({
     else{
       tmp<-NULL
     }
-    return(tmp)
+    global$tmp_data <- tmp
   }
 })
 
@@ -222,7 +228,7 @@ keepalive_data<-reactive({
   tmp<-get_mysql_data()
   if(is.null(tmp)) return(NULL)
   if(nrow(tmp)==0) return(NULL)
-  tmp<-subset(get_mysql_data(),signal_freq==0)
+  tmp<-subset(get_mysql_data, signal_freq==0)
   tmp$timestamp<-as.POSIXct(tmp$timestamp)
   data.frame(Timestamp = tmp$timestamp,Station = tmp$Name, Receiver = substrLeft(tmp$device,17))
 })
