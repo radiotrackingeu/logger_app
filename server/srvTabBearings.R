@@ -1,4 +1,4 @@
-############ srvTabLive.R ############
+############ srvTabBearings.R ############
 
 #calculate calibration factors
 observeEvent(input$calibrate_signal_strength,{
@@ -49,7 +49,7 @@ doa_data<- reactive({
   #for each line of data
   for(i in 1:nrow(tmp_new)){
     # sort by signal strength
-    tmp_sort<-data.frame(receiver=names(tmp_new[,3:ncol(tmp_new)]),max_signal=as.numeric(tmp_new[i,3:ncol(tmp_new)]))    
+    tmp_sort<-data.frame(receiver=names(tmp_new[,3:ncol(tmp_new)]),max_signal=as.numeric(tmp_new[i,3:ncol(tmp_new)]))
     tmp_sort<-tmp_sort[order(tmp_sort$max_signal, decreasing = TRUE, na.last=NA),]
     # signal received by more than 1 antenna?
     if(nrow(tmp_sort)>1){
@@ -57,7 +57,7 @@ doa_data<- reactive({
       delta_siglev_1_2 <- tmp_sort$max_signal[1] - tmp_sort$max_signal[2]
       if (delta_siglev_1_2 > lin_range_threshold){
         # use 3 antenna signals for approximation
-        
+
         # find left/right and rear antenna
         tmp_front<-subset(global$receivers,Name==tmp_sort$receiver[1])
         tmp_angle_front<-tmp_front$Orientation[1]
@@ -70,13 +70,13 @@ doa_data<- reactive({
         tmp_angle_rear<-tmp_angle_front+180
         if(tmp_angle_rear>360)
           tmp_angle_rear<-tmp_angle_rear-360
-        
+
         # get data for left, right, rear antenna
         rx_front<-tmp_front$receiver[1]
         rx_left<-subset(global$receivers,Orientation==tmp_angle_left)$Name[1]
         rx_right<-subset(global$receivers,Orientation==tmp_angle_right)$Name[1]
         rx_rear<-subset(global$receivers,Orientation==tmp_angle_rear)$Name[1]
-        
+
         sig_front<-subset(tmp_sort,receiver==rx_front)$max_signal
         sig_left<-subset(tmp_sort,receiver==rx_left)$max_signal
         if(length(sig_left)==0){sig_left<-0}
@@ -86,43 +86,42 @@ doa_data<- reactive({
         if(length(sig_rear)==0){
           sig_rear<-0
         }
-        
+
         # delta front ant. to other
         delta_siglev_1_left <- sig_front - sig_left
         delta_siglev_1_right <- sig_front - sig_right
         delta_siglev_1_rear <- sig_front <- sig_rear
-        
-        
+
       }else{
         # linear approximation
         tmp_w1<-subset(global$receivers,Name==tmp_sort$receiver[1])$Orientation[1]
         tmp_w2<-subset(global$receivers,Name==tmp_sort$receiver[2])$Orientation[1]
         tmp_new$angle[i]<-get_angle_linear(tmp_sort$max_signal[1],tmp_sort$max_signal[2],tmp_w1,tmp_w2,60,60)
       }
-      
-      
-      
-      
-      
+
+
+
+
+
       # source("D:\\Documents\\radio-tracking-eu\\development\\radiotrackingeu\\logger_map_app\\server\\Winkelberechnung.R")
-      
+
       # sig_diff1 <- abs(sig_front - sig_right)
       # sig_diff2 <- abs(sig_right - sig_rear)
       # sig_diff3 <- abs(sig_rear - sig_left)
       # sig_diff4 <- abs(sig_left - sig_front)
-      # 
+      #
       # ant = sqrt(sig_diff1^2 + sig_diff2^2 + sig_diff3^2 + sig_diff4^2)
       # antdiff <- abs(aref - ant)
       # tmp_new$angle[i] <- which.min(antdiff)
-      
-      
+
+
       # if(sig_left>sig_right){
       #   tmp_new$angle[i]<-get_angle_linear(sig_left,sig_front,tmp_angle_left,tmp_angle_front,60,60)
       # }
       # else{
       #   tmp_new$angle[i]<-get_angle_linear(sig_front,sig_right,tmp_angle_front,tmp_angle_right,60,60)
       # }
-      
+
       "if(sig_left!=0&&sig_right!=0){
       tmp_new$angle[i]<-calc_angle(sig_left,sig_right,tmp_angle_left,tmp_angle_right,60,60)
     }else{
@@ -148,7 +147,7 @@ angle_linear<-reactive({
   tmp_new<-list_data_time_receiver(tmp)
   tmp_new$angle<-NA
   for(i in 1:nrow(tmp_new)){
-    tmp_sort<-data.frame(receiver=names(tmp_new[,3:ncol(tmp_new)]),max_signal=as.numeric(tmp_new[i,3:ncol(tmp_new)]))    
+    tmp_sort<-data.frame(receiver=names(tmp_new[,3:ncol(tmp_new)]),max_signal=as.numeric(tmp_new[i,3:ncol(tmp_new)]))
     tmp_sort<-tmp_sort[order(tmp_sort$max_signal, decreasing = TRUE, na.last=NA),]
     if(nrow(tmp_sort)>1){
       tmp_w1<-subset(global$receivers,Name==tmp_sort$receiver[1])$Orientation[1]
@@ -159,7 +158,7 @@ angle_linear<-reactive({
   tmp_new
 })
 
-# linear approximation 
+# linear approximation
 calc_angle_linear <- function(sig_a, sig_b, angle_a, angle_b, oe_winkel_a, oe_winkel_b){
   #condition: a<b and angle not bigger then 180
   #half_gain_dBm<-3

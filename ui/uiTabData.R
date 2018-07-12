@@ -1,10 +1,9 @@
 tabPanel("File Input",
          sidebarLayout(
            sidebarPanel(
-             checkboxInput("read_data_folder", "read data stored in the data folder"),
              radioButtons(
                "data_type_input",
-               choices = c("SQLite File", "Excel Files", "Logger Files"),
+               choices = c("SQLite File", "Excel Files", "Logger Files", "Data folder"),
                label = "Add data using:",
                selected = "SQLite File"
              ),
