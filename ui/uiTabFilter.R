@@ -70,7 +70,7 @@ tabPanel("Filter",
                               value = c(0.8,1.2)),
                   selectInput("input_select_receiver", "Select Receiver/s", choices = NULL, multiple = TRUE, selectize = TRUE),
                   selectInput("input_select_station", "Select Station/s", choices = NULL, multiple = TRUE, selectize = TRUE),
-                  textOutput("total_counts"),
+                  textOutput("total_counts")
                   #checkboxInput("correct_signal_strength",strong("Signal Strength Correction"),value = FALSE),
                   #uiOutput("correction_list"),
                   #numericInput("dBLoss","dB between Antennas", 13 , min = 0 ,max = 50),
