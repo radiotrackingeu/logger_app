@@ -219,14 +219,40 @@ output$data_tab_preview <- renderDataTable({
            }
     )
   }
-  if(input$data_type_input=="Logger Files"){
+  else if(input$data_type_input=="Logger Files") {
     tmp <- get_signals()
   }
-  if(input$data_type_input=="SQLite File"){
-    #overview of properties of file or sub tabs to show content?
-    tmp <- get_signals()
+  else if (input$data_type_input=="SQLite File") {
+      files_count <- nrow(input$SQLite_filepath)
+
+      tmp <- NULL
+      if (!is.null(files_count) && files_count > 0 ) {
+          for (file_id in files_count) {
+            file <- input$SQLite_filepath[file_id, ]
+
+            con <- dbConnect(RSQLite::SQLite(), file$datapath)
+            tables <- dbListTables(con)
+
+            rows <- NULL
+            for (table in tables) {
+                query <- paste("SELECT count(*) FROM ", table)
+                result <- dbGetQuery(con, query)
+
+                rows <- rbind(rows, data.frame(table, result, file$name))
+            }
+
+            tmp <- rbind(tmp, rows)
+            dbDisconnect(con)
+        }
+    }
+
+    if (!is.null(tmp)) {
+        colnames(tmp) <- c("Table", "Entries count", "File")
+    }
+
+    tmp
   }
-  if (input$data_type_input == "Data folder") {
+  else if (input$data_type_input == "Data folder") {
     tmp <- receiver_list()
   }
   tmp
