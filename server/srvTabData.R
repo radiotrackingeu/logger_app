@@ -263,7 +263,7 @@ output$data_tab_preview <- renderDataTable({
 
                 if (file.exists(filepath)) {
                     # data read once and thrown away, ok since small files
-                    data <- safe_read_excel(filepath)
+                    data <- safe_read_excel_silent(filepath)
 
                     if (is.null(data)) {
                         row <- c(file, "yes", "error while reading", filepath)
