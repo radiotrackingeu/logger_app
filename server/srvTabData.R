@@ -19,7 +19,7 @@ observeEvent(input$add_data,{
   global$connections<-unique.data.frame(rbind(remote_connections(),global$connections))
   global$receivers<-unique.data.frame(rbind(receiver_list(),global$receivers))
   global$frequencies<-unique.data.frame(rbind(frequencies_list(),global$frequencies))
-  global$calibration <- unique.data.frame(rbind(calibrations_list(), global$calibration))
+  global$calibration <- unique.data.frame(rbind(calibration_list(), global$calibration))
 
   if(input$data_type_input == "Data folder" && !is.null(local_logger_data())) {
     global$signals<-unique.data.frame(rbind(local_logger_data(),global$signals))
@@ -57,7 +57,7 @@ remote_connections <- reactive({
   tmp<-NULL
     switch(input$data_type_input,
            "Data folder" = {
-                tmp<-safe_read_excel("data/RemoteConnections.xlsx")
+                tmp<-safe_read_excel_silent("data/RemoteConnections.xlsx")
            },
            "SQLite File" = {
               tmp <- NULL
@@ -87,7 +87,7 @@ frequencies_list <- reactive({
   tmp<-NULL
     switch(input$data_type_input,
             "Data folder" = {
-                tmp<-safe_read_excel("data/Frequencies.xlsx")
+                tmp<-safe_read_excel_silent("data/Frequencies.xlsx")
             },
            "SQLite File" = {
               for (file in input$SQLite_filepath[, "datapath"]) {
@@ -115,7 +115,7 @@ receiver_list <- reactive({
     tmp<-NULL
         switch(input$data_type_input,
            "Data folder" = {
-               tmp<-safe_read_excel("data/Antennas.xlsx")
+               tmp<-safe_read_excel_silent("data/Antennas.xlsx")
            },
            "SQLite File" = {
               for (file in input$SQLite_filepath[, "datapath"]) {
@@ -140,17 +140,17 @@ receiver_list <- reactive({
   return(tmp)
 })
 
-calibrations_list <- reactive({
+calibration_list <- reactive({
     tmp <- NULL
 
         switch(input$data_type_input,
             "Data folder" = {
-                tmp <- safe_read_excel("data/Calibrations.xlsx")
+                tmp <- safe_read_excel_silent("data/Calibration.xlsx")
             },
             # TODO SQLite File
             "Excel Files" = {
-                if (input$excel_data_content == "Calibrations" && !is.null(input$excel_filepath_calibrations)) {
-                    tmp <- safe_read_excel(input$excel_filepath_calibrations$datapath)
+                if (input$excel_data_content == "Calibration" && !is.null(input$excel_filepath_calibration)) {
+                    tmp <- safe_read_excel(input$excel_filepath_calibration$datapath)
                 }
             }
         )
@@ -203,64 +203,95 @@ get_signals <- reactive({
 ### render Tables ###
 
 output$data_tab_preview <- renderDataTable({
-  if(input$data_type_input=="Excel Files"){
-    switch(input$excel_data_content,
-           Receivers = {
-             tmp <- receiver_list()
-           },
-           Frequencies = {
-             tmp <- frequencies_list()
-           },
-           Connections = {
-             tmp <- remote_connections()
-           },
-           Calibrations = {
-             tmp <- calibrations_list()
-           }
-    )
-  }
-  else if(input$data_type_input=="Logger Files") {
-    tmp <- get_signals()
-  }
-  else if (input$data_type_input=="SQLite File") {
-      files_count <- nrow(input$SQLite_filepath)
+    switch(input$data_type_input,
+        "Excel Files" = {
+            switch(input$excel_data_content,
+                Receivers = {
+                    tmp <- receiver_list()
+                },
+                Frequencies = {
+                    tmp <- frequencies_list()
+                },
+                Connections = {
+                    tmp <- remote_connections()
+                },
+                Calibration = {
+                    tmp <- calibration_list()
+                }
+            )
+        },
+        "Logger Files" = {
+            tmp <- get_signals()
+        },
+        "SQLite File" = {
+            files_count <- nrow(input$SQLite_filepath)
 
-      tmp <- NULL
-      if (!is.null(files_count) && files_count > 0 ) {
-          for (file_id in files_count) {
-            file <- input$SQLite_filepath[file_id, ]
+            tmp <- NULL
+            if (!is.null(files_count) && files_count > 0 ) {
+                for (file_id in files_count) {
+                    file <- input$SQLite_filepath[file_id, ]
 
-            con <- dbConnect(RSQLite::SQLite(), file$datapath)
-            tables <- dbListTables(con)
+                    con <- dbConnect(RSQLite::SQLite(), file$datapath)
+                    tables <- dbListTables(con)
 
-            rows <- NULL
-            for (table in tables) {
-                query <- paste("SELECT count(*) FROM ", table)
-                result <- dbGetQuery(con, query)
+                    rows <- NULL
+                    for (table in tables) {
+                        query <- paste("SELECT count(*) FROM ", table)
+                        result <- dbGetQuery(con, query)
 
-                rows <- rbind(rows, data.frame(table, result, file$name))
+                        rows <- rbind(rows, data.frame(table, result, file$name))
+                    }
+
+                    tmp <- rbind(tmp, rows)
+                    dbDisconnect(con)
+                }
             }
 
-            tmp <- rbind(tmp, rows)
-            dbDisconnect(con)
+            if (!is.null(tmp)) {
+                colnames(tmp) <- c("Table", "Entries count", "File")
+            }
+
+            tmp
+        },
+        "Data folder" = {
+            tmp <- NULL
+
+            files <- c("Antennas", "Frequencies", "RemoteConnections", "Calibration")
+
+            for (file in files) {
+                filepath = paste0("data/", file, ".xlsx")
+
+                if (file.exists(filepath)) {
+                    # data read once and thrown away, ok since small files
+                    data <- safe_read_excel_silent(filepath)
+
+                    if (is.null(data)) {
+                        row <- c(file, "yes", "error while reading", filepath)
+                    }
+                    else {
+                        row <- c(file, "yes", nrow(data), filepath)
+                    }
+                }
+                else {
+                    row <- c(file, "no", 0, filepath)
+                }
+
+                tmp <- rbind(tmp, row)
+            }
+
+            if (!is.null(tmp)) {
+                colnames(tmp) <- c("Information type", "Found", "Rows count", "Filepath")
+            }
+
+            tmp
         }
-    }
-
-    if (!is.null(tmp)) {
-        colnames(tmp) <- c("Table", "Entries count", "File")
-    }
-
+    )
     tmp
-  }
-  else if (input$data_type_input == "Data folder") {
-    tmp <- receiver_list()
-  }
-  tmp
 }, options = list(pageLength = 10))
 
 output$data_tab_logger_table <- renderDataTable({
   validate(need(global$signals, "Please provide logger data file."))
-  global$signals
+  global$signals[c("Name", "timestamp", "samples", "duration", "signal_freq", "signal_bw", "max_signal")]
 }, options = list(pageLength = 10))
 
 output$data_tab_freq_table <- renderDataTable({

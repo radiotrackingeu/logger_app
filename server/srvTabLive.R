@@ -235,12 +235,14 @@ keepalive_data<-reactive({
 
 output$live_tab_remote_entries_table <- renderDataTable({
   validate(need(get_info_of_entries(), "Please provide remote connection data file."))
-  get_info_of_entries()
+  tmp <- get_info_of_entries()[, c("Name", "running", "timestamp", "size")]
+  names(tmp) <- c("Name", "Reachable", "Latest timestamp", "Size (MB)")
+  tmp
 }, options = list(pageLength = 10))
 
 output$live_tab_mysql_data <- renderDataTable({
   validate(need(signal_data(), "Please check connections first"))
-  signal_data()
+  signal_data()[c("Name", "timestamp", "samples", "duration", "signal_freq", "signal_bw", "max_signal")]
 }, options = list(pageLength = 10))
 
 output$live_tab_keepalive<- renderDataTable({

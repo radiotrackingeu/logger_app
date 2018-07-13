@@ -60,7 +60,6 @@ server <- function(input, output, session) {
 
   onStop(function() {
     close_all_dbs()
-    print("DB Connections closed")
   })
 }
 
