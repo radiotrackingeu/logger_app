@@ -9,7 +9,7 @@ required_packages<-c("shiny",
                      "shinyjs",
                      #"DT",
                      #"tools",
-					           "htmltools",
+                     "htmltools",
                      #"pool",
                      "RMySQL"
                      )
@@ -59,7 +59,6 @@ server <- function(input, output, session) {
 
   onStop(function() {
     close_all_dbs()
-    print("DB Connections closed")
   })
 }
 

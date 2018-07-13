@@ -19,7 +19,7 @@ observeEvent(input$add_data,{
   global$connections<-unique.data.frame(rbind(remote_connections(),global$connections))
   global$receivers<-unique.data.frame(rbind(receiver_list(),global$receivers))
   global$frequencies<-unique.data.frame(rbind(frequencies_list(),global$frequencies))
-  global$calibration <- unique.data.frame(rbind(calibrations_list(), global$calibration))
+  global$calibration <- unique.data.frame(rbind(calibration_list(), global$calibration))
 
   if(input$data_type_input == "Data folder" && !is.null(local_logger_data())) {
     global$signals<-unique.data.frame(rbind(local_logger_data(),global$signals))
@@ -140,17 +140,17 @@ receiver_list <- reactive({
   return(tmp)
 })
 
-calibrations_list <- reactive({
+calibration_list <- reactive({
     tmp <- NULL
 
         switch(input$data_type_input,
             "Data folder" = {
-                tmp <- safe_read_excel("data/Calibrations.xlsx")
+                tmp <- safe_read_excel("data/Calibration.xlsx")
             },
             # TODO SQLite File
             "Excel Files" = {
-                if (input$excel_data_content == "Calibrations" && !is.null(input$excel_filepath_calibrations)) {
-                    tmp <- safe_read_excel(input$excel_filepath_calibrations$datapath)
+                if (input$excel_data_content == "Calibration" && !is.null(input$excel_filepath_calibration)) {
+                    tmp <- safe_read_excel(input$excel_filepath_calibration$datapath)
                 }
             }
         )
@@ -215,8 +215,8 @@ output$data_tab_preview <- renderDataTable({
                 Connections = {
                     tmp <- remote_connections()
                 },
-                Calibrations = {
-                    tmp <- calibrations_list()
+                Calibration = {
+                    tmp <- calibration_list()
                 }
             )
         },
@@ -256,7 +256,7 @@ output$data_tab_preview <- renderDataTable({
         "Data folder" = {
             tmp <- NULL
 
-            files <- c("Antennas", "Frequencies", "RemoteConnections", "Calibrations")
+            files <- c("Antennas", "Frequencies", "RemoteConnections", "Calibration")
 
             for (file in files) {
                 filepath = paste0("data/", file, ".xlsx")
