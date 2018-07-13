@@ -141,3 +141,14 @@ safe_read_excel <- function(filepath) {
         }
     )
 }
+
+safe_read_excel_silent <- function(filepath) {
+    tryCatch({
+            read_excel(filepath, sheet = 1)
+        },
+        warning = function(cond) {
+        },
+        error = function(cond) {
+        }
+    )
+}

@@ -34,7 +34,7 @@ tabPanel("File Input",
              conditionalPanel(
                condition = "input.data_type_input == 'Excel Files'",
                radioButtons("excel_data_content",
-                            choices = c("Receivers", "Frequencies", "Connections", "Calibrations"),
+                            choices = c("Receivers", "Frequencies", "Connections", "Calibration"),
                             label = "Add following data:"
                ),
                conditionalPanel(
@@ -71,10 +71,10 @@ tabPanel("File Input",
                  )
                ),
                conditionalPanel(
-                 condition = "input.excel_data_content == 'Calibrations'",
+                 condition = "input.excel_data_content == 'Calibration'",
                  h6("Calibration of receiver's sensitivity"),
                  fileInput(
-                   "excel_filepath_calibrations",
+                   "excel_filepath_calibration",
                    "",
                    multiple = FALSE,
                    accept = c(".xlsx", ".xls"),
