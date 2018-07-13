@@ -273,7 +273,7 @@ output$data_tab_preview <- renderDataTable({
                     }
                 }
                 else {
-                    row <- c(file, "no", "unknown", filepath)
+                    row <- c(file, "no", 0, filepath)
                 }
 
                 tmp <- rbind(tmp, row)
