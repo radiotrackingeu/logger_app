@@ -203,59 +203,90 @@ get_signals <- reactive({
 ### render Tables ###
 
 output$data_tab_preview <- renderDataTable({
-  if(input$data_type_input=="Excel Files"){
-    switch(input$excel_data_content,
-           Receivers = {
-             tmp <- receiver_list()
-           },
-           Frequencies = {
-             tmp <- frequencies_list()
-           },
-           Connections = {
-             tmp <- remote_connections()
-           },
-           Calibrations = {
-             tmp <- calibrations_list()
-           }
-    )
-  }
-  else if(input$data_type_input=="Logger Files") {
-    tmp <- get_signals()
-  }
-  else if (input$data_type_input=="SQLite File") {
-      files_count <- nrow(input$SQLite_filepath)
+    switch(input$data_type_input,
+        "Excel Files" = {
+            switch(input$excel_data_content,
+                Receivers = {
+                    tmp <- receiver_list()
+                },
+                Frequencies = {
+                    tmp <- frequencies_list()
+                },
+                Connections = {
+                    tmp <- remote_connections()
+                },
+                Calibrations = {
+                    tmp <- calibrations_list()
+                }
+            )
+        },
+        "Logger Files" = {
+            tmp <- get_signals()
+        },
+        "SQLite File" = {
+            files_count <- nrow(input$SQLite_filepath)
 
-      tmp <- NULL
-      if (!is.null(files_count) && files_count > 0 ) {
-          for (file_id in files_count) {
-            file <- input$SQLite_filepath[file_id, ]
+            tmp <- NULL
+            if (!is.null(files_count) && files_count > 0 ) {
+                for (file_id in files_count) {
+                    file <- input$SQLite_filepath[file_id, ]
 
-            con <- dbConnect(RSQLite::SQLite(), file$datapath)
-            tables <- dbListTables(con)
+                    con <- dbConnect(RSQLite::SQLite(), file$datapath)
+                    tables <- dbListTables(con)
 
-            rows <- NULL
-            for (table in tables) {
-                query <- paste("SELECT count(*) FROM ", table)
-                result <- dbGetQuery(con, query)
+                    rows <- NULL
+                    for (table in tables) {
+                        query <- paste("SELECT count(*) FROM ", table)
+                        result <- dbGetQuery(con, query)
 
-                rows <- rbind(rows, data.frame(table, result, file$name))
+                        rows <- rbind(rows, data.frame(table, result, file$name))
+                    }
+
+                    tmp <- rbind(tmp, rows)
+                    dbDisconnect(con)
+                }
             }
 
-            tmp <- rbind(tmp, rows)
-            dbDisconnect(con)
+            if (!is.null(tmp)) {
+                colnames(tmp) <- c("Table", "Entries count", "File")
+            }
+
+            tmp
+        },
+        "Data folder" = {
+            tmp <- NULL
+
+            files <- c("Antennas", "Frequencies", "RemoteConnections", "Calibrations")
+
+            for (file in files) {
+                filepath = paste0("data/", file, ".xlsx")
+
+                if (file.exists(filepath)) {
+                    # data read once and thrown away, ok since small files
+                    data <- safe_read_excel(filepath)
+
+                    if (is.null(data)) {
+                        row <- c(file, "yes", "error while reading", filepath)
+                    }
+                    else {
+                        row <- c(file, "yes", nrow(data), filepath)
+                    }
+                }
+                else {
+                    row <- c(file, "no", "unknown", filepath)
+                }
+
+                tmp <- rbind(tmp, row)
+            }
+
+            if (!is.null(tmp)) {
+                colnames(tmp) <- c("Information type", "Found", "Rows count", "Filepath")
+            }
+
+            tmp
         }
-    }
-
-    if (!is.null(tmp)) {
-        colnames(tmp) <- c("Table", "Entries count", "File")
-    }
-
+    )
     tmp
-  }
-  else if (input$data_type_input == "Data folder") {
-    tmp <- receiver_list()
-  }
-  tmp
 }, options = list(pageLength = 10))
 
 output$data_tab_logger_table <- renderDataTable({
