@@ -34,6 +34,7 @@ filtered_data <- reactive({
   if (is.null(global$signals))
     return(NULL)
   tempo<-global$signals
+  
   #filter receivers
   if(!any(input$input_select_receiver=="all")){
     tempo<-subset(tempo,tempo$receiver==input$input_select_receiver)

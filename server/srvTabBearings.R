@@ -21,17 +21,17 @@ output$cal_factors <- renderDataTable({
 
 # calculate time match and DoA #1
 output$doa<- renderDataTable({
-  if(is.null(angle_linear()))
+  if(is.null(doa_data()))
     return(NULL)
-  angle_linear()[order(angle_linear()$time,decreasing=TRUE),]
+  doa_data()[order(doa_data()$time,decreasing=TRUE),]
 })
 
 # output DoA plot
 output$doa_plot <- renderPlot({
-  if(is.null(angle_linear()))
+  if(is.null(doa_data()))
     return(NULL)
-  ggplot() + geom_point(mapping=aes(x=angle_linear()$time,y=angle_linear()$angle,ymin=0,ymax=359,colour=angle_linear()$freq)) #+ geom_point(mapping=aes(x=doa_data()$time,y=doa_data()$angle,ymin=0,ymax=359),col="blue")
-  #
+  ggplot() + geom_point(mapping=aes(x=doa_data()$time,y=doa_data()$angle,ymin=0,ymax=359),col="blue")
+  #+ geom_point(mapping=aes(x=angle_linear()$time,y=angle_linear()$angle,ymin=0,ymax=359,colour=angle_linear()$freq)) #
 })
 
 # calculate time match and DoA #2
@@ -140,6 +140,8 @@ doa_data<- reactive({
 # zu DoA 1
 angle_linear<-reactive({
   if (is.null(filtered_data()))
+    return(NULL)
+  if (is.null(list_data_time_receiver()))
     return(NULL)
   tmp_angles<-NULL
   #tmp<-subset(filtered_data(), filtered_data()$timestamp>max(filtered_data()$timestamp)-20)
