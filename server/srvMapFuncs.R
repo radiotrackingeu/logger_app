@@ -20,8 +20,8 @@ addAntennaeCones<- function(m) {
 #' @param group leaflet group for the lines, default is "bearings"
 #'
 #' @return a map object containing m and the new lines
-addBearings <-function(m, data, strength=25, color="red", group="bearings") {
-  if (is.null(data))
+addBearings <-function(m, data, strength=25, ...) {
+  if (is.null(data) || nrow(data)<=0)
     return(m)
   str_mod<-50
   if(!("strength" %in% colnames(data)))
@@ -30,7 +30,7 @@ addBearings <-function(m, data, strength=25, color="red", group="bearings") {
   data<-cbind(data, pos2=utmtowgs(data$utm2.X,data$utm2.Y,data$utm.zone))
   for (i in 1:nrow(data)) {
     line<-data[i,]
-    m<-m %>% addPolylines(lng=c(line$pos_x,line$pos2.X),lat=c(line$pos_y,line$pos2.Y),color=color,group = group, weight = 2, label = htmltools::HTML(sprintf("angle: %i <br/> strength: %.2f",line$angle, line$strength)))
+    m<-m %>% addPolylines(lng=c(line$pos_x,line$pos2.X),lat=c(line$pos_y,line$pos2.Y), label = htmltools::HTML(sprintf("angle: %f <br/> strength: %.2f",line$angle, line$strength)), ... )
   }
   return(m)
 }
@@ -41,50 +41,39 @@ addBearings <-function(m, data, strength=25, color="red", group="bearings") {
 #' @param m the map to add to
 #' @param data data.frame with at least columns station(char),pos_x(num),pos_y(num). Values in station must be from global$receivers.
 #' @param color color to be used default "blue"
-#' @param size size of circle to be drawn, default 5
+#' @param size size of circle to be drawn, default 10
 #' @param group leaflet group, default "stations"
 #'
 #' @return a new map object containing the old plus the stations
-addStations <-function(m, data, color="blue", size=5, group="stations") {
+addStations <-function(m, data, color="blue", size=10, group="stations") {
+  if (is.null(data) || nrow(data)<=0)
+    return(m)
   data<-data[!duplicated(data[,"station"]),]
-  m<-m%>% addCircles(lng = data$pos_x, lat=data$pos_y, label=data$station, group = group)
+  m<-m%>% addCircles(lng = data$pos_x, lat=data$pos_y, label=data$station, group = group, radius=size)
 }
 
-addTriangulations <- function(m, data, colorDot="red", sizeDot=5, colorZone="blue", groupDot="triangulations", groupZone=triangulationsError) {
-  # list_of_timestamps<-unique(data$timestamp)
-  # 
-  # for (i in list_of_timestamps) {
-  #   
-  # }
-}
+addTriangulations <- function(m, data, colorDot="red", groupDot="triangulations", sizeDot=10, colorZone="blue", groupZone="triangulationsError") {
+  list_of_timestamps<-unique(data$timestamp)
+  triangulations<-data.frame(stringsAsFactors = F)
+  
+  for (t in list_of_timestamps) {
+    slot<-data[data$timestamp==t,]
+    print(paste("time:",t,"nrow:",nrow(slot)))
 
-tri_timeslot_data <- reactive ({
-  return_tmp<-data.frame(timestamp=NA,freq=NA,station=NA,angle=NA)
-  data<-tri_position_data()
-  #find for each receiver
-  list_of_stations<-unique(data$station)
-  #and each frequency
-  list_of_frequencies<-unique(data$freq)
-  #signals which appear betweeen time_distance[1] and time_distance[2] seconds
-  for (t in seq(min(data$timestamp),max(data$timestamp),5)) {
-    data_t<-subset(data, data$timestamp >= t & data$timestamp < t+5)
-    for (f in unique(data_t$freq)) {
-      data_tf <- subset(data_t, data_t$freq==f)
-      for (s in unique(data_tf$station)) {
-        data_tfs <- subset(data_tf, data_tf$station==s)
-        # print(data_tfs)
-        if (nrow(data_tfs > 0)) {
-          line<-c(timestamp=t,freq=f,station=s,angle=mean(data_tfs$angle))
-          # print(line)
-          return_tmp<-rbind(return_tmp,line)
-        }
-        else 
-          print(paste("No data for ",t,f,s))
-      }
-    }
+    coords<-triang(slot[1,]$utm.X,slot[1,]$utm.Y,slot[1,]$angle,slot[2,]$utm.X,slot[2,]$utm.Y,slot[2,]$angle)
+    if (anyNA(coords))
+      next
+    # View(slot)
+    triangulations<-rbind(triangulations,list(timestamp=t,utm.X=coords[1],utm.Y=coords[2],utm.zone=slot[1,]$utm.zone),stringsAsFactors=F)
+    m<-m %>% addBearings(slot,group="tribearing", dashArray='4,4', color="grey", weight = 1)
   }
-  print(return_tmp)
-})
+  if (nrow(triangulations)<=0)
+    return(m)
+  triangulations<-cbind(triangulations, pos=utmtowgs(triangulations$utm.X,triangulations$utm.Y,triangulations$utm.zone))
+  View(triangulations)
+  m<- m %>% addCircles(lng=triangulations$pos.X, lat=triangulations$pos.Y, group=groupDot, color=colorDot,radius=sizeDot,label=paste("time:",triangulations$timestamp))
+}
+
 
 
 # calculates cone shapes
@@ -142,6 +131,7 @@ wgstoutm<-function(x,y){
 }
 
 # UTM to WGS conversion
+
 utmtowgs<-function(x,y,zone){
   #xy <- data.frame(ID = 1:length(x), X = x, Y = y)
   xy <- data.frame(cbind("X"=x,"Y"=y))

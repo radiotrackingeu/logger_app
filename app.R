@@ -9,8 +9,9 @@ required_packages<-c("shiny",
                      "shinyjs",
                      #"DT",
                      #"tools",
-					           "htmltools",
+                     "htmltools",
                      #"pool",
+                     "shinycssloaders",
                      "RMySQL"
                      )
 
@@ -36,7 +37,7 @@ ui <- tagList(
     source("ui/uiTabFilter.R")$value,
     source("ui/uiTabResults.R")$value,
     source("ui/uiTabBearings.R")$value,
-    #source("ui/uiTabTriangulation.R")$value,
+    source("ui/uiTabTriangulation.R")$value,
     source("ui/uiTabMap.R")$value,
     source("ui/uiTabSave.R")$value
   )
@@ -51,7 +52,7 @@ server <- function(input, output, session) {
   source("server/srvTabResults.R", local = TRUE)$value
   source("server/srvDoA.R", local = TRUE)$value
   source("server/srvTabBearings.R", local = TRUE)$value
-  #source("server/srvTabTriangulation.R",local = TRUE)$value
+  source("server/srvTabTriangulation.R",local = TRUE)$value
   source("server/srvMapFuncs.R",local=TRUE)$value
   source("server/srvTriangulation.R",local=TRUE)$value
   source("server/srvFunctions.R", local = TRUE)$value
