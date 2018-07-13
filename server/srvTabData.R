@@ -57,7 +57,7 @@ remote_connections <- reactive({
   tmp<-NULL
     switch(input$data_type_input,
            "Data folder" = {
-                tmp<-safe_read_excel("data/RemoteConnections.xlsx")
+                tmp<-safe_read_excel_silent("data/RemoteConnections.xlsx")
            },
            "SQLite File" = {
               tmp <- NULL
@@ -87,7 +87,7 @@ frequencies_list <- reactive({
   tmp<-NULL
     switch(input$data_type_input,
             "Data folder" = {
-                tmp<-safe_read_excel("data/Frequencies.xlsx")
+                tmp<-safe_read_excel_silent("data/Frequencies.xlsx")
             },
            "SQLite File" = {
               for (file in input$SQLite_filepath[, "datapath"]) {
@@ -115,7 +115,7 @@ receiver_list <- reactive({
     tmp<-NULL
         switch(input$data_type_input,
            "Data folder" = {
-               tmp<-safe_read_excel("data/Antennas.xlsx")
+               tmp<-safe_read_excel_silent("data/Antennas.xlsx")
            },
            "SQLite File" = {
               for (file in input$SQLite_filepath[, "datapath"]) {
@@ -145,7 +145,7 @@ calibration_list <- reactive({
 
         switch(input$data_type_input,
             "Data folder" = {
-                tmp <- safe_read_excel("data/Calibration.xlsx")
+                tmp <- safe_read_excel_silent("data/Calibration.xlsx")
             },
             # TODO SQLite File
             "Excel Files" = {
