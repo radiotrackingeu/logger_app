@@ -129,6 +129,31 @@ output$filtered_data_sqlite <- downloadHandler(
   }
 )
 
+output$excel_file_calibrations <- downloadHandler(
+  filename = function() {
+    "filtered_data.sqlite"
+  },
+  content = function(file) {
+    con <- dbConnect(RSQLite::SQLite(), file)
+    if(!is.null(filtered_data())){
+      dbWriteTable(con,"rteu_logger_data",filtered_data(),overwrite=TRUE)
+    }
+    if(!is.null(global$frequencies)){
+      dbWriteTable(con,"rteu_freqs",global$frequencies,overwrite=TRUE)
+    }
+    if(!is.null(global$receivers)){
+      dbWriteTable(con,"rteu_antenna",global$receivers,overwrite=TRUE)
+    }
+    if(!is.null(global$connections)){
+      dbWriteTable(con,"rteu_connections",global$connections,overwrite=TRUE)
+    }
+    if(!is.null(global$calibration)){
+      dbWriteTable(con,"rteu_calibration",global$calibration,overwrite=TRUE)
+    }
+    dbDisconnect(con)
+  }
+)
+
 safe_read_excel <- function(filepath) {
     tryCatch({
             read_excel(filepath, sheet = 1)

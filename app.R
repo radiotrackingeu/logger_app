@@ -12,7 +12,8 @@ required_packages<-c("shiny",
                      "htmltools",
                      #"pool",
                      "shinycssloaders",
-                     "RMySQL"
+                     "RMySQL"#,
+                     #"tidyverse"
                      )
 
 # try to load packages and install missing ones

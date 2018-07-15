@@ -147,7 +147,17 @@ calibration_list <- reactive({
             "Data folder" = {
                 tmp <- safe_read_excel_silent("data/Calibration.xlsx")
             },
-            # TODO SQLite File
+            "SQLite File" = {
+              for (file in input$SQLite_filepath[, "datapath"]) {
+                con <- dbConnect(RSQLite::SQLite(), file)
+                if (dbExistsTable(con, "rteu_calibration")) {
+                  tmp <- rbind(tmp, dbReadTable(con, "rteu_calibration"))
+                }
+                dbDisconnect(con)
+              }
+              tmp <- unique(tmp)
+              tmp
+            },
             "Excel Files" = {
                 if (input$excel_data_content == "Calibration" && !is.null(input$excel_filepath_calibration)) {
                     tmp <- safe_read_excel(input$excel_filepath_calibration$datapath)
