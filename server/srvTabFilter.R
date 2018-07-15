@@ -6,19 +6,23 @@ observe({
   validate(
    need(global$signals, "Please provide file with antennae specifications.")
   )
-  min_date<-min(global$signals$timestamp)-1
-  max_date<-max(global$signals$timestamp)+1
-  updateSliderInput(session, "slider_datetime",min=min_date,max=max_date,value = c(min_date,max_date) )
+  if(!is.null(global$signals)){
+    min_date<-min(global$signals$timestamp)-1
+    max_date<-max(global$signals$timestamp)+1
+    updateSliderInput(session, "slider_datetime",min=min_date,max=max_date,value = c(min_date,max_date) )
+  }
 })
 
 observe({
   validate(
     need(global$signals, "Please provide file with antennae specifications.")
   )
-  rec_names <- c("all",as.character(unique(global$signals$receiver)))
-  station_names <- c("all",as.character(unique(global$signals$Name)))
-  updateSelectInput(session, "input_select_receiver", label = "Select Receiver", choices = rec_names, selected = "all")
-  updateSelectInput(session, "input_select_station", label = "Select Station", choices = station_names, selected = "all")
+  if(!is.null(global$signals)){
+    rec_names <- c("all",as.character(unique(global$signals$receiver)))
+    station_names <- c("all",as.character(unique(global$signals$Name)))
+    updateSelectInput(session, "input_select_receiver", label = "Select Receiver", choices = rec_names, selected = "all")
+    updateSelectInput(session, "input_select_station", label = "Select Station", choices = station_names, selected = "all")
+  }
 })
 
 observeEvent(input$filter_freq,

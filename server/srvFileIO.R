@@ -72,7 +72,9 @@ findMidFreq <- function(file) {
   tryCatch({
     tmp <- readLines(file, n = 30, warn=F)
     n <- grep("Tuned to", tmp)
-    MidFreq <- as.numeric(gsub("[a-z,A-Z,., ]", "", tmp[n]))
+    if(length(n)>0){
+      MidFreq <- as.numeric(gsub("[a-z,A-Z,., ]", "", tmp[n]))
+    }
   }, warning = function(w) {
     print(w$message)
     MidFreq<--1

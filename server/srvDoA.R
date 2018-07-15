@@ -45,7 +45,7 @@ doa_data<- reactive({
   ##debug
   lin_range_threshold <- 11
   #tmp<-subset(filtered_data(), filtered_data()$timestamp>max(filtered_data()$timestamp)-20) # nur die letzten 20 sec??
-  tmp<-filtered_data()
+  tmp<-smoothed_curves() #replace here?
   tmp_new<-list_data_time_receiver(tmp)
   tmp_new$angle<-NA
   #for each line of data
@@ -110,7 +110,7 @@ angle_linear<-reactive({
     return(NULL)
   tmp_angles<-NULL
   #tmp<-subset(filtered_data(), filtered_data()$timestamp>max(filtered_data()$timestamp)-20)
-  tmp<-filtered_data()
+  tmp<-smoothed_curves()
   tmp_new<-list_data_time_receiver(tmp)
   tmp_new$angle<-NA
   for(i in 1:nrow(tmp_new)){

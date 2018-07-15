@@ -27,7 +27,10 @@ observeEvent(input$add_data,{
   }
   # add signal data if either SQLite or Logger Files has been selected
   if(input$data_type_input=="Logger Files"||input$data_type_input=="SQLite File"&&!input$data_type_input == "Data folder"){
-    global$signals<-unique.data.frame(rbind(cbind(get_signals(),receiver = input$receiver_name_input, Name = input$station_name_input),global$signals))
+    tmp<-get_signals()
+    if(!is.null(tmp)){
+      global$signals<-unique.data.frame(rbind(cbind(tmp,receiver = input$receiver_name_input, Name = input$station_name_input),global$signals))
+    }
   }
 })
 
@@ -185,9 +188,12 @@ get_signals <- reactive({
             'Logger Files' = {
               data <- NULL
               for (file in input$logger_filepath[, "datapath"]) {
-                data <- rbind(data, read_logger_data(file))
+                tmp <- read_logger_data(file)
+                if(!is.null(tmp)){
+                  data <- rbind(data, read_logger_data(file))
+                }
               }
-              data <- unique(data)
+              #data <- unique(data) - done twice... the add button does it again
               data
             },
             'SQLite File' = {
