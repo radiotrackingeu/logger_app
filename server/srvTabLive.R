@@ -185,7 +185,7 @@ get_mysql_data <- reactive({
     }
 
     if(!is.null(get_info_of_entries())){
-        connections <- current_connections_ids()
+        connections <- isolate(current_connections_ids())
         connections_count <- length(connections)
 
         withProgress(
@@ -229,8 +229,8 @@ get_mysql_data <- reactive({
                                 results$Name<-connection_info$Name
                                 tmp<-rbind(tmp,results)
                             }
+                            incProgress(amount=1)
                         }
-                    incProgress(amount=1)
                 },
             message = "Loading data: ",
             max = connections_count,
