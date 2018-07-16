@@ -57,8 +57,9 @@ are_current_connections_open <- function() {
     connections_ids <- current_connections_ids()
 
     for (i in 1:length(connections_ids)) {
-        current_connection <- connections_ids[i]
-        if (is.null(open_connections()[current_connection])) {
+        current_connection <- open_connections()[[global$connections[connections_ids[i], ]$Name]]
+
+        if (is.null(current_connection)) {
             return (FALSE)
         }
     }
@@ -105,6 +106,7 @@ open_connections <- reactive({
   }else{
     tmp_list<-NULL
   }
+
   return(tmp_list)
 })
 
@@ -193,7 +195,7 @@ get_mysql_data <- reactive({
         withProgress(
             expr = {
                 for(i in connections_ids) {
-                    connection = connections_list[[i]]
+                    connection = connections_list[[global$connections[i, ]$Name]]
                     connection_info = entries_info[i, ]
 
                     setProgress(detail = connection_info$Name)
