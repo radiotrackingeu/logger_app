@@ -135,9 +135,9 @@ list_data_time_receiver <- function(data){
   return_tmp<-NULL
   for(k in list_of_frequencies){
     print(k)
-    for(t in seq(min(data$timestamp),max(data$timestamp),3)){
+    for(t in seq(min(data$timestamp),max(data$timestamp),1)){
       t<-as.POSIXct(t, tz = "UTC", origin='1970-01-01')
-      timeslot_data <- subset(data,data$timestamp>=t&data$timestamp<t+3)
+      timeslot_data <- subset(data,data$timestamp>=t&data$timestamp<t+1)
       tmp<-data.frame(time=t, freq=k)
       for(i in list_of_receivers){
         one_receiver <- subset(timeslot_data,receiver==i)
