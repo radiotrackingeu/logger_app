@@ -54,7 +54,7 @@ current_connections_ids <- reactive({
 })
 
 are_current_connections_open <- function() {
-    connections_ids <- current_connections_ids()
+    connections_ids <- isolate(current_connections_ids())
 
     for (i in 1:length(connections_ids)) {
         current_connection <- open_connections()[[global$connections[connections_ids[i], ]$Name]]
