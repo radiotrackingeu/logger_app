@@ -166,61 +166,63 @@ observe({
 })
 
 get_mysql_data <- reactive({
-    if (!are_current_connections_open()) {
+    if (!isolate(are_current_connections_open())) {
         return (NULL)
     }
 
-  if(!is.null(get_info_of_entries())&&input$load_mysql_data){
+
+  entries_info = isolate(get_info_of_entries())
+  if(!is.null(entries_info) && input$load_mysql_data){
     tmp<-data.frame()
     query_duration_filter<-""
     query_max_signal_filter<-""
-    if(input$check_sql_duration){
-      query_duration_filter<-paste("duration >",input$query_filter_duration[1],"AND duration <",input$query_filter_duration[2])
+    if(isolate(input$check_sql_duration)){
+      query_duration_filter<-paste("duration >",isolate(input$query_filter_duration[1]),"AND duration <",isolate(input$query_filter_duration[2]))
     }
-    if(input$check_sql_strength){
-      if(any(input$check_sql_duration)){
+    if(isolate(input$check_sql_strength)){
+      if(any(isolate(input$check_sql_duration))){
         and<-"AND"
       }
-      query_max_signal_filter<-paste(and,"max_signal >",input$query_filter_strength[1],"AND max_signal <",input$query_filter_strength[2])
+      query_max_signal_filter<-paste(and,"max_signal >",isolate(input$query_filter_strength[1]),"AND max_signal <",isolate(input$query_filter_strength[2]))
     }
 
-    if(!is.null(get_info_of_entries())){
-        connections <- isolate(current_connections_ids())
-        connections_count <- length(connections)
+        connections_list    <- isolate(open_connections())
+        connections_ids     <- isolate(current_connections_ids())
+        connections_count   <- length(connections_ids)
 
         withProgress(
             expr = {
-                for(i in connections) {
-                    connection = open_connections()[[i]]
-                    connection_info = get_info_of_entries()[i, ]
+                for(i in connections_ids) {
+                    connection = connections_list[[i]]
+                    connection_info = entries_info[i, ]
 
                     setProgress(detail = connection_info$Name)
                             query_freq_filter<-""
-                            if(input$query_filter_freq){
-                                for(k in global$frequencies$Frequency){
+                            if(isolate(input$query_filter_freq)){
+                                for(k in isolate(global$frequencies$Frequency)){
                                     error<-2000
                                     center<-150120000
                                     and<-""
-                                    if(any(input$check_sql_duration,input$check_sql_strength)) {
+                                    if(any(isolate(input$check_sql_duration),isolate(input$check_sql_strength))) {
                                         and<-"AND("
                                     }
-                                    if(nrow(global$frequencies)>1&&query_freq_filter!=""){
+                                    if(nrow(isolate(global$frequencies))>1&&query_freq_filter!=""){
                                         and<-"OR"
                                     }
                                     query_freq_filter<-paste(query_freq_filter,and,"(signal_freq >",k*1000-error-center,"AND signal_freq <",k*1000+error-center,")")
                                 }
-                                if(any(input$check_sql_duration,input$check_sql_strength)){
+                                if(any(isolate(input$check_sql_duration),isolate(input$check_sql_strength))){
                                     query_freq_filter<-paste(query_freq_filter,")")
                                 }
                             }
                             where<-""
-                            if(any(input$check_sql_duration,input$check_sql_strength,input$query_filter_freq)){
+                            if(any(isolate(input$check_sql_duration), isolate(input$check_sql_strength), isolate(input$query_filter_freq))){
                                 where<-"WHERE"
                             }
                             mysql_query_signals <- paste("SELECT * FROM `signals`",where,query_duration_filter,query_max_signal_filter,query_freq_filter,"ORDER BY id DESC LIMIT",input$live_last_points,";")
 
                             signals <- dbGetQuery(connection ,mysql_query_signals)
-                            mysql_query_runs<-paste("SELECT * FROM `runs` ORDER BY id DESC LIMIT",input$live_last_points,";")
+                            mysql_query_runs<-paste("SELECT * FROM `runs` ORDER BY id DESC LIMIT", isolate(input$live_last_points), ";")
 
                             runs<-dbGetQuery(connection, mysql_query_runs)
 
@@ -236,10 +238,6 @@ get_mysql_data <- reactive({
             max = connections_count,
             value = 0
         )
-    }
-    else{
-      tmp<-NULL
-    }
     global$tmp_data <- tmp
   }
 })
