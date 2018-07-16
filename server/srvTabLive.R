@@ -161,7 +161,7 @@ observe({
             return (NULL)
         }
 
-        updateTabsetPanel(session, "live_tab_tabset", selected = "List of Data")
+        get_mysql_data()
     }
 })
 
