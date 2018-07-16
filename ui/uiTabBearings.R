@@ -20,6 +20,15 @@ tabPanel("Bearings",
            ),
            tabPanel("DoA Plot 2",
                     plotOutput("doa_plot2")
+           ),
+           tabPanel("DoA Table 3",
+                    dataTableOutput("doa3")
+           ),
+           tabPanel("DoA Plot 3",
+                    plotOutput("doa_plot3")
+           ),
+           tabPanel("DoA Plot 3",
+                    plotOutput("smoothed_curves")
            )
          )
 )

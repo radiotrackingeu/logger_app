@@ -37,27 +37,6 @@ output$timediffs_plot <- renderPlot({
   ggplot()+geom_point(aes(x=tmp$timestamp,y=tmp$temperature))+ylim(10,45)
 })
 
-#smoothing in second intervalls
-
-smoothed_curves <- reactive({
-  data<-filtered_data()
-  smoothed_data<-NULL
-  for(i in unique(data$receiver)){
-    tmp1<-subset(data,receiver==i)
-    for(l in unique(tmp1$freq_tag)){
-      tmp2<-subset(tmp1,freq_tag==l)
-      smoothed<-data.frame(max_signal=predict(
-        smooth.spline(tmp2$timestamp,tmp2$max_signal,spar=input$spar_in),
-        as.numeric(round(tmp2$timestamp)))$y,
-        timestamp=round(tmp2$timestamp),
-        receiver=i,
-        freq_tag=l)
-      smoothed_data<-rbind(smoothed_data,smoothed)
-    }
-  }
-  return(smoothed_data)
-})
-
 #Temperature would be great here
 
 output$facet <- renderPlot({
@@ -73,13 +52,12 @@ output$facet <- renderPlot({
 
 plot_time_signal <- function(data, multifilter){
   p<-ggplot(data) +
-    geom_point(aes(data[[input$select_x]], data[[input$select_y]], color=data[[input$select_col]])) +
+    geom_point(aes(x=timestamp, y=max_signal, color=receiver)) +
     labs(x="Time", y = "Signal Strength") +
-    scale_x_datetime(labels = function(x) format(x, "%d-%m \n %H:%M:%S"))#+
-    #facet_wrap(~input$select_facet)#+
-    #geom_point(data=smoothed_curves(),aes(x=smoothed_curves()$timestamp,y=smoothed_curves()$max_signal,col=smoothed_curves()$receiver))
+    scale_x_datetime(labels = function(x) format(x, "%d-%m \n %H:%M:%S"))+
+    facet_wrap(~Name)
   if(multifilter){
-    p + facet_wrap(~data[[input$select_facet]])
+    p + facet_wrap(~Name)
   }
   else{
     p

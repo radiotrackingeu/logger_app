@@ -2,10 +2,9 @@
 
 # linear approximation
 #pre-condition: a<b and angle not bigger then 180
-calc_angle_linear <- function(sig_a, sig_b, angle_a, angle_b, oe_winkel_a, oe_winkel_b){
-  #half_gain_dBm<-3
-  slope_a<--input$dBLoss/input$angle_sep #(-2)*half_gain_dBm/oe_winkel_a
-  slope_b<- input$dBLoss/input$angle_sep#2*half_gain_dBm/oe_winkel_b
+calc_angle_linear <- function(sig_a, sig_b, angle_a, angle_b,dbLoss){
+  slope_a<--dbLoss/(angle_b-angle_a)
+  slope_b<- dbLoss/(angle_b-angle_a)
   inter_a<-slope_a*angle_a*(-1)
   inter_b<-angle_b*slope_b*(-1)
   dif_angle=(sig_a-sig_b-inter_a+inter_b)/(slope_a-slope_b)
@@ -16,21 +15,21 @@ calc_angle_linear <- function(sig_a, sig_b, angle_a, angle_b, oe_winkel_a, oe_wi
 }
 
 #calculates linear approx of doa between two antennas
-get_angle_linear <- function(sig_a, sig_b, angle_a, angle_b, oe_winkel_a, oe_winkel_b){
+get_angle_linear <- function(sig_a, sig_b, angle_a, angle_b, dbLoss){
   #first the one with the smaller angle
   #take the smaller angle between the two antennas
   if(angle_a<angle_b){
     if(angle_b-angle_a>180){
-      result<-calc_angle_linear(sig_b, sig_a, angle_b, angle_a, oe_winkel_b, oe_winkel_a)+180
+      result<-calc_angle_linear(sig_b, sig_a, angle_b, angle_a, dbLoss)+180
     }else{
-      result<-calc_angle_linear(sig_a, sig_b, angle_a, angle_b, oe_winkel_a, oe_winkel_b)
+      result<-calc_angle_linear(sig_a, sig_b, angle_a, angle_b, dbLoss)
     }
   }else
   {
     if(angle_b-angle_a<(-180)){
-      result<-calc_angle_linear(sig_a, sig_b, angle_a, angle_b, oe_winkel_a, oe_winkel_b)+180
+      result<-calc_angle_linear(sig_a, sig_b, angle_a, angle_b, dbLoss)+180
     }else{
-      result<-calc_angle_linear(sig_b, sig_a, angle_b, angle_a, oe_winkel_b, oe_winkel_a)
+      result<-calc_angle_linear(sig_b, sig_a, angle_b, angle_a, dbLoss)
     }
   }
   return(result)
@@ -98,7 +97,7 @@ doa_data<- reactive({
         # linear approximation
         tmp_w1<-subset(global$receivers,Name==tmp_sort$receiver[1])$Orientation[1]
         tmp_w2<-subset(global$receivers,Name==tmp_sort$receiver[2])$Orientation[1]
-        tmp_new$angle[i]<-get_angle_linear(tmp_sort$max_signal[1],tmp_sort$max_signal[2],tmp_w1,tmp_w2,60,60)
+        tmp_new$angle[i]<-get_angle_linear(tmp_sort$max_signal[1],tmp_sort$max_signal[2],tmp_w1,tmp_w2,input$dBLoss)
       }
     }
   }
@@ -119,7 +118,7 @@ angle_linear<-reactive({
     if(nrow(tmp_sort)>1){
       tmp_w1<-subset(receiver_list(),Name==tmp_sort$receiver[1])$Orientation[1]
       tmp_w2<-subset(receiver_list(),Name==tmp_sort$receiver[2])$Orientation[1]
-      tmp_new$angle[i]<-get_angle_linear(tmp_sort$max_signal[1],tmp_sort$max_signal[2],tmp_w1,tmp_w2,60,60)
+      tmp_new$angle[i]<-get_angle_linear(tmp_sort$max_signal[1],tmp_sort$max_signal[2],tmp_w1,tmp_w2,input$dBLoss)
     }
   }
   tmp_new
@@ -152,3 +151,50 @@ list_data_time_receiver <- function(data){
   }
   return(return_tmp)
 }
+
+doa_smoothed<-reactive({
+  if (is.null(smoothed_curves()))
+    return(NULL)
+  data<-merge(smoothed_curves(),receiver_list(),by.x="receiver",by.y="Name")
+  tmp_angles<-NULL
+  #for each timestamp of the smoothed data
+  for(i in unique(data$timestamp)){
+    #build subset for the timestamp
+    tmp<-subset(data,timestamp==i)
+    #sort tmp using signal_strength
+    tmp<-unique(tmp[order(tmp$max_signal, decreasing = TRUE, na.last=NA),])
+    if(nrow(tmp)>1){
+      #check angle between strongest and second strongest and if it is smaller then 90 degree, calc it lineary
+      if(abs(tmp[1,"Orientation"]-tmp[2,"Orientation"])<=90){
+        angle<-get_angle_linear(tmp[1,"max_signal"],tmp[2,"max_signal"],tmp[1,"Orientation"],tmp[2,"Orientation"],input$dBLoss)
+      }else{
+        #back antenna plays a big role here
+        angle<-tmp[1,"Orientation"]
+      }
+      tmp_angles<-rbind(cbind.data.frame(timestamp=as.POSIXct(i,origin="1970-01-01 00:00:00"),angle=angle,antennas=nrow(tmp)),tmp_angles)
+    }
+  }
+  tmp_angles
+})
+
+
+#smoothing in second intervalls
+smoothed_curves <- reactive({
+  data<-filtered_data()
+  smoothed_data<-NULL
+  for(i in unique(data$receiver)){
+    tmp1<-subset(data,receiver==i)
+    for(l in unique(tmp1$freq_tag)){
+      tmp2<-subset(tmp1,freq_tag==l)
+      time_seq<-seq(min(filtered_data()$time),max(filtered_data()$time),1)
+      smoothed<-data.frame(max_signal=predict(
+        smooth.spline(tmp2$timestamp,tmp2$max_signal,spar=input$spar_in),
+        as.numeric(time_seq))$y,
+        timestamp=time_seq,
+        receiver=i,
+        freq_tag=l)
+      smoothed_data<-rbind(smoothed_data,smoothed)
+    }
+  }
+  return(smoothed_data)
+})

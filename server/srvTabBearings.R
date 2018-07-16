@@ -55,3 +55,24 @@ output$doa_plot2 <- renderPlot({
     return(NULL)
   ggplot() + geom_point(mapping=aes(x=doa_data()$time,y=doa_data()$angle,ymin=0,ymax=359),col="blue")
 })
+
+# calculate time match and DoA #1
+output$doa3<- renderDataTable({
+  if(is.null(doa_smoothed()))
+    return(NULL)
+  doa_smoothed()[order(doa_smoothed()$timestamp,decreasing=TRUE),]
+})
+
+# output DoA plot
+output$doa_plot3 <- renderPlot({
+  if(is.null(doa_smoothed()))
+    return(NULL)
+  ggplot() + geom_point(mapping=aes(x=doa_smoothed()$timestamp,y=doa_smoothed()$angle,ymin=0,ymax=359),col="blue")
+})
+
+output$smoothed_curves <- renderPlot({
+  if(is.null(smoothed_curves()))
+    return(NULL)
+  ggplot()+geom_point(data=smoothed_curves(),aes(x=smoothed_curves()$timestamp,y=smoothed_curves()$max_signal,col=smoothed_curves()$receiver))
+})
+
