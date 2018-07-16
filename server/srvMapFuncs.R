@@ -24,8 +24,7 @@ addBearings <-function(m, data, strength=25, ...) {
   if (is.null(data) || nrow(data)<=0)
     return(m)
   str_mod<-50
-  if(!("strength" %in% colnames(data)))
-    data<-cbind(data, strength=strength)
+  data$strength[is.na(data$strength)]<-strength
   data<-cbind(data, utm2.X=data$utm.X+cospi((90-data$angle)/180)*data$strength*str_mod, utm2.Y=data$utm.Y+sinpi((90-data$angle)/180)*data$strength*str_mod)
   data<-cbind(data, pos2=utmtowgs(data$utm2.X,data$utm2.Y,data$utm.zone))
   for (i in 1:nrow(data)) {
@@ -40,41 +39,69 @@ addBearings <-function(m, data, strength=25, ...) {
 #'
 #' @param m the map to add to
 #' @param data data.frame with at least columns station(char),pos_x(num),pos_y(num). Values in station must be from global$receivers.
-#' @param color color to be used default "blue"
-#' @param size size of circle to be drawn, default 10
-#' @param group leaflet group, default "stations"
+#' @param ... Further options passed to addCircles
 #'
 #' @return a new map object containing the old plus the stations
-addStations <-function(m, data, color="blue", size=10, group="stations") {
+addStations <-function(m, data, ...) {
   if (is.null(data) || nrow(data)<=0)
     return(m)
   data<-data[!duplicated(data[,"station"]),]
-  m<-m%>% addCircles(lng = data$pos_x, lat=data$pos_y, label=data$station, group = group, radius=size)
+  m<-m%>% addCircles(lng = data$pos_x, lat=data$pos_y, label=data$station, ...)
 }
 
-addTriangulations <- function(m, data, colorDot="red", groupDot="triangulations", sizeDot=10, colorZone="blue", groupZone="triangulationsError") {
+#' Calculates triangulated positions and adds circles and dashed bearings to the map
+#'
+#' @param m the map to add to
+#' @param data data.frame containing at least columns timestamp, station, angle, utm.X, utm.Y, utm.zone
+#' @param showBearings logical, whether to draw bearings of successfully triangulated positions
+#' @param error numeric, whether to draw triangulation error (0 or >0), and size of error zone
+#' @param errorColor color to be used to draw the triangulation error
+#' @param errorGroup leaflet group for triangulation error
+#' @param errorOpacity opacity for triangulation error
+#' @param ... additional arguments passed to addCircles for the triangulated positions
+#'
+#' @return the altered map
+addTriangulations <- function(m, data, showBearings=T, error=0,  errorColor="blue", errorGroup="Tri Error", errorOpacity=0.3, ...) {
   list_of_timestamps<-unique(data$timestamp)
   triangulations<-data.frame(stringsAsFactors = F)
+  bearings<-data.frame(stringsAsFactors = F)
   
   for (t in list_of_timestamps) {
     slot<-data[data$timestamp==t,]
-    print(paste("time:",t,"nrow:",nrow(slot)))
 
     coords<-triang(slot[1,]$utm.X,slot[1,]$utm.Y,slot[1,]$angle,slot[2,]$utm.X,slot[2,]$utm.Y,slot[2,]$angle)
     if (anyNA(coords))
       next
-    # View(slot)
-    triangulations<-rbind(triangulations,list(timestamp=t,utm.X=coords[1],utm.Y=coords[2],utm.zone=slot[1,]$utm.zone),stringsAsFactors=F)
-    m<-m %>% addBearings(slot,group="tribearing", dashArray='4,4', color="grey", weight = 1)
+    triangulations<-rbind(triangulations,list(timestamp=t,utm.X=coords[1],utm.Y=coords[2],utm.zone=slot[1,]$utm.zone,st1.X=slot[1,]$pos_x,st1.Y=slot[1,]$pos_y,st2.X=slot[2,]$pos_x,st2.Y=slot[2,]$pos_y),stringsAsFactors=F)
+
+    if (error > 0) {
+      x<-c(slot[1,]$utm.X,slot[2,]$utm.X)
+      y<-c(slot[1,]$utm.Y,slot[2,]$utm.Y)
+      alpha<-c(slot[1,]$angle,slot[2,]$angle)
+      x<-c(x,x,x)
+      y<-c(y,y,y)
+      alpha<-c(alpha,alpha-error,alpha+error)
+      points_utm<-triang_n(x,y,alpha)
+      hull<-chull(points_utm)
+      hull_wgs<-utmtowgs(points_utm$Easting[hull],points_utm$Northing[hull],slot[1,]$utm.zone)
+      m <- m %>% addPolygons(hull_wgs$X, hull_wgs$Y, stroke = FALSE, opacity=errorOpacity, group=errorGroup, color=errorColor)
+    }
+    
   }
   if (nrow(triangulations)<=0)
     return(m)
+
   triangulations<-cbind(triangulations, pos=utmtowgs(triangulations$utm.X,triangulations$utm.Y,triangulations$utm.zone))
-  View(triangulations)
-  m<- m %>% addCircles(lng=triangulations$pos.X, lat=triangulations$pos.Y, group=groupDot, color=colorDot,radius=sizeDot,label=paste("time:",triangulations$timestamp))
+  
+  if (showBearings) {
+    for (i in seq_len(nrow(triangulations))){
+      t<-triangulations[i,]
+      m <- m %>% addPolylines(lng=c(t$st1.X,t$pos.X,t$st2.X),lat=c(t$st1.Y,t$pos.Y,t$st2.Y),group="Tri Bearing", dashArray='4,4', color="blue", weight = 1)
+      }
+  }
+  
+  m <- m %>% addCircles(lng=triangulations$pos.X, lat=triangulations$pos.Y,label=paste("time:",triangulations$timestamp), ...)
 }
-
-
 
 # calculates cone shapes
 antennae_cones<-reactive({

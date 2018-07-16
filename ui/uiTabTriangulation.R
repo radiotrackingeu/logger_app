@@ -30,13 +30,13 @@ tabPanel("Triangulation",
       }"
     ))
   ),
-  withSpinner(proxy.height = "80vh",
+  # this combination of withSpinner and leaflet leads to a memory leak in RStudio Browser. However works fine in Opera 54.0, IE 11, Edge 42, Chromium 64
+  # withSpinner(proxy.height = "80vh",
     div(class="outer", width="100%", height="100%",
       leafletOutput("map_triangulation", width="100%", height="100%"),
-      
       absolutePanel( 
         class="panel panel-default tri",
-        top=70,
+        top=150,
         right=10,
         draggable=T,
         fixed=T,
@@ -62,7 +62,7 @@ tabPanel("Triangulation",
         width="500px",
         height="auto",
         HTML('<b data-toggle="collapse" data-target="#tri_signals_content" style="cursor:pointer">Signals</b>'),
-        div(id = 'tri_signals_content',  class="collapse in",
+        div(id = 'tri_signals_content',  class="collapse",
           dataTableOutput("tri_positions_and_angles")
         )
       ),
@@ -82,5 +82,5 @@ tabPanel("Triangulation",
         )
       )
     )
-  )
+  # )
 )

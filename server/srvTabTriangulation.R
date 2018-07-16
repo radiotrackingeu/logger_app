@@ -5,8 +5,8 @@
 data_in<-reactive({
   validate(need(global$receivers, "No receiver data provided!"))
   validate(need(global$frequencies, "Please provide frequency data."))
-  sample_size=100
-  data.frame(timestamp=sample(1530003973:1530003974,sample_size,replace = T),station=sample(global$receivers$receiver,sample_size,replace=T),angle=as.numeric(sample(0:359,sample_size,replace=T)),freq=sample(global$frequencies$Name,sample_size,replace=T),stringsAsFactors = F)
+  sample_size=500
+  data.frame(timestamp=sample(1530003973:1530004174,sample_size,replace = T),station=sample(isolate(global$receivers$receiver),sample_size,replace=T),angle=as.numeric(sample(0:359,sample_size,replace=T)),freq=sample(isolate(global$frequencies$Name),sample_size,replace=T),stringsAsFactors = F)
 })
 
 # filter input data by frequency
@@ -32,10 +32,10 @@ tri_timeslots <- reactive ({
       for (s in unique(data_tf$station)) {
         data_tfs <- subset(data_tf, data_tf$station==s)
         if (nrow(data_tfs > 0)) {
-          line<-list(timestamp=as.POSIXct(t,tz="GMT",origin="1970-01-01"),freq=f,station=s,angle=mean(data_tfs$angle))
+          line<-list(timestamp=as.POSIXct(t,tz="GMT",origin="1970-01-01"),freq=f,station=s,angle=mean(data_tfs$angle),strength=mean(data_tfs$strength))
           ret<-rbind(ret,line,stringsAsFactors=F, make.row.names=F)
         }
-        # else 
+        # else
         #   print(paste("No data for ",t,f,s))
       }
     }
@@ -56,16 +56,17 @@ tri_timeslots_lines_points <- reactive({
 
 output$map_triangulation <- renderLeaflet({
     m <- leaflet() %>% addTiles()
-    # m <- m %>% addStations(tri_filtered_data())
-    # m <- m %>% addBearings(tri_timeslots_lines_points()$lines, weight=2, color="blue")
-    # m <- m %>% addTriangulations(tri_timeslots_lines_points()$points)
+    m <- m %>% addStations(tri_filtered_data(), color="black", radius=10, group="Stations")
+    m <- m %>% addBearings(tri_timeslots_lines_points()$lines, weight=1, color="red", group="Bearings")
+    m <- m %>% addTriangulations(tri_timeslots_lines_points()$points, error=input$tri_error, color="blue", radius=7, group="Triangulations")
+    m <- m %>% addLayersControl(overlayGroups = c("Stations","Bearings","Triangulations","Tri Bearing","Tri Error"), options = layersControlOptions(sortLayers=FALSE))
     # View(tri_timeslots_lines_points()$points)
     return(m)
 })
 
 output$tri_positions_and_angles<-renderDataTable({tri_filtered_data()[,c("timestamp","station","angle","freq")]},
   options=list(
-    #filter="none", autoHideNavigation = T, selection= "multiple", rownames = F, options=list(paging=F, 
+    #filter="none", autoHideNavigation = T, selection= "multiple", rownames = F, options=list(paging=F,
     pagingType="simple", pageLength=10, lengthChange=F, searching=F,scrollY="400px"#),
   )
 )
@@ -78,4 +79,3 @@ observe({
 output$tri_ui_timeline<-renderUI({
     sliderInput("tri_timeline",NULL,min(data_in()$timestamp),max(data_in()$timestamp),min(data_in()$timestamp),width="100%", animate=animationOptions(interval=100), timeFormat="%F %T", ticks=T,step=1)
 })
-
