@@ -45,21 +45,49 @@ output$single_multiple_con_tags <- renderUI({
   single_multiple_con_tags()
 })
 
+current_connections_ids <- reactive({
+    requested_connections <- input$select_connection
+    if ("all" %in% requested_connections) {
+        requested_connections <- global$connections$Name
+    }
+    requested_connections_id = c(1:nrow(global$connections))[global$connections$Name %in% requested_connections]
+})
+
+are_current_connections_open <- function() {
+    connections_ids <- current_connections_ids()
+
+    for (i in 1:length(connections_ids)) {
+        current_connection <- connections_ids[i]
+        if (is.null(open_connections()[current_connection])) {
+            return (FALSE)
+        }
+    }
+
+    TRUE
+}
+
 open_connections <- reactive({
+  close_all_dbs()
+  input$connect_mysql
   tmp_list<-list()
-  if(!is.null(global$connections)&&input$connect_mysql){
+
+  connections_ids = isolate(current_connections_ids())
+  connections_count = length(connections_ids)
+
+  if(connections_count > 0 && input$connect_mysql){
     withProgress(
       expr = {
-        for(i in 1:nrow(global$connections)){
-          setProgress(detail=global$connections$Name[i])
-          tmp_list[[global$connections$Name[i]]]<-tryCatch(
+        for(i in 1:connections_count){
+          current_connection = global$connections[connections_ids[i], ]
+          setProgress(detail=current_connection$Name)
+          tmp_list[[current_connection$Name]]<-tryCatch(
             dbConnect(
               drv=RMySQL::MySQL(),
               dbname = "rteu",
-              host = global$connections$Host[i],
-              port = global$connections$Port[i],
-              username = global$connections$User[i],
-              password = global$connections$Password[i]
+              host = current_connection$Host,
+              port = current_connection$Port,
+              username = current_connection$User,
+              password = current_connection$Password
             ),
             error = function(err){
               NULL
@@ -71,7 +99,7 @@ open_connections <- reactive({
         }
         },
       message = "Attempting connection: ",
-      max = nrow(global$connections),
+      max = connections_count,
       value = 0
     )
   }else{
@@ -128,11 +156,20 @@ get_info_of_entries <- reactive({
 
 observe({
     if (input$load_mysql_data) {
+        if (!are_current_connections_open()) {
+            show_error("you need to connect to the selected databases first.")
+            return (NULL)
+        }
+
         updateTabsetPanel(session, "live_tab_tabset", selected = "List of Data")
     }
 })
 
 get_mysql_data <- reactive({
+    if (!are_current_connections_open()) {
+        return (NULL)
+    }
+
   if(!is.null(get_info_of_entries())&&input$load_mysql_data){
     tmp<-data.frame()
     query_duration_filter<-""
@@ -148,18 +185,16 @@ get_mysql_data <- reactive({
     }
 
     if(!is.null(get_info_of_entries())){
+        connections <- current_connections_ids()
+        connections_count <- length(connections)
+
         withProgress(
             expr = {
-                for(i in get_info_of_entries()[get_info_of_entries()$timestamp!="offline",]$Name) {
-                    setProgress(detail=i)
-                    if(is.null(open_connections()[[i]])) {
-                        print(open_connections()[[i]])
-                        results<-data.frame(Name=i,id=NA,timestamp="offline")
-                        tmp<-rbind(tmp,results)
-                        next
-                    }
-                    else {
-                        if(dbIsValid(open_connections()[[i]])) {
+                for(i in connections) {
+                    connection = open_connections()[[i]]
+                    connection_info = get_info_of_entries()[i, ]
+
+                    setProgress(detail = connection_info$Name)
                             query_freq_filter<-""
                             if(input$query_filter_freq){
                                 for(k in global$frequencies$Frequency){
@@ -182,27 +217,23 @@ get_mysql_data <- reactive({
                             if(any(input$check_sql_duration,input$check_sql_strength,input$query_filter_freq)){
                                 where<-"WHERE"
                             }
-                            mysql_query_signals<-paste("SELECT * FROM `signals`",where,query_duration_filter,query_max_signal_filter,query_freq_filter,"ORDER BY id DESC LIMIT",input$live_last_points,";")
-                            print(mysql_query_signals)
-                            signals<-dbGetQuery(open_connections()[[i]],mysql_query_signals)
+                            mysql_query_signals <- paste("SELECT * FROM `signals`",where,query_duration_filter,query_max_signal_filter,query_freq_filter,"ORDER BY id DESC LIMIT",input$live_last_points,";")
+
+                            signals <- dbGetQuery(connection ,mysql_query_signals)
                             mysql_query_runs<-paste("SELECT * FROM `runs` ORDER BY id DESC LIMIT",input$live_last_points,";")
-                            runs<-dbGetQuery(open_connections()[[i]],mysql_query_runs)
+
+                            runs<-dbGetQuery(connection, mysql_query_runs)
+
                             if(nrow(signals)>0){
                                 results<-merge(signals,runs,by.x="run",by.y="id")
-                                results$Name<-i
+                                results$Name<-connection_info$Name
                                 tmp<-rbind(tmp,results)
                             }
                         }
-                        else{
-                            results<-data.frame(Name=i,id=NA,timestamp="offline")
-                            tmp<-rbind(tmp,results)
-                        }
-                    }
                     incProgress(amount=1)
-                }
-            },
+                },
             message = "Loading data: ",
-            max = nrow(get_info_of_entries()[get_info_of_entries()$timestamp!="offline",]),
+            max = connections_count,
             value = 0
         )
     }
@@ -242,7 +273,8 @@ output$live_tab_remote_entries_table <- renderDataTable({
 
 output$live_tab_mysql_data <- renderDataTable({
   validate(need(signal_data(), "Please check connections first"))
-  signal_data()[c("Name", "timestamp", "samples", "duration", "signal_freq", "signal_bw", "max_signal")]
+  signal_data()
+  #[c("Name", "timestamp", "samples", "duration", "signal_freq", "signal_bw", "max_signal")]
 }, options = list(pageLength = 10))
 
 output$live_tab_keepalive<- renderDataTable({
