@@ -158,10 +158,10 @@ get_info_of_entries <- reactive({
 
 observe({
     if (input$load_mysql_data) {
-        if (!are_current_connections_open()) {
-            show_error("you need to connect to the selected databases first.")
-            return (NULL)
-        }
+        #if (!are_current_connections_open()) {
+        #    show_error("you need to connect to the selected databases first.")
+        #    return (NULL)
+        #}
 
         get_mysql_data()
     }
