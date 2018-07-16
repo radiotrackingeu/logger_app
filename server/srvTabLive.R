@@ -45,21 +45,50 @@ output$single_multiple_con_tags <- renderUI({
   single_multiple_con_tags()
 })
 
+current_connections_ids <- reactive({
+    requested_connections <- input$select_connection
+    if ("all" %in% requested_connections) {
+        requested_connections <- global$connections$Name
+    }
+    requested_connections_id = c(1:nrow(global$connections))[global$connections$Name %in% requested_connections]
+})
+
+are_current_connections_open <- function() {
+    connections_ids <- isolate(current_connections_ids())
+
+    for (i in 1:length(connections_ids)) {
+        current_connection <- open_connections()[[global$connections[connections_ids[i], ]$Name]]
+
+        if (is.null(current_connection)) {
+            return (FALSE)
+        }
+    }
+
+    TRUE
+}
+
 open_connections <- reactive({
+  close_all_dbs()
+  input$connect_mysql
   tmp_list<-list()
-  if(!is.null(global$connections)&&input$connect_mysql){
+
+  connections_ids = isolate(current_connections_ids())
+  connections_count = length(connections_ids)
+
+  if(connections_count > 0 && input$connect_mysql){
     withProgress(
       expr = {
-        for(i in 1:nrow(global$connections)){
-          setProgress(detail=global$connections$Name[i])
-          tmp_list[[global$connections$Name[i]]]<-tryCatch(
+        for(i in 1:connections_count){
+          current_connection = global$connections[connections_ids[i], ]
+          setProgress(detail=current_connection$Name)
+          tmp_list[[current_connection$Name]]<-tryCatch(
             dbConnect(
               drv=RMySQL::MySQL(),
               dbname = "rteu",
-              host = global$connections$Host[i],
-              port = global$connections$Port[i],
-              username = global$connections$User[i],
-              password = global$connections$Password[i]
+              host = current_connection$Host,
+              port = current_connection$Port,
+              username = current_connection$User,
+              password = current_connection$Password
             ),
             error = function(err){
               NULL
@@ -71,12 +100,13 @@ open_connections <- reactive({
         }
         },
       message = "Attempting connection: ",
-      max = nrow(global$connections),
+      max = connections_count,
       value = 0
     )
   }else{
     tmp_list<-NULL
   }
+
   return(tmp_list)
 })
 
@@ -128,87 +158,88 @@ get_info_of_entries <- reactive({
 
 observe({
     if (input$load_mysql_data) {
-        updateTabsetPanel(session, "live_tab_tabset", selected = "List of Data")
+        if (!are_current_connections_open()) {
+            show_error("you need to connect to the selected databases first.")
+            return (NULL)
+        }
+
+        get_mysql_data()
     }
 })
 
 get_mysql_data <- reactive({
-  if(!is.null(get_info_of_entries())&&input$load_mysql_data){
+    if (!isolate(are_current_connections_open())) {
+        return (NULL)
+    }
+
+
+  entries_info = isolate(get_info_of_entries())
+  if(!is.null(entries_info) && input$load_mysql_data){
     tmp<-data.frame()
     query_duration_filter<-""
     query_max_signal_filter<-""
-    if(input$check_sql_duration){
-      query_duration_filter<-paste("duration >",input$query_filter_duration[1],"AND duration <",input$query_filter_duration[2])
+    if(isolate(input$check_sql_duration)){
+      query_duration_filter<-paste("duration >",isolate(input$query_filter_duration[1]),"AND duration <",isolate(input$query_filter_duration[2]))
     }
-    if(input$check_sql_strength){
-      if(any(input$check_sql_duration)){
+    if(isolate(input$check_sql_strength)){
+      if(any(isolate(input$check_sql_duration))){
         and<-"AND"
       }
-      query_max_signal_filter<-paste(and,"max_signal >",input$query_filter_strength[1],"AND max_signal <",input$query_filter_strength[2])
+      query_max_signal_filter<-paste(and,"max_signal >",isolate(input$query_filter_strength[1]),"AND max_signal <",isolate(input$query_filter_strength[2]))
     }
 
-    if(!is.null(get_info_of_entries())){
+        connections_list    <- isolate(open_connections())
+        connections_ids     <- isolate(current_connections_ids())
+        connections_count   <- length(connections_ids)
+
         withProgress(
             expr = {
-                for(i in get_info_of_entries()[get_info_of_entries()$timestamp!="offline",]$Name) {
-                    setProgress(detail=i)
-                    if(is.null(open_connections()[[i]])) {
-                        print(open_connections()[[i]])
-                        results<-data.frame(Name=i,id=NA,timestamp="offline")
-                        tmp<-rbind(tmp,results)
-                        next
-                    }
-                    else {
-                        if(dbIsValid(open_connections()[[i]])) {
+                for(i in connections_ids) {
+                    connection = connections_list[[global$connections[i, ]$Name]]
+                    connection_info = entries_info[i, ]
+
+                    setProgress(detail = connection_info$Name)
                             query_freq_filter<-""
-                            if(input$query_filter_freq){
-                                for(k in global$frequencies$Frequency){
+                            if(isolate(input$query_filter_freq)){
+                                for(k in isolate(global$frequencies$Frequency)){
                                     error<-2000
                                     center<-150120000
                                     and<-""
-                                    if(any(input$check_sql_duration,input$check_sql_strength)) {
+                                    if(any(isolate(input$check_sql_duration),isolate(input$check_sql_strength))) {
                                         and<-"AND("
                                     }
-                                    if(nrow(global$frequencies)>1&&query_freq_filter!=""){
+                                    if(nrow(isolate(global$frequencies))>1&&query_freq_filter!=""){
                                         and<-"OR"
                                     }
                                     query_freq_filter<-paste(query_freq_filter,and,"(signal_freq >",k*1000-error-center,"AND signal_freq <",k*1000+error-center,")")
                                 }
-                                if(any(input$check_sql_duration,input$check_sql_strength)){
+                                if(any(isolate(input$check_sql_duration),isolate(input$check_sql_strength))){
                                     query_freq_filter<-paste(query_freq_filter,")")
                                 }
                             }
                             where<-""
-                            if(any(input$check_sql_duration,input$check_sql_strength,input$query_filter_freq)){
+                            if(any(isolate(input$check_sql_duration), isolate(input$check_sql_strength), isolate(input$query_filter_freq))){
                                 where<-"WHERE"
                             }
-                            mysql_query_signals<-paste("SELECT * FROM `signals`",where,query_duration_filter,query_max_signal_filter,query_freq_filter,"ORDER BY id DESC LIMIT",input$live_last_points,";")
-                            print(mysql_query_signals)
-                            signals<-dbGetQuery(open_connections()[[i]],mysql_query_signals)
-                            mysql_query_runs<-paste("SELECT * FROM `runs` ORDER BY id DESC LIMIT",input$live_last_points,";")
-                            runs<-dbGetQuery(open_connections()[[i]],mysql_query_runs)
+                            mysql_query_signals <- paste("SELECT * FROM `signals`",where,query_duration_filter,query_max_signal_filter,query_freq_filter,"ORDER BY id DESC LIMIT",input$live_last_points,";")
+
+                            signals <- dbGetQuery(connection ,mysql_query_signals)
+                            mysql_query_runs<-paste("SELECT * FROM `runs` ORDER BY id DESC LIMIT", isolate(input$live_last_points), ";")
+
+                            runs<-dbGetQuery(connection, mysql_query_runs)
+
                             if(nrow(signals)>0){
                                 results<-merge(signals,runs,by.x="run",by.y="id")
-                                results$Name<-i
+                                results$Name<-connection_info$Name
                                 tmp<-rbind(tmp,results)
                             }
+                            incProgress(amount=1)
                         }
-                        else{
-                            results<-data.frame(Name=i,id=NA,timestamp="offline")
-                            tmp<-rbind(tmp,results)
-                        }
-                    }
-                    incProgress(amount=1)
-                }
-            },
+                },
             message = "Loading data: ",
-            max = nrow(get_info_of_entries()[get_info_of_entries()$timestamp!="offline",]),
+            max = connections_count,
             value = 0
         )
-    }
-    else{
-      tmp<-NULL
-    }
     global$tmp_data <- tmp
   }
 })
