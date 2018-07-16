@@ -273,8 +273,7 @@ output$live_tab_remote_entries_table <- renderDataTable({
 
 output$live_tab_mysql_data <- renderDataTable({
   validate(need(signal_data(), "Please check connections first"))
-  signal_data()
-  #[c("Name", "timestamp", "samples", "duration", "signal_freq", "signal_bw", "max_signal")]
+  signal_data()[c("Name", "timestamp", "samples", "duration", "signal_freq", "signal_bw", "max_signal")]
 }, options = list(pageLength = 10))
 
 output$live_tab_keepalive<- renderDataTable({
