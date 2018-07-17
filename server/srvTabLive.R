@@ -146,7 +146,7 @@ get_mysql_data <- reactive({
       }
       query_max_signal_filter<-paste(and,"max_signal >",input$query_filter_strength[1],"AND max_signal <",input$query_filter_strength[2])
     }
-    
+
     if(!is.null(get_info_of_entries())){
       withProgress(
         expr = {
@@ -181,12 +181,14 @@ get_mysql_data <- reactive({
                 if(any(input$check_sql_duration,input$check_sql_strength,input$query_filter_freq)){
                   where<-"WHERE"
                 }
-                mysql_query_signals<-paste("SELECT * FROM `signals`",where,query_duration_filter,query_max_signal_filter,query_freq_filter,"ORDER BY id DESC LIMIT",input$live_last_points,";")
+                mysql_query_signals<-paste("SELECT timestamp, duration, signal_freq, run, max_signal FROM `signals`",where,query_duration_filter,query_max_signal_filter,query_freq_filter,"ORDER BY id DESC LIMIT",input$live_last_points,";")
                 signals<-dbGetQuery(open_connections()[[i]],mysql_query_signals)
-                mysql_query_runs<-paste("SELECT * FROM `runs` ORDER BY id DESC LIMIT",input$live_last_points,";")
+                mysql_query_runs<-paste("SELECT id, device, pos_x, pos_y, orientation, beam_width, center_freq FROM `runs` ORDER BY id DESC LIMIT",input$live_last_points,";")
                 runs<-dbGetQuery(open_connections()[[i]],mysql_query_runs)
                 if(nrow(signals)>0){
                   results<-merge(signals,runs,by.x="run",by.y="id")
+                  results$run <- NULL
+                  results$id <- NULL
                   results$Name<-i
                   tmp<-rbind(tmp,results)
                 }
@@ -216,9 +218,16 @@ signal_data<-reactive({
   if(is.null(tmp)) return(NULL)
   if(nrow(tmp)==0) return(NULL)
   #tmp<-subset(get_mysql_data(),signal_freq!=0)
-  tmp$timestamp<-as.POSIXct(tmp$timestamp)
-  tmp$signal_freq<-round((tmp$signal_freq+tmp$center_freq)/1000)
-  global$signals<-unique.data.frame(rbind(cbind(tmp,receiver = substrLeft(tmp$device,17)),global$signals))
+  tmp$timestamp <- as.POSIXct(tmp$timestamp)
+  tmp$signal_freq <- round((tmp$signal_freq+tmp$center_freq)/1000)
+  tmp$receiver <- substrLeft(tmp$device,17)
+
+  signal_info <- tmp[, c("timestamp", "duration", "signal_freq", "Name", "receiver", "beam_width", "max_signal")]
+  global$signals<-unique.data.frame(rbind(global$signals, signal_info))
+
+  receiver_info <- tmp[, c("receiver", "Name", "pos_x", "pos_y", "orientation")]
+  names(receiver_info) <- c("Name", "Station", "Longitude", "Latitude", "Orientation")
+  global$receivers<-unique.data.frame(rbind(global$receivers, receiver_info))
   tmp
 })
 
@@ -240,7 +249,7 @@ output$live_tab_remote_entries_table <- renderDataTable({
 
 output$live_tab_mysql_data <- renderDataTable({
   validate(need(signal_data(), "Please check connections first"))
-  signal_data()[c("Name", "timestamp", "samples", "duration", "signal_freq", "signal_bw", "max_signal")]
+  global$signals
 }, options = list(pageLength = 10))
 
 output$live_tab_keepalive<- renderDataTable({
