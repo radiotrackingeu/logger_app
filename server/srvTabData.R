@@ -332,7 +332,7 @@ output$data_tab_preview <- renderDataTable({
 
 output$data_tab_logger_table <- renderDataTable({
   validate(need(global$signals, "Please provide logger data file."))
-  global$signals[c("Name", "timestamp", "samples", "duration", "signal_freq", "signal_bw", "max_signal")]
+  global$signals
 }, options = list(pageLength = 10))
 
 output$data_tab_freq_table <- renderDataTable({
