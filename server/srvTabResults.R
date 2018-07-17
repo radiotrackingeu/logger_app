@@ -1,7 +1,8 @@
-############ srvPlots.R ############
-
 #calculate time difference between two consecutive signals
-calc_time_distance <- function(data){
+filtered_data_td <- reactive({
+  if (!input$filter_one_freq & !input$filter_freq)
+    return(NULL)
+  data<-filtered_data()
   #find for each receiver
   list_of_receivers<-unique(data$receiver)
   #and each frequency
@@ -13,28 +14,29 @@ calc_time_distance <- function(data){
     for(k in list_of_frequencies){
       tmp2<-subset(tmp1,freq_tag==k)
       tmp2<-tmp2[order(tmp2$timestamp),]
-      #calcualte the time distance between the impulses
+      #calculate the time distance between the impulses
       if(nrow(tmp2)>1){
         td<-diff(tmp2$timestamp)
         if(attr(td,"units")=="secs"){
           td<-c(0,td)
-          #tmp2<-cbind(tmp2,td=td)
-          return_td<-rbind(td,return_td)
+          tmp2<-cbind(tmp2,td=td,temperature=calculate_temperature(td))
+          return_td<-rbind(tmp2,return_td)
         }
       }
     }
   }
   return(return_td)
+})
+
+calculate_temperature <- function(td,a=20.307,b=0.0408) {
+  return(log(60/as.numeric(td)/a)/b)
 }
 
 #display temperatur using A and B Coeficients
 output$timediffs_plot <- renderPlot({
-  tmp<-calc_time_distance(filtered_data())
-  #y=20,307*exp(0,0408*x)<=>ln(y)=ln(20,307)+0,0408*x<=>ln(y/20,307)/0,0408=x 
-  a<-20.307#input$temp_cal_a
-  b<-0.0408#input$temp_cal_b
-  tmp$temperature<-log(60/as.numeric(tmp$td)/a)/b
-  ggplot()+geom_point(aes(x=tmp$timestamp,y=tmp$temperature))+ylim(10,45)
+  validate(need(filtered_data_td(),"No data! One of the frequency filters must be enabled!"))
+  tmp<-filtered_data_td()
+  ggplot(data=filtered_data_td())+geom_point(aes(x=timestamp,y=temperature,color=freq_tag))+ylim(10,45)
 })
 
 #Temperature would be great here
