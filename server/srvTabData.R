@@ -196,7 +196,11 @@ calibration_list <- reactive({
 })
 
 local_logger_data <- reactive({
-    safe_read_excel_silent("data/LoggerData.xlsx")
+    tmp <- NULL
+    if (input$data_type_input == "Data folder") {
+       tmp<-read_logger_folder()
+    }
+    return(tmp)
 })
 
 ### read Signal data from files ###
@@ -204,7 +208,7 @@ local_logger_data <- reactive({
 get_signals <- reactive({
     switch (input$data_type_input,
             'Data folder' = {
-                tmp <- safe_read_excel_silent("data/LoggerData.xlsx")
+                read_logger_folder()
             },
             'Logger Files' = {
               data <- NULL
@@ -293,7 +297,7 @@ output$data_tab_preview <- renderDataTable({
         "Data folder" = {
             tmp <- NULL
 
-            files <- c("Antennas", "Frequencies", "RemoteConnections", "Calibration", "LoggerData")
+            files <- c("Antennas", "Frequencies", "RemoteConnections", "Calibration")
 
             for (file in files) {
                 filepath = paste0("data/", file, ".xlsx")
