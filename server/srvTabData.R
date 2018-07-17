@@ -28,8 +28,11 @@ observeEvent(input$add_data,{
   # add signal data if either SQLite or Logger Files has been selected
   if(input$data_type_input=="Logger Files"||input$data_type_input=="SQLite File"&&!input$data_type_input == "Data folder"){
     tmp<-get_signals()
-    if(!is.null(tmp)){
-      global$signals<-unique.data.frame(rbind(cbind(tmp,receiver = input$receiver_name_input, Name = input$station_name_input),global$signals))
+    if(!is.null(tmp) && input$data_type_input != "SQLite File"){
+        global$signals<-unique.data.frame(rbind(cbind(tmp,receiver = input$receiver_name_input, Name = input$station_name_input),global$signals))
+    }
+    else {
+        global$signals<-unique.data.frame(rbind(tmp, global$signals))
     }
   }
 })

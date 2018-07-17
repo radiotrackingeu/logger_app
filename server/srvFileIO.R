@@ -131,29 +131,64 @@ output$filtered_data_sqlite <- downloadHandler(
   }
 )
 
-output$excel_file_calibrations <- downloadHandler(
-  filename = function() {
-    "filtered_data.sqlite"
-  },
-  content = function(file) {
-    con <- dbConnect(RSQLite::SQLite(), file)
-    if(!is.null(filtered_data())){
-      dbWriteTable(con,"rteu_logger_data",filtered_data(),overwrite=TRUE)
+output$download_excel_frequencies <- downloadHandler(
+    filename = "frequencies.xlsx",
+    content = function(file) {
+        if (!is.null(global$frequencies)) {
+            write_xlsx(global$frequencies, file)
+        }
+        else {
+            write_xlsx(data.frame(), file)
+        }
     }
-    if(!is.null(global$frequencies)){
-      dbWriteTable(con,"rteu_freqs",global$frequencies,overwrite=TRUE)
+)
+
+output$download_excel_calibrations <- downloadHandler(
+    filename = "calibrations.xlsx",
+    content = function(file) {
+        if (!is.null(global$calibration)) {
+            write_xlsx(global$calibration, file)
+        }
+        else {
+            write_xlsx(data.frame(), file)
+        }
     }
-    if(!is.null(global$receivers)){
-      dbWriteTable(con,"rteu_antenna",global$receivers,overwrite=TRUE)
+)
+
+output$download_excel_signals <- downloadHandler(
+    filename = "signals.xlsx",
+    content = function(file) {
+        if (!is.null(global$signals)) {
+            write_xlsx(global$signals, file)
+        }
+        else {
+            write_xlsx(data.frame(), file)
+        }
     }
-    if(!is.null(global$connections)){
-      dbWriteTable(con,"rteu_connections",global$connections,overwrite=TRUE)
+)
+
+output$download_excel_remote_connections <- downloadHandler(
+    filename = "remote_connections.xlsx",
+    content = function(file) {
+        if (!is.null(global$connections)) {
+            write_xlsx(global$connections, file)
+        }
+        else {
+            write_xlsx(data.frame(), file)
+        }
     }
-    if(!is.null(global$calibration)){
-      dbWriteTable(con,"rteu_calibration",global$calibration,overwrite=TRUE)
+)
+
+output$download_excel_receivers <- downloadHandler(
+    filename = "receivers.xlsx",
+    content = function(file) {
+        if (!is.null(global$receivers)) {
+            write_xlsx(global$receivers, file)
+        }
+        else {
+            write_xlsx(data.frame(), file)
+        }
     }
-    dbDisconnect(con)
-  }
 )
 
 safe_read_excel <- function(filepath) {
