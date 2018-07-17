@@ -5,12 +5,10 @@
 data_in<-reactive({
   validate(need(global$receivers, "No receiver data provided!"))
   validate(need(global$frequencies, "Please provide frequency data."))
+  validate(need(doa_smoothed(), "Could not calculate DoAs"))
   # sample_size=500
   # data.frame(timestamp=sample(1530003973:1530004174,sample_size,replace = T),station=sample(isolate(global$receivers$receiver),sample_size,replace=T),angle=as.numeric(sample(0:359,sample_size,replace=T)),freq_tag=sample(isolate(global$frequencies$Name),sample_size,replace=T),stringsAsFactors = F)
-  if(!is.null(doa_smoothed()))
-    return(doa_smoothed())
-  print("no doa_smoothed")
-    return(NULL)
+  return(doa_smoothed())
 })
 
 # filter input data by frequency
@@ -32,15 +30,13 @@ tri_timeslots <- reactive ({
   slot_size=5 #seconds
   ret<-data.frame(stringsAsFactors = F)#timestamp=as.POSIXct(double(),tz="GMT"),freq_tag=character(),station=character(),angle=numeric(), stringsAsFactors = F)
   data<-data_in()
+#  print(str(data))
   for (t in seq(min(data$timestamp),max(data$timestamp),slot_size)) {
     data_t<-subset(data, data$timestamp >= t & data$timestamp < t+slot_size)
-    print(paste("t: ",nrow(data_t)))
     for (f in unique(data_t$freq_tag)) {
       data_tf <- subset(data_t, data_t$freq_tag==f)
-      print(paste("tf: ",nrow(data_tf)))
       for (s in unique(data_tf$Station)) {
         data_tfs <- subset(data_tf, data_tf$Station==s)
-        print(paste("t: ",nrow(data_tfs)))
         if (nrow(data_tfs > 0)) {
           line<-list(timestamp=as.POSIXct(t,tz="GMT",origin="1970-01-01 00:00:00"),freq_tag=f,station=s,angle=mean(data_tfs$angle),strength=mean(data_tfs$strength))
           ret<-rbind(ret,line,stringsAsFactors=F, make.row.names=F)

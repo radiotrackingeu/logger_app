@@ -157,6 +157,7 @@ doa_smoothed<-reactive({
     return(NULL)
   data<-merge(smoothed_curves(),receiver_list(),by.x="receiver",by.y="Name")
   tmp_angles<-NULL
+#  View(data)
   #for each timestamp of the smoothed data
   for(t in unique(data$timestamp)){
     #build subset for the timestamp
@@ -177,7 +178,7 @@ doa_smoothed<-reactive({
             #back antenna plays a big role here
             angle<-data_tfs[1,"Orientation"]
           }
-          tmp_angles<-rbind(cbind.data.frame(timestamp=as.POSIXct(t,origin="1970-01-01 00:00:00"),angle=angle,antennas=nrow(data_tfs),Station=s,freq_tag=f,strength=max(data_tfs$max_signal)),tmp_angles)
+          tmp_angles<-rbind(cbind.data.frame(timestamp=as.POSIXct(t,origin="1970-01-01 00:00:00"),angle=angle,antennas=nrow(data_tfs),Station=s,freq_tag=f,strength=max(data_tfs$max_signal),stringsAsFactors=F),tmp_angles)
         }
       }
     }
@@ -189,19 +190,22 @@ doa_smoothed<-reactive({
 #smoothing in second intervalls
 smoothed_curves <- reactive({
   data<-filtered_data()
+#  View(head(data))
   smoothed_data<-NULL
   for(i in unique(data$receiver)){
     tmp1<-subset(data,receiver==i)
     for(l in unique(tmp1$freq_tag)){
       tmp2<-subset(tmp1,freq_tag==l)
       time_seq<-seq(round(min(tmp2$timestamp)),round(max(tmp2$timestamp)),1)
+#      print(paste("IQR: ",IQR(tmp2$timestamp)))
       smoothed<-data.frame(max_signal=predict(
         smooth.spline(tmp2$timestamp,tmp2$max_signal,spar=input$spar_in),
         as.numeric(time_seq))$y,
         timestamp=time_seq,
         receiver=i,
-        freq_tag=l)
+        freq_tag=l,stringsAsFactors = F)
       smoothed_data<-rbind(smoothed_data,smoothed)
+#      View(smoothed_data)
     }
   }
   return(smoothed_data)
