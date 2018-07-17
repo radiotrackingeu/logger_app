@@ -186,7 +186,7 @@ smoothed_curves <- reactive({
     tmp1<-subset(data,receiver==i)
     for(l in unique(tmp1$freq_tag)){
       tmp2<-subset(tmp1,freq_tag==l)
-      time_seq<-seq(min(filtered_data()$time),max(filtered_data()$time),1)
+      time_seq<-seq(round(min(tmp2$timestamp)),round(max(tmp2$timestamp)),1)
       smoothed<-data.frame(max_signal=predict(
         smooth.spline(tmp2$timestamp,tmp2$max_signal,spar=input$spar_in),
         as.numeric(time_seq))$y,

@@ -14,6 +14,9 @@ shinyjs.mark_valid = function(tab_name) {
         case "Frequencies":
             tabset_panel[4].children[0].className = "available";
             break;
+        case "Calibration":
+            tabset_panel[5].children[0].className = "available";
+            break;
     }
 }
 
@@ -33,6 +36,9 @@ shinyjs.mark_invalid = function(tab_name) {
             break;
         case "Frequencies":
             tabset_panel[4].children[0].className = "needed";
+            break;
+        case "Calibration":
+            tabset_panel[5].children[0].className = "needed";
             break;
     }
 }
