@@ -1,5 +1,6 @@
 required_packages<-c("shiny",
                      "readxl",
+                     "writexl",
                      "ggplot2",
                      "leaflet",
                      "rgdal",
