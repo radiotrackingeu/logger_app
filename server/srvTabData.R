@@ -37,6 +37,22 @@ observeEvent(input$add_data,{
   }
 })
 
+observeEvent(input$clear_logger_data, {
+    global$signals <- NULL
+})
+
+observeEvent(input$clear_receivers_data, {
+    global$receivers <- NULL
+})
+
+observeEvent(input$clear_frequencies_data, {
+    global$frequencies <- NULL
+})
+
+observeEvent(input$clear_connections_data, {
+    global$connections <- NULL
+})
+
 js$mark_invalid("Frequencies")
 js$mark_invalid("Receivers")
 js$mark_invalid("Connections")
