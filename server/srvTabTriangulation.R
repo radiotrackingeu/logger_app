@@ -1,42 +1,50 @@
 #expected input is data frame containing DoA data for all frequencies at all stations
-# i.e. cols timestamp, station, angle, freq
+# i.e. cols timestamp, station, angle, freq_tag
 
 # placeholder vars
 data_in<-reactive({
   validate(need(global$receivers, "No receiver data provided!"))
   validate(need(global$frequencies, "Please provide frequency data."))
-  sample_size=500
-  data.frame(timestamp=sample(1530003973:1530004174,sample_size,replace = T),station=sample(isolate(global$receivers$receiver),sample_size,replace=T),angle=as.numeric(sample(0:359,sample_size,replace=T)),freq=sample(isolate(global$frequencies$Name),sample_size,replace=T),stringsAsFactors = F)
+  # sample_size=500
+  # data.frame(timestamp=sample(1530003973:1530004174,sample_size,replace = T),station=sample(isolate(global$receivers$receiver),sample_size,replace=T),angle=as.numeric(sample(0:359,sample_size,replace=T)),freq_tag=sample(isolate(global$frequencies$Name),sample_size,replace=T),stringsAsFactors = F)
+  if(!is.null(doa_smoothed()))
+    return(doa_smoothed())
+  print("no doa_smoothed")
+    return(NULL)
 })
 
 # filter input data by frequency
 tri_filtered_data<-reactive({
-  tri_position_data()[tri_position_data()$freq==input$tri_frequency,]
+  tri_position_data()[tri_position_data()$freq_tag==input$tri_frequency,]
 })
 
 # add wgs and utm position data and names to freq-filtered input data
 tri_position_data<-reactive({
-  data<-merge(tri_timeslots(),global$receivers[,c("receiver","pos_x","pos_y")],by.x="station",by.y="receiver")
-  data<-cbind(data,utm=wgstoutm(data[,"pos_x"],data[,"pos_y"]))
+  data<-merge(tri_timeslots(),global$receivers[!duplicated(global$receivers$Station),c("Station","Longitude","Latitude")],by.x="station",by.y="Station")
+  data<-cbind(data,utm=wgstoutm(data[,"Longitude"],data[,"Latitude"]))
+  colnames(data)[which(colnames(data)=='Longitude')]<-"pos_x"
+  colnames(data)[which(colnames(data)=='Latitude')]<-"pos_y"
+  data
 })
 
 # break data into timeslots, taking mean of angle where there is more than one observation per station
 tri_timeslots <- reactive ({
   slot_size=5 #seconds
-  ret<-data.frame(stringsAsFactors = F)#timestamp=as.POSIXct(double(),tz="GMT"),freq=character(),station=character(),angle=numeric(), stringsAsFactors = F)
+  ret<-data.frame(stringsAsFactors = F)#timestamp=as.POSIXct(double(),tz="GMT"),freq_tag=character(),station=character(),angle=numeric(), stringsAsFactors = F)
   data<-data_in()
   for (t in seq(min(data$timestamp),max(data$timestamp),slot_size)) {
     data_t<-subset(data, data$timestamp >= t & data$timestamp < t+slot_size)
-    for (f in unique(data_t$freq)) {
-      data_tf <- subset(data_t, data_t$freq==f)
-      for (s in unique(data_tf$station)) {
-        data_tfs <- subset(data_tf, data_tf$station==s)
+    print(paste("t: ",nrow(data_t)))
+    for (f in unique(data_t$freq_tag)) {
+      data_tf <- subset(data_t, data_t$freq_tag==f)
+      print(paste("tf: ",nrow(data_tf)))
+      for (s in unique(data_tf$Station)) {
+        data_tfs <- subset(data_tf, data_tf$Station==s)
+        print(paste("t: ",nrow(data_tfs)))
         if (nrow(data_tfs > 0)) {
-          line<-list(timestamp=as.POSIXct(t,tz="GMT",origin="1970-01-01"),freq=f,station=s,angle=mean(data_tfs$angle),strength=mean(data_tfs$strength))
+          line<-list(timestamp=as.POSIXct(t,tz="GMT",origin="1970-01-01 00:00:00"),freq_tag=f,station=s,angle=mean(data_tfs$angle),strength=mean(data_tfs$strength))
           ret<-rbind(ret,line,stringsAsFactors=F, make.row.names=F)
         }
-        # else
-        #   print(paste("No data for ",t,f,s))
       }
     }
   }
@@ -64,7 +72,7 @@ output$map_triangulation <- renderLeaflet({
     return(m)
 })
 
-output$tri_positions_and_angles<-renderDataTable({tri_filtered_data()[,c("timestamp","station","angle","freq")]},
+output$tri_positions_and_angles<-renderDataTable({tri_filtered_data()[,c("timestamp","station","angle","freq_tag")]},
   options=list(
     #filter="none", autoHideNavigation = T, selection= "multiple", rownames = F, options=list(paging=F,
     pagingType="simple", pageLength=10, lengthChange=F, searching=F,scrollY="400px"#),

@@ -158,20 +158,28 @@ doa_smoothed<-reactive({
   data<-merge(smoothed_curves(),receiver_list(),by.x="receiver",by.y="Name")
   tmp_angles<-NULL
   #for each timestamp of the smoothed data
-  for(i in unique(data$timestamp)){
+  for(t in unique(data$timestamp)){
     #build subset for the timestamp
-    tmp<-subset(data,timestamp==i)
-    #sort tmp using signal_strength
-    tmp<-unique(tmp[order(tmp$max_signal, decreasing = TRUE, na.last=NA),])
-    if(nrow(tmp)>1){
-      #check angle between strongest and second strongest and if it is smaller then 90 degree, calc it lineary
-      if(abs(tmp[1,"Orientation"]-tmp[2,"Orientation"])<=90){
-        angle<-get_angle_linear(tmp[1,"max_signal"],tmp[2,"max_signal"],tmp[1,"Orientation"],tmp[2,"Orientation"],input$dBLoss)
-      }else{
-        #back antenna plays a big role here
-        angle<-tmp[1,"Orientation"]
+    data_t<-subset(data,timestamp==t)
+    for (f in unique(data_t$freq_tag)) {
+      #build subset for the frequency
+      data_tf<-subset(data_t,freq_tag==f)
+      for (s in unique(data_tf$Station)) {
+        #build subset for the Station
+        data_tfs<-subset(data_tf, Station==s)
+        #sort using signal_strength
+        data_tfs<-unique(data_tfs[order(data_tfs$max_signal, decreasing = TRUE, na.last=NA),])
+        if(nrow(data_tfs)>1){
+          #check angle between strongest and second strongest and if it is smaller then 90 degree, calc it linearly
+          if(abs(data_tfs[1,"Orientation"]-data_tfs[2,"Orientation"])<=90){
+            angle<-get_angle_linear(data_tfs[1,"max_signal"],data_tfs[2,"max_signal"],data_tfs[1,"Orientation"],data_tfs[2,"Orientation"],input$dBLoss)
+          }else{
+            #back antenna plays a big role here
+            angle<-data_tfs[1,"Orientation"]
+          }
+          tmp_angles<-rbind(cbind.data.frame(timestamp=as.POSIXct(t,origin="1970-01-01 00:00:00"),angle=angle,antennas=nrow(data_tfs),Station=s,freq_tag=f,strength=max(data_tfs$max_signal)),tmp_angles)
+        }
       }
-      tmp_angles<-rbind(cbind.data.frame(timestamp=as.POSIXct(i,origin="1970-01-01 00:00:00"),angle=angle,antennas=nrow(tmp)),tmp_angles)
     }
   }
   tmp_angles
