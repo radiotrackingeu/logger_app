@@ -108,6 +108,10 @@ tabPanel("File Input",
                       dataTableOutput("data_tab_freq_table"),
                       actionButton("clear_frequencies_data", "Clear table")
              ),
+             tabPanel("Calibration",
+                      dataTableOutput("data_tab_calibration_table"),
+                      actionButton("clear_calibration_data", "Clear table")
+             ),
              tabPanel("Help",
                       "1) First select the data source on the right",
                       br(),

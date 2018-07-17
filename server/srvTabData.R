@@ -53,10 +53,15 @@ observeEvent(input$clear_connections_data, {
     global$connections <- NULL
 })
 
+observeEvent(input$clear_calibration_data, {
+    global$calibration <- NULL
+})
+
 js$mark_invalid("Frequencies")
 js$mark_invalid("Receivers")
 js$mark_invalid("Connections")
 js$mark_invalid("Logger data")
+js$mark_invalid("Calibration")
 
 update_single_tab_title_colour <- function(data, label) {
     if (!is.null(data)) {
@@ -71,6 +76,7 @@ observe({update_single_tab_title_colour(global$signals, "Logger data")})
 observe({update_single_tab_title_colour(global$receivers, "Receivers")})
 observe({update_single_tab_title_colour(global$connections, "Connections")})
 observe({update_single_tab_title_colour(global$frequencies, "Frequencies")})
+observe({update_single_tab_title_colour(global$calibration, "Calibration")})
 
 ### get data stored in the data folder ###
 
@@ -332,6 +338,11 @@ output$data_tab_logger_table <- renderDataTable({
 output$data_tab_freq_table <- renderDataTable({
   validate(need(global$frequencies, "Please provide frequency data file."))
   global$frequencies
+}, options = list(pageLength = 10))
+
+output$data_tab_calibration_table <- renderDataTable({
+  validate(need(global$calibration, "Please provide calibration data file."))
+  global$calibration
 }, options = list(pageLength = 10))
 
 output$data_tab_antennae_table <- renderDataTable({
