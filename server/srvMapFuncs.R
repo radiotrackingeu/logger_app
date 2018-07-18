@@ -38,15 +38,15 @@ addBearings <-function(m, data, strength=25, ...) {
 #' Adds circles representing stations to given map.
 #'
 #' @param m the map to add to
-#' @param data data.frame with at least columns station(char),pos_x(num),pos_y(num). Values in station must be from global$receivers.
+#' @param data data.frame with at least columns Station(char),Longitude(num),Latitude(num). Duplicates will be ignored
 #' @param ... Further options passed to addCircles
 #'
 #' @return a new map object containing the old plus the stations
 addStations <-function(m, data, ...) {
   if (is.null(data) || nrow(data)<=0)
     return(m)
-  data<-data[!duplicated(data[,"station"]),]
-  m<-m%>% addCircles(lng = data$pos_x, lat=data$pos_y, label=data$station, ...)
+  data<-data[!duplicated(data[,c("Station","Longitude","Latitude")]),]
+  m<-m%>% addCircles(lng = data$Longitude, lat=data$Latitude, label=data$Station, ...)
 }
 
 #' Calculates triangulated positions and adds circles and dashed bearings to the map
