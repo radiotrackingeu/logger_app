@@ -23,7 +23,7 @@ read_logger_folder <-function(){
       }
     }
   }
-  return(tmp_data)
+  return(tmp_data[, c("timestamp", "duration", "signal_freq", "Name", "receiver", "max_signal")])
 }
 
 read_logger_data <- function(filepath) {
