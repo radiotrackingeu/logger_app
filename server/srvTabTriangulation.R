@@ -4,7 +4,7 @@
 # placeholder vars
 data_in<-reactive({
   validate(need(global$receivers, "No receiver data provided!"))
-  validate(need(global$frequencies, "Please provide frequency data."))
+  validate(need(input$filter_freq || input$filter_one_freq, "Please enable either Single oder Multiple Frequency filter!"))
   validate(need(doa_smoothed(), "Could not calculate DoAs"))
   # sample_size=500
   # data.frame(timestamp=sample(1530003973:1530004174,sample_size,replace = T),station=sample(isolate(global$receivers$receiver),sample_size,replace=T),angle=as.numeric(sample(0:359,sample_size,replace=T)),freq_tag=sample(isolate(global$frequencies$Name),sample_size,replace=T),stringsAsFactors = F)
@@ -30,7 +30,6 @@ tri_timeslots <- reactive ({
   slot_size=5 #seconds
   ret<-data.frame(stringsAsFactors = F)#timestamp=as.POSIXct(double(),tz="GMT"),freq_tag=character(),station=character(),angle=numeric(), stringsAsFactors = F)
   data<-data_in()
-#  print(str(data))
   for (t in seq(min(data$timestamp),max(data$timestamp),slot_size)) {
     data_t<-subset(data, data$timestamp >= t & data$timestamp < t+slot_size)
     for (f in unique(data_t$freq_tag)) {
@@ -64,7 +63,6 @@ output$map_triangulation <- renderLeaflet({
     m <- m %>% addBearings(tri_timeslots_lines_points()$lines, weight=1, color="red", group="Bearings")
     m <- m %>% addTriangulations(tri_timeslots_lines_points()$points, error=input$tri_error, color="blue", radius=7, group="Triangulations")
     m <- m %>% addLayersControl(overlayGroups = c("Stations","Bearings","Triangulations","Tri Bearing","Tri Error"), options = layersControlOptions(sortLayers=FALSE))
-    # View(tri_timeslots_lines_points()$points)
     return(m)
 })
 
@@ -76,8 +74,10 @@ output$tri_positions_and_angles<-renderDataTable({tri_filtered_data()[,c("timest
 )
 
 observe({
-  validate(need(global$frequencies, "Please provide frequency data."))
-    updateSelectizeInput(session, "tri_frequency", choices=global$frequencies$Name)
+  if (input$navbar!="Triangulation")
+    return(NULL)
+  validate(need(tri_timeslots(), "Please provide data."))
+  updateSelectizeInput(session, "tri_frequency", choices=unique(tri_timeslots()$freq_tag))
 })
 
 output$tri_ui_timeline<-renderUI({

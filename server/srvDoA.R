@@ -190,14 +190,16 @@ doa_smoothed<-reactive({
 #smoothing in second intervalls
 smoothed_curves <- reactive({
   data<-filtered_data()
-#  View(head(data))
   smoothed_data<-NULL
   for(i in unique(data$receiver)){
     tmp1<-subset(data,receiver==i)
     for(l in unique(tmp1$freq_tag)){
       tmp2<-subset(tmp1,freq_tag==l)
+      if (nrow(tmp2)<2) {
+        print(paste0('skipping freq "',l,'" on receiver "',i,'": not enough signals (',nrow(tmp2),')'))
+        next
+      }
       time_seq<-seq(round(min(tmp2$timestamp)),round(max(tmp2$timestamp)),1)
-#      print(paste("IQR: ",IQR(tmp2$timestamp)))
       smoothed<-data.frame(max_signal=predict(
         smooth.spline(tmp2$timestamp,tmp2$max_signal,spar=input$spar_in),
         as.numeric(time_seq))$y,
@@ -205,7 +207,6 @@ smoothed_curves <- reactive({
         receiver=i,
         freq_tag=l,stringsAsFactors = F)
       smoothed_data<-rbind(smoothed_data,smoothed)
-#      View(smoothed_data)
     }
   }
   return(smoothed_data)
