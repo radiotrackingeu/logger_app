@@ -199,7 +199,8 @@ smoothed_curves <- reactive({
         print(paste0('skipping freq "',l,'" on receiver "',i,'": not enough signals (',nrow(tmp2),')'))
         next
       }
-      time_seq<-seq(round(min(tmp2$timestamp)),round(max(tmp2$timestamp)),1)
+      #time_seq<-seq(round(min(tmp2$timestamp)),round(max(tmp2$timestamp)),1)
+      time_seq<-unique(c(round(tmp2$timestamp),round(tmp2$timestamp)+1,round(tmp2$timestamp)-1))
       smoothed<-data.frame(max_signal=predict(
         smooth.spline(tmp2$timestamp,tmp2$max_signal,spar=input$spar_in),
         as.numeric(time_seq))$y,
