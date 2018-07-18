@@ -58,7 +58,7 @@ server <- function(input, output, session) {
   source("server/srvMapFuncs.R",local=TRUE)$value
   source("server/srvTriangulation.R",local=TRUE)$value
   source("server/srvFunctions.R", local = TRUE)$value
-  #source("server/srvTabMap.R", local = TRUE)$value
+  source("server/srvTabMap.R", local = TRUE)$value
 
   onStop(function() {
     close_all_dbs()

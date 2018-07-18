@@ -1,8 +1,3 @@
-# adds circles at antennae positions on given map.
-addAntennaePositions<-function(m) {
-  m %>% addCircles(group="antennae_positions", lng=antennae_data()$pos_x,lat = antennae_data()$pos_y)
-}
-
 # adds the cone outline to antennae on given map.
 addAntennaeCones<- function(m) {
   for(name in names(antennae_cones())) {
@@ -103,22 +98,55 @@ addTriangulations <- function(m, data, showBearings=T, error=0,  errorColor="blu
   m <- m %>% addCircles(lng=triangulations$pos.X, lat=triangulations$pos.Y,label=paste("time:",triangulations$timestamp), ...)
 }
 
+#' Draws a filled cone for every antenna, that has detected a bat
+#'
+#' @param m the map to add to
+#'
+#' @return the map with added cone
+addDetectionCones<-function(m) {
+  # print(paste("total", nrow(sorted_data()),"unique",length(unique(sorted_data()$timestamp)),"receivers",length(unique(sorted_data()$receiver))))
+  data<-subset(sorted_data(),timestamp==timestamp[input$map_choose_single_data_set])
+  if(nrow(data)==0) 
+    return(NULL)
+  validate(
+    need(data, "Please have a look at the filter settings.")
+  )
+  # print(nrow(data))
+  for(p in 1:nrow(data)){
+    # print(data$receiver[p])
+    if (!(data$receiver[p] %in% global$receivers$Name)) {
+      next
+    }
+    a<-antennae_cones()[[data$receiver[p]]]
+    label_kegel <- paste0("Signal Properties:",br(),
+      "Receiver: ",data$receiver[p], br(),
+      "Date and Time: ", data$time[p],br(),
+      "Strength: ", data$max_signal[p],br(),
+      "Length: ", data$duration[p],br(),
+      "Bandwidth: ", data$signal_bw[p],br(),
+      "Frequency: ",data$freq_tag[p]
+    )
+    m<-m %>% addPolygons(lng=a$x, lat=a$y, fillColor = color_palette()(data$max_signal[p]), fillOpacity=0.8, stroke=FALSE, popup=label_kegel, group="bats")
+  }
+  return(m)
+}
+
 # calculates cone shapes
 antennae_cones<-reactive({
-  cones=NULL
-  if (!is.null(antennae_data())) {
-    for(a in 1:nrow(antennae_data())){
-      antennae<-antennae_data()[a,]
-      x<-antennae$pos_x
-      y<-antennae$pos_y
-      direction<-antennae$orientation
-      bw<-antennae$beam_width
-      len<-100*antennae$gain
+  cones=list()
+  if (!is.null(global$receivers)) {
+    r<-global$receivers
+    for (a in seq_len(nrow(r))) {
+      x<-r[a,]$Longitude
+      y<-r[a,]$Latitude
+      direction<-r[a,]$Orientation
+      bw<-45
+      len<-2000
       wgs<-kegelcreation(x,y,direction,len,bw) # Many warnings...
-      cones[[antennae$receiver]]<-list(x=c(wgs$X,x), y=c(wgs$Y,y))
+      cones[[r[a,]$Name]]<-list(x=c(wgs$X,x), y=c(wgs$Y,y))
     }
   }
-  cones
+  return(cones)
 })
 
 # calculates corner coordinates of antenna reception area

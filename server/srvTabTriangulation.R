@@ -79,8 +79,13 @@ output$tri_map <- renderLeaflet({
 })
 
 observe({
-  leafletProxy("tri_map") %>% clearGroup("Bearings") %>% clearGroup("Triangulations") %>% clearGroup("Tri Error") %>% clearGroup("Tri Bearing")
-  # leafletProxy("tri_map") %>% addStations(tri_filtered_data(), color="black", radius=10, group="Stations")
+  leafletProxy("tri_map") %>% 
+    clearGroup("Bearings") %>% 
+    clearGroup("Triangulations") %>% 
+    clearGroup("Tri Error") %>% 
+    clearGroup("Tri Bearing") %>% 
+    clearPopups() %>% 
+    clearMarkers()
   leafletProxy("tri_map") %>% addBearings(tri_timeslots_lines_points()$lines, weight=1, color="red", group="Bearings")
   leafletProxy("tri_map") %>% addTriangulations(tri_timeslots_lines_points()$points, error=input$tri_error, color="blue", radius=7, group="Triangulations")
 })
