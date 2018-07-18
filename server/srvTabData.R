@@ -149,7 +149,9 @@ receiver_list <- reactive({
               for (file in input$SQLite_filepath[, "datapath"]) {
                 con <- dbConnect(RSQLite::SQLite(), file)
                 if (dbExistsTable(con, "rteu_antenna")) {
-                    tmp <- rbind(tmp, dbReadTable(con, "rteu_antenna"))
+                    tmp_data <- dbReadTable(con, "rteu_antenna")
+                    names(tmp_data) <- c("Name", "Station", "Longitude", "Latitude", "Orientation", "Beam width")
+                    tmp <- rbind(tmp, tmp_data)
                 }
                 dbDisconnect(con)
               }
