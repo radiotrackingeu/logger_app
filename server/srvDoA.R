@@ -174,11 +174,11 @@ doa_smoothed<-reactive({
           #check angle between strongest and second strongest and if it is smaller then 90 degree, calc it linearly
           if(abs(data_tfs[1,"Orientation"]-data_tfs[2,"Orientation"])<=90){
             angle<-get_angle_linear(data_tfs[1,"max_signal"],data_tfs[2,"max_signal"],data_tfs[1,"Orientation"],data_tfs[2,"Orientation"],input$dBLoss)
+            tmp_angles<-rbind(cbind.data.frame(timestamp=as.POSIXct(t,origin="1970-01-01 00:00:00",tz="UTC"),angle=angle,antennas=nrow(data_tfs),Station=s,freq_tag=f,strength=max(data_tfs$max_signal),stringsAsFactors=F),tmp_angles)
           }else{
             #back antenna plays a big role here
             angle<-data_tfs[1,"Orientation"]
           }
-          tmp_angles<-rbind(cbind.data.frame(timestamp=as.POSIXct(t,origin="1970-01-01 00:00:00"),angle=angle,antennas=nrow(data_tfs),Station=s,freq_tag=f,strength=max(data_tfs$max_signal),stringsAsFactors=F),tmp_angles)
         }
       }
     }
