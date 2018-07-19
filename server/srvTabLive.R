@@ -9,24 +9,25 @@ observeEvent(input$connect_to_db, {
 })
 
 output$con_tags <- renderUI({
-    selectizeInput("select_connection", multiple=TRUE,selected="all",label="Please select connections",choices = c("all",global$connections$Name))
+    selectizeInput("select_connection", multiple=TRUE,selected=global$connections$Name,label="Please select connections",choices = global$connections$Name)
 })
 
-open_connections <- reactive({
+open_connections <- eventReactive(input$connect_mysql,{
   tmp_list<-list()
   if(!is.null(global$connections)&&input$connect_mysql){
+    connect_to <- subset(global$connections,Name %in% input$select_connection)
     withProgress(
       expr = {
-        for(i in 1:nrow(global$connections)){
-          setProgress(detail=global$connections$Name[i])
-          tmp_list[[global$connections$Name[i]]]<-tryCatch(
+        for(i in 1:nrow(connect_to)){
+          setProgress(detail=connect_to$Name[i])
+          tmp_list[[connect_to$Name[i]]]<-tryCatch(
             dbConnect(
               drv=RMySQL::MySQL(),
               dbname = "rteu",
-              host = global$connections$Host[i],
-              port = global$connections$Port[i],
-              username = global$connections$User[i],
-              password = global$connections$Password[i]
+              host = connect_to$Host[i],
+              port = connect_to$Port[i],
+              username = connect_to$User[i],
+              password = connect_to$Password[i]
             ),
             error = function(err){
               show_error(err[1]);
@@ -38,7 +39,7 @@ open_connections <- reactive({
         }
       },
       message = "Attempting connection: ",
-      max = nrow(global$connections),
+      max = nrow(connect_to),
       value = 0
     )
   }else{
@@ -50,8 +51,9 @@ open_connections <- reactive({
 get_info_of_entries <- reactive({
   tmp<-data.frame()
   if(!is.null(global$connections)){
+    connect_to <- subset(global$connections,Name %in% input$select_connection)
     withProgress(
-      expr = { for(i in global$connections$Name){
+      expr = { for(i in connect_to$Name){
         setProgress(detail=i)
         if(is.null(open_connections()[[i]])){
           results<-data.frame(Name=i,id=NA,timestamp="unknown",size="unknown",running="unknown")
@@ -84,7 +86,7 @@ get_info_of_entries <- reactive({
       }
   },
   message = "Fetching additional informations: ",
-  max = nrow(global$connections),
+  max = nrow(connect_to),
   value = 0
     )
       }else{
@@ -201,7 +203,7 @@ keepalive_data<-reactive({
   tmp<-get_mysql_data()
   if(is.null(tmp)) return(NULL)
   if(nrow(tmp)==0) return(NULL)
-  tmp<-subset(get_mysql_data, signal_freq==0)
+  tmp<-subset(tmp, signal_freq==0)
   tmp$timestamp<-as.POSIXct(tmp$timestamp)
   data.frame(Timestamp = tmp$timestamp,Station = tmp$Name, Receiver = substrLeft(tmp$device,17))
 })

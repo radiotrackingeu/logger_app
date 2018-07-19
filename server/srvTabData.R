@@ -7,6 +7,7 @@ global <- reactiveValues()
 # maybe predefine content of tables
 
 #global$connections to store information how to connect to dbs
+#global$active_connections to store information on which connection to connect to
 #global$receivers to list all used receivers with the orientation and location
 #global$frequencies to list the transmitters porperties like frequency, etc.
 #global$calibration to list the sensitivy of each receiver
