@@ -214,7 +214,7 @@ output$live_tab_remote_entries_table <- renderDataTable({
 }, options = list(pageLength = 10))
 
 output$live_tab_mysql_data <- renderDataTable({
-  validate(need(global$signals, "Please check connections first"))
+  validate(need(global$signals, "Please load some data"))
   global$signals
 }, options = list(pageLength = 10))
 
