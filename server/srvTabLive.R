@@ -94,9 +94,8 @@ get_info_of_entries <- reactive({
 })
 
 observe({
-  if (input$load_mysql_data) {
-      signal_data()
-  }
+  input$load_mysql_data
+  signal_data()
 })
 
 get_mysql_data <- reactive({
@@ -190,11 +189,11 @@ signal_data<-reactive({
   tmp$receiver <- substrLeft(tmp$device,17)
 
   signal_info <- tmp[, c("timestamp", "duration", "signal_freq", "Name", "receiver", "max_signal")]
-  global$signals<-unique.data.frame(rbind(global$signals, signal_info))
+  global$signals<-unique.data.frame(rbind(isolate(global$signals), signal_info))
 
   receiver_info <- tmp[, c("receiver", "Name", "pos_x", "pos_y", "orientation", "beam_width")]
   names(receiver_info) <- c("Name", "Station", "Longitude", "Latitude", "Orientation", "Beam width")
-  global$receivers<-unique.data.frame(rbind(global$receivers, receiver_info))
+  global$receivers<-unique.data.frame(rbind(isolate(global$receivers), receiver_info))
   tmp
 })
 
