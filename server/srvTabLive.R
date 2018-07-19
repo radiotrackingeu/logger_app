@@ -14,7 +14,7 @@ output$con_tags <- renderUI({
 
 open_connections <- eventReactive(input$connect_mysql,{
   tmp_list<-list()
-  if(!is.null(global$connections)&&input$connect_mysql){
+  if(!is.null(global$connections)){
     connect_to <- subset(global$connections,Name %in% input$select_connection)
     withProgress(
       expr = {
@@ -100,8 +100,8 @@ observe({
   signal_data()
 })
 
-get_mysql_data <- reactive({
-  if(!is.null(get_info_of_entries())&&input$load_mysql_data){
+get_mysql_data <- eventReactive(input$load_mysql_data,{
+  if(!is.null(get_info_of_entries())){
     tmp<-data.frame()
     query_duration_filter<-""
     query_max_signal_filter<-""
@@ -150,6 +150,7 @@ get_mysql_data <- reactive({
                   where<-"WHERE"
                 }
                 mysql_query_signals<-paste("SELECT timestamp, duration, signal_freq, run, max_signal FROM `signals`",where,query_duration_filter,query_max_signal_filter,query_freq_filter,"ORDER BY id DESC LIMIT",input$live_last_points,";")
+                print(mysql_query_signals)
                 signals<-dbGetQuery(open_connections()[[i]],mysql_query_signals)
                 mysql_query_runs<-paste("SELECT id, device, pos_x, pos_y, orientation, beam_width, center_freq FROM `runs` ORDER BY id DESC LIMIT",input$live_last_points,";")
                 runs<-dbGetQuery(open_connections()[[i]],mysql_query_runs)
