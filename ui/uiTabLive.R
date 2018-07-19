@@ -7,7 +7,42 @@ tabPanel("Live Data",
                label = "Add live data:",
                selected = "Multiple"
              ),
-             uiOutput('single_multiple_con_tags'),
+             conditionalPanel("input.live_data_number == 'Single'",
+                  textInput(
+                    "MySQL_name",
+                    "Connection name",
+                    "Manually added connection"
+                  ),
+                  textInput(
+                    "MySQL_host",
+                    "Enter Host Name",
+                    "192.168.1.1"
+                  ),
+                  numericInput(
+                    "MySQL_port",
+                    "Enter Port",
+                    3306
+                  ),
+                  textInput(
+                    "MySQL_user",
+                    "Enter User Name",
+                    "rteu"
+                  ),
+                  passwordInput(
+                    "MySQL_pw",
+                    "Enter Password",
+                    "rteuv2!"
+                  ),
+                  actionButton(
+                    "connect_to_db",
+                    "Add remote connection"
+                  ),
+                  br(),
+                  br()
+             ),
+             conditionalPanel("input.live_data_number == 'Multiple'",
+                 uiOutput('single_multiple_con_tags')
+             ),
              numericInput("live_last_points", "Number of entries to read", 50, 1, 10000),
              actionButton("connect_mysql","Connect to DBs"),
              actionButton("load_mysql_data","Load Data"),
