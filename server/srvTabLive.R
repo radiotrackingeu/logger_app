@@ -14,7 +14,7 @@ output$con_tags <- renderUI({
 
 open_connections <- eventReactive(input$connect_mysql,{
   tmp_list<-list()
-  if(!is.null(global$connections)&&input$connect_mysql){
+  if(!is.null(global$connections)){
     connect_to <- subset(global$connections,Name %in% input$select_connection)
     withProgress(
       expr = {
@@ -100,8 +100,8 @@ observe({
   signal_data()
 })
 
-get_mysql_data <- reactive({
-  if(!is.null(get_info_of_entries())&&input$load_mysql_data){
+get_mysql_data <- eventReactive(input$load_mysql_data,{
+  if(!is.null(get_info_of_entries())){
     tmp<-data.frame()
     query_duration_filter<-""
     query_max_signal_filter<-""
