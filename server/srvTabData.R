@@ -328,8 +328,19 @@ output$data_tab_preview <- renderDataTable({
                 tmp <- rbind(tmp, row)
             }
 
+            logger_files <- get_logger_files()
+
+            if (length(logger_files) > 0) {
+                row <- c("Logger data", "yes", length(logger_files), "/data/logger/")
+            }
+            else {
+                row <- c("Logger data", "no", 0, "/data/logger/")
+            }
+
+            tmp <- rbind(tmp, row)
+
             if (!is.null(tmp)) {
-                colnames(tmp) <- c("Information type", "Found", "Rows count", "Filepath")
+                colnames(tmp) <- c("Information type", "Found", "Count", "Filepath")
             }
 
             tmp
