@@ -6,6 +6,11 @@ single_multiple_con_tags <- reactive({
   if(input$live_data_number=="Single"){
     forUI<-tagList(
       textInput(
+        "MySQL_name",
+        "Connection name",
+        "Manually added connection"
+      ),
+      textInput(
         "MySQL_host",
         "Enter Host Name",
         "192.168.1.1"
@@ -27,7 +32,7 @@ single_multiple_con_tags <- reactive({
       ),
       actionButton(
         "connect_to_db",
-        "Load Data from DB"
+        "Add remote connection"
       ),
       br(),
       br()
@@ -39,6 +44,12 @@ single_multiple_con_tags <- reactive({
     )
   }
   return(forUI)
+})
+
+observeEvent(input$connect_to_db, {
+    new_connection <- data.frame(input$MySQL_name, input$MySQL_host, input$MySQL_port, input$MySQL_user, input$MySQL_pw)
+    names(new_connection) <- c("Name", "Host", "Port", "User", "Password")
+    global$connections <- rbind(global$connections, new_connection)
 })
 
 output$single_multiple_con_tags <- renderUI({
@@ -62,7 +73,7 @@ open_connections <- reactive({
               password = global$connections$Password[i]
             ),
             error = function(err){
-              NULL
+              show_error(err[1]);
             },
             finally = {
               incProgress(amount=1)
