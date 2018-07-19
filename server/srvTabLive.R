@@ -103,17 +103,6 @@ observe({
 get_mysql_data <- eventReactive(input$load_mysql_data,{
   if(!is.null(get_info_of_entries())){
     tmp<-data.frame()
-    query_duration_filter<-""
-    query_max_signal_filter<-""
-    if(input$check_sql_duration){
-      query_duration_filter<-paste("duration >",input$query_filter_duration[1],"AND duration <",input$query_filter_duration[2])
-    }
-    if(input$check_sql_strength){
-      if(any(input$check_sql_duration)){
-        and<-"AND"
-      }
-      query_max_signal_filter<-paste(and,"max_signal >",input$query_filter_strength[1],"AND max_signal <",input$query_filter_strength[2])
-    }
 
     if(!is.null(get_info_of_entries())){
       withProgress(
@@ -127,32 +116,7 @@ get_mysql_data <- eventReactive(input$load_mysql_data,{
             }
             else {
               if(dbIsValid(open_connections()[[i]])) {
-                query_freq_filter<-""
-                inner_join <- ""
-                if(input$query_filter_freq){
-                  for(k in global$frequencies$Frequency){
-                    error<-2000
-                    center<-150175000
-                    and<-""
-                    if(any(input$check_sql_duration,input$check_sql_strength)) {
-                      and<-"AND("
-                    }
-                    if(nrow(global$frequencies)>1&&query_freq_filter!=""){
-                      and<-"OR"
-                    }
-                    inner_join <- "INNER JOIN `runs` r ON r.run = s.id"
-                    query_freq_filter<-paste(query_freq_filter, and, "((signal_freq + center_freq + error) >", k*1000, "  AND (signal_freq + center_freq - error)  <", k*1000, ")")
-                  }
-                  if(any(input$check_sql_duration,input$check_sql_strength)){
-                    query_freq_filter<-paste(query_freq_filter,")")
-                  }
-                }
-                where<-""
-                if(any(input$check_sql_duration,input$check_sql_strength,input$query_filter_freq)){
-                  where<-"WHERE"
-                }
-                mysql_query_signals<-paste("SELECT timestamp, duration, signal_freq, run, max_signal FROM `signals` s", inner_join, where,query_duration_filter,query_max_signal_filter,query_freq_filter,"ORDER BY s.id DESC LIMIT",input$live_last_points,";")
-                signals<-dbGetQuery(open_connections()[[i]],mysql_query_signals)
+                signals<-dbGetQuery(open_connections()[[i]], build_signals_query())
                 mysql_query_runs<-paste("SELECT id, device, pos_x, pos_y, orientation, beam_width, center_freq FROM `runs` ORDER BY id DESC LIMIT",input$live_last_points,";")
                 runs<-dbGetQuery(open_connections()[[i]],mysql_query_runs)
                 if(nrow(signals)>0){
@@ -181,6 +145,46 @@ get_mysql_data <- eventReactive(input$load_mysql_data,{
     }
     global$tmp_data <- tmp
   }
+})
+
+build_signals_query <- reactive({
+    query_duration_filter<-""
+    query_max_signal_filter<-""
+    if(input$check_sql_duration){
+      query_duration_filter<-paste("duration >",input$query_filter_duration[1],"AND duration <",input$query_filter_duration[2])
+    }
+    if(input$check_sql_strength){
+      if(any(input$check_sql_duration)){
+        and<-"AND"
+      }
+      query_max_signal_filter<-paste(and,"max_signal >",input$query_filter_strength[1],"AND max_signal <",input$query_filter_strength[2])
+    }
+
+    query_freq_filter<-""
+    inner_join <- ""
+    if(input$query_filter_freq){
+      for(k in global$frequencies$Frequency){
+        error<-2000
+        and<-""
+        if(any(input$check_sql_duration,input$check_sql_strength)) {
+          and<-"AND("
+        }
+        if(nrow(global$frequencies)>1&&query_freq_filter!=""){
+          and<-"OR"
+        }
+        inner_join <- "INNER JOIN `runs` r ON r.run = s.id"
+        query_freq_filter<-paste(query_freq_filter, and, "((signal_freq + center_freq + error) >", k*1000, "  AND (signal_freq + center_freq - error)  <", k*1000, ")")
+      }
+      if(any(input$check_sql_duration,input$check_sql_strength)){
+        query_freq_filter<-paste(query_freq_filter,")")
+      }
+    }
+    where<-""
+    if(any(input$check_sql_duration,input$check_sql_strength,input$query_filter_freq)){
+      where<-"WHERE"
+    }
+
+    paste("SELECT timestamp, duration, signal_freq, run, max_signal FROM `signals` s", inner_join, where,query_duration_filter,query_max_signal_filter,query_freq_filter,"ORDER BY s.id DESC LIMIT",input$live_last_points,";")
 })
 
 signal_data<-reactive({
