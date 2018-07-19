@@ -128,6 +128,7 @@ get_mysql_data <- reactive({
             else {
               if(dbIsValid(open_connections()[[i]])) {
                 query_freq_filter<-""
+                inner_join <- ""
                 if(input$query_filter_freq){
                   for(k in global$frequencies$Frequency){
                     error<-2000
@@ -139,7 +140,8 @@ get_mysql_data <- reactive({
                     if(nrow(global$frequencies)>1&&query_freq_filter!=""){
                       and<-"OR"
                     }
-                    query_freq_filter<-paste(query_freq_filter,and,"(signal_freq >",k*1000-error-center,"AND signal_freq <",k*1000+error-center,")")
+                    inner_join <- "INNER JOIN `runs` r ON r.run = s.id"
+                    query_freq_filter<-paste(query_freq_filter, and, "((signal_freq + center_freq + error) >", k*1000, "  AND (signal_freq + center_freq - error)  <", k*1000, ")")
                   }
                   if(any(input$check_sql_duration,input$check_sql_strength)){
                     query_freq_filter<-paste(query_freq_filter,")")
@@ -149,7 +151,7 @@ get_mysql_data <- reactive({
                 if(any(input$check_sql_duration,input$check_sql_strength,input$query_filter_freq)){
                   where<-"WHERE"
                 }
-                mysql_query_signals<-paste("SELECT timestamp, duration, signal_freq, run, max_signal FROM `signals`",where,query_duration_filter,query_max_signal_filter,query_freq_filter,"ORDER BY id DESC LIMIT",input$live_last_points,";")
+                mysql_query_signals<-paste("SELECT timestamp, duration, signal_freq, run, max_signal FROM `signals` s", inner_join, where,query_duration_filter,query_max_signal_filter,query_freq_filter,"ORDER BY s.id DESC LIMIT",input$live_last_points,";")
                 signals<-dbGetQuery(open_connections()[[i]],mysql_query_signals)
                 mysql_query_runs<-paste("SELECT id, device, pos_x, pos_y, orientation, beam_width, center_freq FROM `runs` ORDER BY id DESC LIMIT",input$live_last_points,";")
                 runs<-dbGetQuery(open_connections()[[i]],mysql_query_runs)
