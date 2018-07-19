@@ -37,23 +37,30 @@ observeEvent(input$add_data,{
   }
 })
 
-observeEvent(input$clear_logger_data, {
+observe({
+    input$clear_logger_data
+    input$clear_logger_data_from_live
     global$signals <- NULL
 })
 
-observeEvent(input$clear_receivers_data, {
+observe({
+    input$clear_receivers_data
     global$receivers <- NULL
 })
 
-observeEvent(input$clear_frequencies_data, {
+observe({
+    input$clear_frequencies_data
     global$frequencies <- NULL
 })
 
-observeEvent(input$clear_connections_data, {
+observe({
+    input$clear_connections_data
+    input$clear_connections_data_from_live
     global$connections <- NULL
 })
 
-observeEvent(input$clear_calibration_data, {
+observe({
+    input$clear_calibration_data
     global$calibration <- NULL
 })
 

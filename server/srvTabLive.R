@@ -8,7 +8,7 @@ observeEvent(input$connect_to_db, {
     global$connections <- rbind(global$connections, new_connection)
 })
 
-output$single_multiple_con_tags <- renderUI({
+output$con_tags <- renderUI({
     selectizeInput("select_connection", multiple=TRUE,selected="all",label="Please select connections",choices = c("all",global$connections$Name))
 })
 
@@ -95,7 +95,7 @@ get_info_of_entries <- reactive({
 
 observe({
   if (input$load_mysql_data) {
-    updateTabsetPanel(session, "live_tab_tabset", selected = "List of Data")
+      signal_data()
   }
 })
 
@@ -215,7 +215,7 @@ output$live_tab_remote_entries_table <- renderDataTable({
 }, options = list(pageLength = 10))
 
 output$live_tab_mysql_data <- renderDataTable({
-  validate(need(signal_data(), "Please check connections first"))
+  validate(need(global$signals, "Please check connections first"))
   global$signals
 }, options = list(pageLength = 10))
 

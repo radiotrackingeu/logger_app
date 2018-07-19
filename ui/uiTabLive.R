@@ -41,7 +41,7 @@ tabPanel("Live Data",
                   br()
              ),
              conditionalPanel("input.live_data_number == 'Multiple'",
-                 uiOutput('single_multiple_con_tags')
+                 uiOutput('con_tags')
              ),
              numericInput("live_last_points", "Number of entries to read", 50, 1, 10000),
              actionButton("connect_mysql","Connect to DBs"),
@@ -66,10 +66,12 @@ tabPanel("Live Data",
              tabsetPanel(
              id = "live_tab_tabset",
              tabPanel("List of Connections",
-                      dataTableOutput("live_tab_remote_entries_table")
-                      ),
+                      dataTableOutput("live_tab_remote_entries_table"),
+                      actionButton("clear_connections_data_from_live", "Clear table")
+              ),
              tabPanel("List of Data",
-                      dataTableOutput("live_tab_mysql_data")
+                      dataTableOutput("live_tab_mysql_data"),
+                      actionButton("clear_logger_data_from_live", "Clear table")
              ),
              tabPanel("List of Keepalives",
                       dataTableOutput("live_tab_keepalive")
