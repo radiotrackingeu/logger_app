@@ -7,20 +7,32 @@ read_logger_folder <-function(){
   path<-file.path("data","logger")
   list_of_stations<-list.dirs(path,full.names = FALSE, recursive =FALSE)
   tmp_data<-NULL
+
+  receivers_count <- 0;
   for(i in list_of_stations){
-    print(i)
-    list_of_receivers<-list.dirs(file.path(path,i), full.names = FALSE, recursive = FALSE)
-    for (j in list_of_receivers) {
-      list_of_records <- list.files(file.path(path,i,j), no..=T)
-      for (k in list_of_records) {
-        p<-file.path(path,i,j,k)
-        data<-read_logger_data(p)
-        if(!is.null(data)){
-          tmp_data<-rbind(cbind(data, receiver = j, Name = i),tmp_data)
-        }
-      }
-    }
+    receivers_count <- receivers_count + length(list.dirs(file.path(path,i), full.names = FALSE, recursive = FALSE))
   }
+
+  withProgress(
+      for(i in list_of_stations){
+        list_of_receivers<-list.dirs(file.path(path,i), full.names = FALSE, recursive = FALSE)
+        for (j in list_of_receivers) {
+          setProgress(detail=paste0(i, ", ", j))
+          list_of_records <- list.files(file.path(path,i,j), no..=T)
+          for (k in list_of_records) {
+            p<-file.path(path,i,j,k)
+            data<-read_logger_data(p)
+            if(!is.null(data)){
+              tmp_data<-rbind(cbind(data, receiver = j, Name = i),tmp_data)
+            }
+            incProgress(amount=1)
+          }
+        }
+      },
+      message = "Reading data from ",
+      max = receivers_count,
+      value = 0
+  )
   return(tmp_data[, c("timestamp", "duration", "signal_freq", "Name", "receiver", "max_signal")])
 }
 
