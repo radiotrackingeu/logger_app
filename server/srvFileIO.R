@@ -11,10 +11,8 @@ read_logger_folder <-function(){
     print(i)
     list_of_receivers<-list.dirs(file.path(path,i), full.names = FALSE, recursive = FALSE)
     for (j in list_of_receivers) {
-      print(j)
       list_of_records <- list.files(file.path(path,i,j), no..=T)
       for (k in list_of_records) {
-        print(k)
         p<-file.path(path,i,j,k)
         data<-read_logger_data(p)
         if(!is.null(data)){
@@ -24,6 +22,27 @@ read_logger_folder <-function(){
     }
   }
   return(tmp_data[, c("timestamp", "duration", "signal_freq", "Name", "receiver", "max_signal")])
+}
+
+get_logger_files <- function() {
+  path<-file.path("data","logger")
+  list_of_stations<-list.dirs(path,full.names = FALSE, recursive =FALSE)
+  tmp_data<-NULL
+
+  files <- c()
+
+  for(i in list_of_stations){
+    list_of_receivers<-list.dirs(file.path(path,i), full.names = FALSE, recursive = FALSE)
+    for (j in list_of_receivers) {
+      list_of_records <- list.files(file.path(path,i,j), no..=T)
+      for (k in list_of_records) {
+        p <- file.path(path,i,j,k)
+        files <- c(files, p)
+      }
+    }
+  }
+
+  files
 }
 
 read_logger_data <- function(filepath) {

@@ -11,7 +11,7 @@ tabPanel("Live Data",
                   textInput(
                     "MySQL_name",
                     "Connection name",
-                    "Manually added connection"
+                    "Manual connection"
                   ),
                   textInput(
                     "MySQL_host",
