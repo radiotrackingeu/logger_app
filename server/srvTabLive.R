@@ -95,12 +95,29 @@ get_info_of_entries <- reactive({
   return(tmp)
 })
 
-observe({
-  input$load_mysql_data
-  signal_data()
+global$live_mode = FALSE
+global$mysql_data_invalidator = FALSE
+
+observeEvent(input$load_mysql_data, {
+  global$live_mode = input$app_live_mode
+  if (global$live_mode) {
+      global$live_update_interval = input$live_update_interval
+  }
+  else {
+    global$mysql_data_invalidator = !global$mysql_data_invalidator
+    signal_data()
+  }
 })
 
-get_mysql_data <- eventReactive(input$load_mysql_data,{
+live_invalidator <- observe({
+    if (global$live_mode) {
+        global$mysql_data_invalidator = !isolate(global$mysql_data_invalidator)
+        signal_data()
+        invalidateLater(isolate(global$live_update_interval) * 1000)
+    }
+})
+
+get_mysql_data <- eventReactive(global$mysql_data_invalidator, {
   if(!is.null(get_info_of_entries())){
     tmp<-data.frame()
 
@@ -185,8 +202,9 @@ build_signals_query <- reactive({
     paste("SELECT timestamp, duration, signal_freq, run, max_signal FROM `signals` s", inner_join, where,query_duration_filter,query_max_signal_filter,query_freq_filter,"ORDER BY s.id DESC LIMIT",input$live_last_points,";")
 })
 
-signal_data<-reactive({
+signal_data<-function(){
   tmp<-get_mysql_data()
+
   if(is.null(tmp)) return(NULL)
   if(nrow(tmp)==0) return(NULL)
   #tmp<-subset(get_mysql_data(),signal_freq!=0)
@@ -201,7 +219,7 @@ signal_data<-reactive({
   names(receiver_info) <- c("Name", "Station","Latitude","Longitude", "Orientation", "Beam width")
   global$receivers<-unique.data.frame(rbind(isolate(global$receivers), receiver_info))
   tmp
-})
+}
 
 keepalive_data<-reactive({
   tmp<-get_mysql_data()

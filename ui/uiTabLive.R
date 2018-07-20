@@ -46,9 +46,9 @@ tabPanel("Live Data",
              numericInput("live_last_points", "Number of entries to read", 50, 1, 10000),
              actionButton("connect_mysql","Connect to DBs"),
              actionButton("load_mysql_data","Load Data"),
-             checkboxInput("app_live_mod", "Live Mode"),
-             conditionalPanel("input.app_live_mod",
-                              numericInput("live_update_interval", "Data update interval:", 5, 15, 600)
+             checkboxInput("app_live_mode", "Live Mode"),
+             conditionalPanel("input.app_live_mode",
+                              numericInput("live_update_interval", "Data update interval:", 15, 2, 600)
                               ),
              tags$b("DBs-Filters:"),
              br(),
