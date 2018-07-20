@@ -214,7 +214,11 @@ keepalive_data<-reactive({
 
 output$live_tab_remote_entries_table <- renderDataTable({
   validate(need(get_info_of_entries(), "Please provide remote connection data file."))
-  if(is.null(get_info_of_entries())) return(NULL)
+
+  if (nrow(get_info_of_entries()) == 0) {
+    return (NULL)
+  }
+
   tmp <- get_info_of_entries()[, c("Name", "running", "timestamp", "size")]
   names(tmp) <- c("Name", "Reachable", "Latest timestamp", "Size (MB)")
   tmp
