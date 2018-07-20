@@ -1,21 +1,7 @@
 ############ tabFilters.R ############
 tabPanel("Results",
-         column(3,
-                selectInput("select_x","Choose x-Axis", choices = c("timestamp","max_signal","signal_freq","receiver","Name","freq_tag"),selected="timestamp")
-                ),
-         column(3,
-                selectInput("select_y","Choose y-Axis", choices = c("timestamp","max_signal","signal_freq","receiver","Name","freq_tag"),selected="max_signal")
-         ),
-         column(3,
-                selectInput("select_col","Choose Colour", choices = c("timestamp","max_signal","signal_freq","receiver","Name","freq_tag"),selected="receiver")
-         ),
-         column(3,
-                selectInput("select_facet","Choose Facet", choices = c("timestamp","max_signal","signal_freq","receiver","Name","freq_tag"),selected="Name")
-         ),
+         selectInput("choose_plot","Choose Plot", choices = c("Time-Strength-Receiver-Station","Time-Temperature-Station-Frequency Tag"),selected="Time-Strength-Receiver-Station"),
          plotOutput("facet"),
-         br(),
-         plotOutput("timediffs_plot"),
-         br(),
          column(1),
          column(10,
                 sliderInput("slider_datetime", "",
@@ -28,7 +14,7 @@ tabPanel("Results",
                             dragRange = TRUE,
                             animate = TRUE,
                             width = "100%",
-                            timeFormat="%d-%m <br> %H:%M:%S")
+                            timeFormat="%d-%m %H:%M:%S")
          ),
          column(1)
 )

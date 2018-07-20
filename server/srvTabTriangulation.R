@@ -105,5 +105,5 @@ observe({
 })
 
 output$tri_ui_timeline<-renderUI({
-    sliderInput("tri_timeline",NULL,min(data_in()$timestamp),max(data_in()$timestamp),c(min(data_in()$timestamp),max(data_in()$timestamp)),width="100%", animate=T, timeFormat="%F %T", ticks=T,step=input$tri_timestep)
+    sliderInput("tri_timeline",NULL,min(data_in()$timestamp),max(data_in()$timestamp),c(min(data_in()$timestamp),data_in()$timestamp+300),width="100%", animate=T, timeFormat="%F %T", ticks=T,step=input$tri_timestep)
 })

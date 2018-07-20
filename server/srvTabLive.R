@@ -110,8 +110,6 @@ get_mysql_data <- eventReactive(input$load_mysql_data,{
           for(i in get_info_of_entries()[get_info_of_entries()$timestamp!="offline",]$Name) {
             setProgress(detail=i)
             if(is.null(open_connections()[[i]])) {
-              #results<-data.frame(Name=i,id=NA,timestamp="offline")
-              #tmp<-rbind(tmp,results)
               next
             }
             else {
@@ -172,8 +170,8 @@ build_signals_query <- reactive({
         if(nrow(global$frequencies)>1&&query_freq_filter!=""){
           and<-"OR"
         }
-        inner_join <- "INNER JOIN `runs` r ON r.run = s.id"
-        query_freq_filter<-paste(query_freq_filter, and, "((signal_freq + center_freq + error) >", k*1000, "  AND (signal_freq + center_freq - error)  <", k*1000, ")")
+        inner_join <- "INNER JOIN `runs` r ON s.run = r.id"
+        query_freq_filter<-paste(query_freq_filter, and, "((signal_freq + center_freq + ",error,") >", k*1000, "  AND (signal_freq + center_freq - ",error,")  <", k*1000, ")")
       }
       if(any(input$check_sql_duration,input$check_sql_strength)){
         query_freq_filter<-paste(query_freq_filter,")")
@@ -200,7 +198,7 @@ signal_data<-reactive({
   global$signals<-unique.data.frame(rbind(isolate(global$signals), signal_info))
 
   receiver_info <- tmp[, c("receiver", "Name", "pos_x", "pos_y", "orientation", "beam_width")]
-  names(receiver_info) <- c("Name", "Station", "Longitude", "Latitude", "Orientation", "Beam width")
+  names(receiver_info) <- c("Name", "Station","Latitude","Longitude", "Orientation", "Beam width")
   global$receivers<-unique.data.frame(rbind(isolate(global$receivers), receiver_info))
   tmp
 })
@@ -216,6 +214,7 @@ keepalive_data<-reactive({
 
 output$live_tab_remote_entries_table <- renderDataTable({
   validate(need(get_info_of_entries(), "Please provide remote connection data file."))
+  if(is.null(get_info_of_entries())) return(NULL)
   tmp <- get_info_of_entries()[, c("Name", "running", "timestamp", "size")]
   names(tmp) <- c("Name", "Reachable", "Latest timestamp", "Size (MB)")
   tmp

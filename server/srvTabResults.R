@@ -32,36 +32,23 @@ calculate_temperature <- function(td,a=20.307,b=0.0408) {
   return(log(60/as.numeric(td)/a)/b)
 }
 
-#display temperatur using A and B Coeficients
-output$timediffs_plot <- renderPlot({
-  validate(need(filtered_data_td(),"No data! One of the frequency filters must be enabled!"))
-  tmp<-filtered_data_td()
-  ggplot(data=filtered_data_td())+geom_point(aes(x=timestamp,y=temperature,color=freq_tag))+ylim(10,45)
-})
-
 #Temperature would be great here
 
 output$facet <- renderPlot({
   if(is.null(filtered_data()))
     return(NULL)
-  if(input$filter_freq){
-    plot_time_signal(filtered_data(),TRUE)
-  }
-  else{
-    plot_time_signal(filtered_data(),input$filter_one_freq)
-  }
+  switch(input$choose_plot,
+         'Time-Strength-Receiver-Station'={
+           ggplot(filtered_data()) +
+           geom_point(aes(x=timestamp, y=max_signal, color=receiver)) +
+           labs(x="Time", y = "Signal Strength") +
+           scale_x_datetime(labels = function(x) format(x, "%d-%m \n %H:%M:%S"))+
+           facet_wrap(~Name)
+         },
+         'Time-Temperature-Station-Frequency Tag'={
+           ggplot(filtered_data_td())+geom_point(aes(x=timestamp,y=temperature,color=freq_tag))+ylim(10,45)+facet_wrap(~Name)
+         }
+         
+         )
 })
 
-plot_time_signal <- function(data, multifilter){
-  p<-ggplot(data) +
-    geom_point(aes(x=timestamp, y=max_signal, color=receiver)) +
-    labs(x="Time", y = "Signal Strength") +
-    scale_x_datetime(labels = function(x) format(x, "%d-%m \n %H:%M:%S"))+
-    facet_wrap(~Name)
-  if(multifilter){
-    p + facet_wrap(~Name)
-  }
-  else{
-    p
-  }
-}

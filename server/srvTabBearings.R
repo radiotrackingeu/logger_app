@@ -28,35 +28,6 @@ output$cal_factors <- renderDataTable({
 })
 
 # calculate time match and DoA #1
-output$doa<- renderDataTable({
-  if(is.null(angle_linear()))
-    return(NULL)
-  angle_linear()[order(angle_linear()$time,decreasing=TRUE),]
-})
-
-# output DoA plot
-output$doa_plot <- renderPlot({
-  if(is.null(angle_linear()))
-    return(NULL)
-  ggplot() + geom_point(mapping=aes(x=angle_linear()$time,y=angle_linear()$angle,ymin=0,ymax=359),col="blue")
-  #+ geom_point(mapping=aes(x=angle_linear()$time,y=angle_linear()$angle,ymin=0,ymax=359,colour=angle_linear()$freq)) #
-})
-
-# calculate time match and DoA #1
-output$doa2<- renderDataTable({
-  if(is.null(doa_data()))
-    return(NULL)
-  doa_data()[order(doa_data()$time,decreasing=TRUE),]
-})
-
-# output DoA plot
-output$doa_plot2 <- renderPlot({
-  if(is.null(doa_data()))
-    return(NULL)
-  ggplot() + geom_point(mapping=aes(x=doa_data()$time,y=doa_data()$angle,ymin=0,ymax=359),col="blue")
-})
-
-# calculate time match and DoA #1
 output$doa3<- renderDataTable({
   if(is.null(doa_smoothed()))
     return(NULL)
@@ -67,12 +38,14 @@ output$doa3<- renderDataTable({
 output$doa_plot3 <- renderPlot({
   if(is.null(doa_smoothed()))
     return(NULL)
-  ggplot() + geom_point(mapping=aes(x=doa_smoothed()$timestamp,y=doa_smoothed()$angle,ymin=0,ymax=359),col="blue")
+  ggplot(doa_smoothed()) + geom_point(mapping=aes(x=timestamp,y=angle,col=Station)) + facet_wrap(~freq_tag)+
+    scale_x_datetime(labels = function(x) format(x, "%d-%m \n %H:%M:%S"))
 })
 
 output$smoothed_curves <- renderPlot({
   if(is.null(smoothed_curves()))
     return(NULL)
-  ggplot()+geom_point(data=smoothed_curves(),aes(x=smoothed_curves()$timestamp,y=smoothed_curves()$max_signal,col=smoothed_curves()$receiver))
+  ggplot()+geom_point(data=smoothed_curves(),aes(x=smoothed_curves()$timestamp,y=smoothed_curves()$max_signal,col=smoothed_curves()$receiver))+
+    scale_x_datetime(labels = function(x) format(x, "%d-%m \n %H:%M:%S"))
 })
 
