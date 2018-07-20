@@ -46,6 +46,10 @@ ui <- tagList(
 )
 
 server <- function(input, output, session) {
+  ### define reactiveValues to store all data ###
+  global <- reactiveValues()
+
+  source("server/srvFunctions.R", local = TRUE)$value
   source("server/srvTabData.R", local = TRUE)$value
   source("server/srvTabLive.R", local = TRUE)$value
   source("server/srvFileIO.R", local = TRUE)$value
@@ -57,7 +61,6 @@ server <- function(input, output, session) {
   source("server/srvTabTriangulation.R",local = TRUE)$value
   source("server/srvMapFuncs.R",local=TRUE)$value
   source("server/srvTriangulation.R",local=TRUE)$value
-  source("server/srvFunctions.R", local = TRUE)$value
   source("server/srvTabMap.R", local = TRUE)$value
 
   onStop(function() {

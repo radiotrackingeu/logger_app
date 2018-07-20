@@ -1,9 +1,5 @@
 ############ srvTabData.R ############
 
-### define reactiveValues to store all data ###
-
-global <- reactiveValues()
-
 # maybe predefine content of tables
 
 #global$connections to store information how to connect to dbs
