@@ -1,6 +1,11 @@
 ############ tabFilters.R ############
 tabPanel("Results",
-         selectInput("choose_plot","Choose Plot", choices = c("Time-Strength-Receiver-Station","Time-Temperature-Station-Frequency Tag"),selected="Time-Strength-Receiver-Station"),
+         selectInput("choose_plot","Choose Plot", 
+                     choices = c("Time-Strength-Receiver-Station",
+                                 "Time-Temperature-Station-Frequency Tag",
+                                 "Time-Strength-Frequency-Station"
+                                 ),
+                     selected="Time-Strength-Receiver-Station"),
          plotOutput("facet"),
          column(1),
          column(10,

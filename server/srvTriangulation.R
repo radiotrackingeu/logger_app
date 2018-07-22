@@ -76,7 +76,7 @@ gktowgs <-function(x,y){
   #Spatial Information, Coordinates Transform
   projection<-paste0("+proj=tmerc +lat_0=0 +lon_0=",zone*3," +k=1 +x_0=",zone,"500000 +y_0=0 +ellps=bessel +datum=potsdam +units=m +no_defs")
   coordinates(GK) <- c("X_GK", "Y_GK")
-  print(projection)
+  #print(projection)
   proj4string(GK) <- CRS(projection) # Defining Gauss Krüger
   GK.WGS84 <- spTransform(GK, CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0")) # tranforming to WGS84 longlat
   return(GK.WGS84)
@@ -86,11 +86,11 @@ wgstogk <-function(x,y){
   require(rgdal)
   GK <- data.frame(cbind("X_GK"=x,"Y_GK"=y))
   mid_lat<-floor((x+1.5)/3)
-  print(mid_lat)
+  #print(mid_lat)
   #Spatial Information, Coordinates Transform
   projection<-paste0("+proj=tmerc +lat_0=0 +lon_0=",mid_lat*3," +k=1 +x_0=",mid_lat,"500000 +y_0=0 +ellps=bessel +datum=potsdam +units=m +no_defs")
   coordinates(GK) <- c("X_GK", "Y_GK")
-  print(projection)
+  #print(projection)
   proj4string(GK) <- CRS("+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs") # Defining Gauss Krüger
   GK.WGS84 <- spTransform(GK, CRS(projection)) # tranforming to WGS84 longlat
   return(GK.WGS84)

@@ -12,6 +12,8 @@ read_logger_folder <-function(){
   for(i in list_of_stations){
     receivers_count <- receivers_count + length(list.dirs(file.path(path,i), full.names = FALSE, recursive = FALSE))
   }
+  print(receivers_count)
+  status_read<-0
 
   withProgress(
       for(i in list_of_stations){
@@ -19,21 +21,23 @@ read_logger_folder <-function(){
         for (j in list_of_receivers) {
           setProgress(detail=paste0(i, ", ", j))
           list_of_records <- list.files(file.path(path,i,j), no..=T)
+          status_read<-status_read+1
           for (k in list_of_records) {
+            print(k)
             p<-file.path(path,i,j,k)
             data<-read_logger_data(p)
             if(!is.null(data)){
               tmp_data<-rbind(cbind(data, receiver = j, Name = i),tmp_data)
             }
-            incProgress(amount=1)
           }
+          incProgress(amount=1)
         }
       },
       message = "Reading data from ",
       max = receivers_count,
       value = 0
   )
-  return(tmp_data[, c("timestamp", "duration", "signal_freq", "Name", "receiver", "max_signal")])
+  return(tmp_data[, c("timestamp", "duration", "signal_freq", "Name", "receiver", "max_signal","signal_bw")])
 }
 
 get_logger_files <- function() {

@@ -52,21 +52,21 @@ tabPanel("Triangulation",
         )
         
       ),
-      absolutePanel(
-        class="panel panel-default tri",
-        bottom="150",
-        right="10",
-        draggable=F,
-        fixed=T,
-        left="auto",
-        top="auto",
-        width="500px",
-        height="auto",
-        HTML('<b data-toggle="collapse" data-target="#tri_signals_content" style="cursor:pointer">Signals</b>'),
-        div(id = 'tri_signals_content',  class="collapse",
-          dataTableOutput("tri_positions_and_angles")
-        )
-      ),
+      #absolutePanel(
+      #  class="panel panel-default tri",
+      #  bottom="150",
+      #  right="10",
+      #  draggable=F,
+      #  fixed=T,
+      #  left="auto",
+      #  top="auto",
+      #  width="500px",
+      #  height="auto",
+      #  HTML('<b data-toggle="collapse" data-target="#tri_signals_content" style="cursor:pointer">Signals</b>'),
+      #  div(id = 'tri_signals_content',  class="collapse",
+      #    dataTableOutput("tri_positions_and_angles")
+      #  )
+      #),
       absolutePanel(
         class="panel panel-default tri",
         bottom="10",

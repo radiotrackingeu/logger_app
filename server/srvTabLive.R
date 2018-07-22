@@ -30,7 +30,7 @@ open_connections <- eventReactive(input$connect_mysql,{
               password = connect_to$Password[i]
             ),
             error = function(err){
-              show_error(err[1]);
+              NULL
             },
             finally = {
               incProgress(amount=1)
@@ -56,18 +56,19 @@ get_info_of_entries <- reactive({
       expr = { for(i in connect_to$Name){
         setProgress(detail=i)
         if(is.null(open_connections()[[i]])){
-          results<-data.frame(Name=i,id=NA,timestamp="unknown",size="unknown",running="unknown")
+          results<-data.frame(Name=i,id=NA,timestamp="unknown",size="unknown",running="unknown",time="unknown")
           tmp<-rbind(tmp,results)
           next
         }
-        else {
+        else{
           if(dbIsValid(open_connections()[[i]])) {
             results<-dbGetQuery(open_connections()[[i]],"SELECT id,timestamp FROM `signals` ORDER BY id DESC LIMIT 1;")
             results$size <- dbGetQuery(open_connections()[[i]], '
                                        SELECT ROUND(SUM(data_length + index_length) / 1024 / 1024, 1) "size"
                                        FROM information_schema.tables;
                                        ')$size
-            if(as.POSIXlt(Sys.time(), tz="UTC")-as.POSIXlt(results$timestamp, tz="UTC")<360){
+            results$time <- dbGetQuery(open_connections()[[i]], 'SELECT NOW();')$'NOW()'
+            if(as.POSIXct(Sys.time(), tz="UTC")-as.POSIXct(results$timestamp, tz="UTC")<360){
               results$running<-"Yes"
             }else{
               results$running<-"No"
@@ -232,13 +233,11 @@ keepalive_data<-reactive({
 
 output$live_tab_remote_entries_table <- renderDataTable({
   validate(need(get_info_of_entries(), "Please provide remote connection data file."))
-
   if (nrow(get_info_of_entries()) == 0) {
     return (NULL)
   }
-
-  tmp <- get_info_of_entries()[, c("Name", "running", "timestamp", "size")]
-  names(tmp) <- c("Name", "Reachable", "Latest timestamp", "Size (MB)")
+  tmp <- get_info_of_entries()[, c("Name", "running", "timestamp", "size","time")]
+  names(tmp) <- c("Name", "Reachable", "Latest timestamp", "Size (MB)","System Time")
   tmp
 }, options = list(pageLength = 10))
 

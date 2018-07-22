@@ -1,19 +1,55 @@
 ############ srvTabBearings.R ############
 
+#input fields for manual calibration
+correction_list<-reactive({
+  if(is.null(filtered_data())){
+    return(NULL)
+  }
+  isolate({
+    correction_tag_list <- tagList()
+    for(i in unique(filtered_data()$receiver)){
+      start_value<-0
+      if(!is.null(global$calibration[global$calibration$receiver==i,])){
+        start_value<-global$calibration[global$calibration$receiver==i,]$correction
+      }
+      tmp<-numericInput(paste0("corr_", i),paste0("Correction Factor for ", i),start_value)
+      
+      correction_tag_list <- tagAppendChildren(correction_tag_list,tmp)
+    }
+  })
+  return(correction_tag_list)
+})
+
+output$correction_list <- renderUI({
+  correction_list()
+})
+
 #plot polar plots
 output$polar_output <- renderPlot({
-  test<-data.frame(degree=c(70,40,20,10,20,35),max_signal=c(16,16,16,44,40,30))
-  ggplot(test)+geom_bar(aes(x=degree,y=max_signal),stat="identity")+
+  tmp<-doa_smoothed()[1:4,]
+  tmp<-tmp[order(tmp$timestamp),]
+  ggplot(doa_smoothed()[1:4,])+
+    geom_bar(aes(x=round(angle),y=strength),stat="identity")+
+    geom_text(aes(x=round(angle),y=strength,label=timestamp), vjust=0)+
     coord_polar()+theme_minimal()+
     scale_x_continuous(breaks = c(0,90,180,270),limits = c(0, 359))
 })
 
-#calculate calibration factors
-observeEvent(input$calibrate_signal_strength,{
+#save manual calibration factors
+observeEvent(input$change_manu,{
+    cali<-NULL
+    for(i in unique(as.character(filtered_data()$receiver))){
+      tmp<-subset(filtered_data(),receiver == i)$Name[1]
+      cali<-rbind(cali,data.frame(correction=input[[paste0("corr_",i)]],receiver=i,station=tmp))
+    }
+    global$calibration<-cali
+})
+
+#calculate automatic calibration factors
+observeEvent(input$calibrate_signal_strength_auto,{
   maxis<-NULL
   for(i in unique(as.character(filtered_data()$receiver))){
     tmp<-subset(filtered_data(),receiver == i)
-    str(tmp)
     maxis<-rbind(maxis,tmp[which.max(tmp$max_signal),])
   }
   max_max<-maxis[which.max(maxis$max_signal),]
@@ -28,14 +64,14 @@ output$cal_factors <- renderDataTable({
 })
 
 # calculate time match and DoA #1
-output$doa3<- renderDataTable({
+output$doa<- renderDataTable({
   if(is.null(doa_smoothed()))
     return(NULL)
   doa_smoothed()[order(doa_smoothed()$timestamp,decreasing=TRUE),]
 })
 
 # output DoA plot
-output$doa_plot3 <- renderPlot({
+output$doa_plot <- renderPlot({
   if(is.null(doa_smoothed()))
     return(NULL)
   ggplot(doa_smoothed()) + geom_point(mapping=aes(x=timestamp,y=angle,col=Station)) + facet_wrap(~freq_tag)+

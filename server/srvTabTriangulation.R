@@ -41,7 +41,7 @@ tri_position_data<-reactive({
 
 # break data into timeslots, taking mean of angle where there is more than one observation per station
 tri_timeslots <- reactive ({
-  slot_size=5 #seconds
+  slot_size=1 #seconds
   ret<-data.frame(stringsAsFactors = F)#timestamp=as.POSIXct(double(),tz="GMT"),freq_tag=character(),station=character(),angle=numeric(), stringsAsFactors = F)
   data<-data_in()
   for (t in seq(min(data$timestamp),max(data$timestamp),slot_size)) {
@@ -90,15 +90,15 @@ observe({
   leafletProxy("tri_map") %>% addTriangulations(tri_timeslots_lines_points()$points, error=input$tri_error, color="blue", radius=7, group="Triangulations")
 })
 
-output$tri_positions_and_angles<-renderDataTable({tri_filtered_data()[,c("timestamp","station","angle","freq_tag")]},
-  options=list(
-    #filter="none", autoHideNavigation = T, selection= "multiple", rownames = F, options=list(paging=F,
-    pagingType="simple", pageLength=10, lengthChange=F, searching=F,scrollY="400px"#),
-  )
-)
+#output$tri_positions_and_angles<-renderDataTable({tri_filtered_data()[,c("timestamp","station","angle","freq_tag")]},
+#  options=list(
+#    #filter="none", autoHideNavigation = T, selection= "multiple", rownames = F, options=list(paging=F,
+#    pagingType="simple", pageLength=10, lengthChange=F, searching=F,scrollY="400px"#),
+#  )
+#)
 
 observe({
-  if (input$navbar!="Triangulation")
+  if(input$navbar!="Triangulation")
     return(NULL)
   validate(need(tri_timeslots(), "Please provide data."))
   updateSelectizeInput(session, "tri_frequency", choices=unique(tri_timeslots()$freq_tag))

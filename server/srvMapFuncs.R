@@ -24,7 +24,7 @@ addBearings <-function(m, data, strength=25, ...) {
   data<-cbind(data, pos2=utmtowgs(data$utm2.X,data$utm2.Y,data$utm.zone))
   for (i in 1:nrow(data)) {
     line<-data[i,]
-    m<-m %>% addPolylines(lng=c(line$pos_x,line$pos2.X),lat=c(line$pos_y,line$pos2.Y), label = htmltools::HTML(sprintf("angle: %f <br/> strength: %.2f",line$angle, line$strength)), ... )
+    m<-m %>% addPolylines(lng=c(line$pos_x,line$pos2.X),lat=c(line$pos_y,line$pos2.Y), label = htmltools::HTML(sprintf("angle: %f <br/> strength: %.2f",line$angle, line$strength)),color="red", group="Bearing" )
   }
   return(m)
 }
@@ -103,18 +103,16 @@ addTriangulations <- function(m, data, showBearings=T, error=0,  errorColor="blu
 #' @param m the map to add to
 #'
 #' @return the map with added cone
-addDetectionCones<-function(m) {
+addDetectionCones<-function(m,data) {
   # print(paste("total", nrow(sorted_data()),"unique",length(unique(sorted_data()$timestamp)),"receivers",length(unique(sorted_data()$receiver))))
-  data<-subset(sorted_data(),timestamp==timestamp[input$map_choose_single_data_set])
+  #data<-subset(data_in,timestamp==timestamp[input$map_choose_single_data_set])
   if(nrow(data)==0) 
     return(NULL)
   validate(
     need(data, "Please have a look at the filter settings.")
   )
-  # print(nrow(data))
   for(p in 1:nrow(data)){
-    # print(data$receiver[p])
-    if (!(data$receiver[p] %in% global$receivers$Name)) {
+    if(!(data$receiver[p] %in% global$receivers$Name)) {
       next
     }
     a<-antennae_cones()[[data$receiver[p]]]
@@ -126,7 +124,7 @@ addDetectionCones<-function(m) {
       "Bandwidth: ", data$signal_bw[p],br(),
       "Frequency: ",data$freq_tag[p]
     )
-    m<-m %>% addPolygons(lng=a$x, lat=a$y, fillColor = color_palette()(data$max_signal[p]), fillOpacity=0.8, stroke=FALSE, popup=label_kegel, group="bats")
+    m<- m %>% addPolygons(lng=a$x, lat=a$y, fillColor = color_palette()(data$max_signal[p]), fillOpacity=0.8, stroke=FALSE, popup=label_kegel, group="bats")
   }
   return(m)
 }
@@ -141,7 +139,7 @@ antennae_cones<-reactive({
       y<-r[a,]$Latitude
       direction<-r[a,]$Orientation
       bw<-45
-      len<-2000
+      len<-100
       wgs<-kegelcreation(x,y,direction,len,bw) # Many warnings...
       cones[[r[a,]$Name]]<-list(x=c(wgs$X,x), y=c(wgs$Y,y))
     }

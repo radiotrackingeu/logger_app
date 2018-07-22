@@ -6,15 +6,10 @@ required_packages<-c("shiny",
                      "rgdal",
                      "DBI",
                      "RSQLite",
-                     #"htmlwidgets",
                      "shinyjs",
-                     #"DT",
-                     #"tools",
                      "htmltools",
-                     #"pool",
                      "shinycssloaders",
-                     "RMySQL"#,
-                     #"tidyverse"
+                     "RMySQL"
                      )
 
 # try to load packages and install missing ones

@@ -90,7 +90,7 @@ filter_signal_bandwidth <- function(data,pulse_bandwidth){
 
 filter_signal_strength <- function(data,pulse_strength){
   data$max_signal[data$max_signal==-1000]<- (-60) # old rtlsdrdetect outputs for some reason -1000
-  return(subset(data, (data$max_signal>pulse_strength[1]) &(data$max_signal<pulse_strength[2]) ))
+  return(subset(data, (data$max_signal>=pulse_strength[1]) &(data$max_signal<=pulse_strength[2]) ))
 }
 
 filter_data_freq <- function(data,freq,freq_error,mid_freq,freq_labels = NULL){
