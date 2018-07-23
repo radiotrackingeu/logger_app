@@ -21,9 +21,7 @@ tabPanel("Bearings",
                     dataTableOutput("doa")
            ),
            tabPanel("DoA Plot",
-                    plotOutput("doa_plot")
-           ),
-           tabPanel("Smoothed",
+                    plotOutput("doa_plot"),
                     plotOutput("smoothed_curves")
            )
          )

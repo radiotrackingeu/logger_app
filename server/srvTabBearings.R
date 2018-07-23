@@ -46,7 +46,7 @@ observeEvent(input$change_manu,{
 })
 
 #calculate automatic calibration factors
-observeEvent(input$calibrate_signal_strength_auto,{
+observeEvent(input$calibrate_signal_strength,{
   maxis<-NULL
   for(i in unique(as.character(filtered_data()$receiver))){
     tmp<-subset(filtered_data(),receiver == i)
