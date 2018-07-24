@@ -3,12 +3,9 @@
 ### render ui elements ###
 
 observeEvent(input$connect_to_db, {
-    # new_connection <- data.frame(Name=character(), Host=character, Port=numeric(), User=character(), Password=character())
-    # new_connection <- data.frame(as.character(input$MySQL_name), as.character(input$MySQL_host), as.numeric(input$MySQL_port), as.character(input$MySQL_user), as.character(input$MySQL_pw))
-    # n <- data.frame(as.character(input$MySQL_name), as.character(input$MySQL_host), as.numeric(input$MySQL_port), as.character(input$MySQL_user), as.character(input$MySQL_pw))
-    # names(new_connection) <- c("Name", "Host", "Port", "User", "Password")
-    # print(str(new_connection))
-    global$connections <- rbind(global$connections, data.frame("Name"=input$MySQL_name, "Host"=input$MySQL_host, "Port"=input$MySQL_port,"User"=input$MySQL_user,"Password"=input$MySQL_pw,stringsAsFactors=F))
+    global$connections <- rbind(global$connections, 
+      data.frame("Name"=input$MySQL_name, "Host"=input$MySQL_host, "Port"=input$MySQL_port,"User"=input$MySQL_user,"Password"=input$MySQL_pw,stringsAsFactors=F)
+    )
 })
 
 output$con_tags <- renderUI({
