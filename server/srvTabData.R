@@ -200,6 +200,21 @@ calibration_list <- reactive({
     tmp
 })
 
+gpx_data <- reactive({
+  mytrack<-NULL
+  switch(input$data_type_input,
+         "Excel Files" = {
+           if(input$excel_data_content == "GPX" && !is.null(input$excel_filepath_gpx)) {
+             mygpx <- readGPX(input$excel_filepath_gpx$datapath, waypoints = FALSE)
+             mytrack <- mygpx$tracks[[1]]$'NA'
+             mytrack$timestamp<-as.POSIXct(mytrack$time,format="%Y-%m-%dT%H:%M:%S.000Z",tz="CEST")
+             mytrack$extensions<-NULL
+           }
+         }
+  )
+  mytrack
+})
+
 local_logger_data <- reactive({
     tmp <- NULL
     if (input$data_type_input == "Data folder") {
