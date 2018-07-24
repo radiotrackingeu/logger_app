@@ -76,11 +76,15 @@ observeEvent(input$map_choose_single_data_set,{
   # )
   if (is.null(leafletProxy("map")))
     return(NULL)
-  leafletProxy("map") %>% clearGroup("bats") %>% clearPopups() %>% clearMarkers() %>% clearGroup("Bearing")
+  leafletProxy("map") %>% clearGroup("bats") %>% clearPopups() %>% clearMarkers() %>% clearGroup("Bearing") %>% clearGroup("GPX") 
   if(input$map_activate_single_data){
     data<-subset(doa_smoothed(),timestamp==selected_time())
     data_cones<-subset(smoothed_curves(),timestamp==selected_time())
-    leafletProxy("map") %>% addDetectionCones(data_cones)
+    mytrack<-subset(gpx_data(),timestamp>=(selected_time()-30)&timestamp<=(selected_time()+30))
+    if(nrow(mytrack)>0){
+      leafletProxy("map") %>% addCircles(lng = mytrack$lon, lat=mytrack$lat, radius=5, label=mytrack$timestamp, group = "GPX")
+    }
+    leafletProxy("map") %>% addDetectionCones(data_cones) 
     if(nrow(data)>0){
       data<-merge(data,global$receivers[!duplicated(global$receivers$Station),c("Station","Longitude","Latitude")],by.x="Station",by.y="Station")
       data<-cbind(data,utm=wgstoutm(data[,"Longitude"],data[,"Latitude"]))
