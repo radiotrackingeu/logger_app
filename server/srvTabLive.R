@@ -12,15 +12,6 @@ output$con_tags <- renderUI({
     selectizeInput("select_connection", multiple=TRUE,selected=global$connections$Name,label="Please select connections",choices = global$connections$Name)
 })
 
-observeEvent(input$slider_datetime, {
-    patientReactive("slider_datetime", 2000, redraw_results_plot)
-})
-
-redraw_results_plot <- function() {
-    #print("executing")
-    global$invalidate_filtered_data <- global$invalidate_filtered_data + 1
-}
-
 open_connections <- eventReactive(input$connect_mysql,{
   tmp_list<-list()
   if(!is.null(global$connections)){

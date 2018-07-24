@@ -1,3 +1,12 @@
+observeEvent(input$slider_datetime, {
+    patientReactive("slider_datetime", 1000, redraw_results_plot)
+})
+
+global$invalidate_filtered_data <- 0
+redraw_results_plot <- function() {
+    global$invalidate_filtered_data <- global$invalidate_filtered_data + 1
+}
+
 #calculate time difference between two consecutive signals
 filtered_data_td <- reactive({
   if (!input$filter_one_freq & !input$filter_freq)
@@ -65,7 +74,6 @@ output$facet <- renderPlot({
              ylim(10,45)+
              facet_wrap(~Name)
          }
-         
          )
 })
 
