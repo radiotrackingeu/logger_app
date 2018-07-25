@@ -34,7 +34,7 @@ tabPanel("File Input",
              conditionalPanel(
                condition = "input.data_type_input == 'Excel Files'",
                radioButtons("excel_data_content",
-                            choices = c("Receivers", "Frequencies", "Connections", "Calibration","GPX"),
+                            choices = c("Receivers", "Frequencies", "Connections", "Calibration","Map Markers", "GPX"),
                             label = "Add following data:"
                ),
                conditionalPanel(
@@ -81,6 +81,17 @@ tabPanel("File Input",
                    width = NULL
                  )
                ),
+               conditionalPanel(
+                 condition = "input.excel_data_content == 'Map Markers'",
+                 h6("Manually added map markers"),
+                 fileInput(
+                   "excel_filepath_map_markers",
+                   "",
+                   multiple = FALSE,
+                   accept = c(".xlsx", ".xls"),
+                   width = NULL
+                 )
+               ),               
                conditionalPanel(
                  condition = "input.excel_data_content == 'GPX'",
                  h6("GPX data to compare"),

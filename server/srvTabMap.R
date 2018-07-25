@@ -24,14 +24,30 @@ observe({
 observeEvent(input$map_click,{
   updateTextInput(session,"map_lat",value = round(input$map_click$lat,digits=5))
   updateTextInput(session,"map_lng",value = round(input$map_click$lng,digits=5))
+  updateTextInput(session,"map_comment", value = format(Sys.time(),"%F %T"))
 })
 
 observeEvent(input$map_add_marker,{
-  leafletProxy("map") %>% addMarkers(lat=as.numeric(input$map_lat), lng=as.numeric(input$map_lng), group="user_markers", label=input$map_comment)
+  # leafletProxy("map") %>% addMarkers(lat=as.numeric(input$map_lat), lng=as.numeric(input$map_lng), group="user_markers", label=input$map_comment, layerId = paste0("marker_",nrow(global$map_markers)+1))
+  global$map_markers<-unique.data.frame(rbind(global$map_markers,data.frame("Latitude"=as.numeric(input$map_lat), "Longitude"=as.numeric(input$map_lng), "comment"=input$map_comment, timestamp=format(Sys.time(),"%F %T"))))
+  })
+
+observeEvent(input$map_marker_click,{
+  leafletProxy("map") %>% removeMarker(input$map_marker_click$id)
 })
 
 observeEvent(input$map_rm_markers,{
   leafletProxy("map") %>% clearGroup("user_markers")
+})
+
+observe({
+  global$map_markers
+  if(is.null(global$map_markers))
+    return(NULL)
+  for (i in seq_len(nrow(global$map_markers))) {
+    m<-global$map_markers[i,]
+    leafletProxy("map") %>% addMarkers(lat=m$Latitude, lng=m$Longitude, group="user_markers", label=m$comment, layerId = paste0("marker_",i))
+  }
 })
 
 observe({
@@ -136,7 +152,10 @@ map <- reactive({
     primaryLengthUnit = "meters",  
     primaryAreaUnit = "sqmeters",
     activeColor = "blue",
-    completedColor = "red") %>% addEasyButton(easyButton(
+    completedColor = "red") %>% 
+    addEasyButton(easyButton(
       icon="fa-crosshairs", title="Locate Me",
-      onClick=JS("function(btn, map){ map.locate({setView: true}); }"))) %>% addScaleBar(position="bottomright")
+      onClick=JS("function(btn, map){ map.locate({setView: true}); }"))) %>% 
+    addScaleBar(position="bottomright") %>%
+    addMarkers(lat=isolate(global$map_markers$Latitude), lng=isolate(global$map_markers$Longitude), group="user_markers", layerId=paste0("marker_",seq_len(nrow(isolate(global$map_markers)))), label = isolate(global$map_markers$comment))
 })
