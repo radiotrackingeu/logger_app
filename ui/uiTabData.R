@@ -34,7 +34,7 @@ tabPanel("File Input",
              conditionalPanel(
                condition = "input.data_type_input == 'Excel Files'",
                radioButtons("excel_data_content",
-                            choices = c("Receivers", "Frequencies", "Connections", "Calibration","Map Markers"),
+                            choices = c("Receivers", "Frequencies", "Connections", "Calibration", "Map Markers"),
                             label = "Add following data:"
                ),
                conditionalPanel(
@@ -82,8 +82,8 @@ tabPanel("File Input",
                  )
                ),
                conditionalPanel(
-                 condition = "input.excel_data_content == 'Map Markers'",
-                 h6("Manually added map markers"),
+                 condition = "input.excel_data_content == 'Map markers'",
+                 h6("Map markers with comments"),
                  fileInput(
                    "excel_filepath_map_markers",
                    "",

@@ -19,7 +19,7 @@ observeEvent(input$add_data,{
   global$frequencies<-unique.data.frame(rbind(frequencies_list(),global$frequencies))
   global$calibration <- unique.data.frame(rbind(calibration_list(), global$calibration))
   global$map_markers <- unique.data.frame(rbind(map_markers(), global$map_markers))
-  
+
   if(input$data_type_input == "Data folder" && !is.null(local_logger_data())) {
     global$signals<-unique.data.frame(rbind(local_logger_data(),global$signals))
     print(paste("Added",nrow(local_logger_data()),"points of data from local files."))
@@ -276,7 +276,6 @@ get_signals <- reactive({
 
 
 ### render Tables ###
-
 output$data_tab_preview <- renderDataTable({
     switch(input$data_type_input,
         "Excel Files" = {
@@ -294,7 +293,7 @@ output$data_tab_preview <- renderDataTable({
                     tmp <- calibration_list()
                 },
                 "Map Markers" = {
-                  tmp <- map_markers()
+                    tmp <- map_markers()
                 }
             )
         },
