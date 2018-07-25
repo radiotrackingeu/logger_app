@@ -12,7 +12,6 @@ observe({
   req(leafletProxy("map"))
   req(global$receivers)
   req(sorted_data())
-  
   leafletProxy("map") %>% 
     clearControls() %>%
     addAntennaeCones() %>% 
@@ -21,6 +20,11 @@ observe({
               values=sorted_data()$max_signal,
               title="SNR"
     )
+})
+
+observe({
+  req(global$map_markers)
+  leafletProxy("map") %>% addMarkers(lat=global$map_markers$Latitude, lng=global$map_markers$Longitude, group="user_markers", layerId=paste0("marker_",seq_len(nrow(global$map_markers))), label = global$map_markers$comment)
 })
 
 observeEvent(input$map_click,{
@@ -32,7 +36,7 @@ observeEvent(input$map_click,{
 observeEvent(input$map_add_marker,{
   # leafletProxy("map") %>% addMarkers(lat=as.numeric(input$map_lat), lng=as.numeric(input$map_lng), group="user_markers", label=input$map_comment, layerId = paste0("marker_",nrow(global$map_markers)+1))
   global$map_markers<-unique.data.frame(rbind(global$map_markers,data.frame("Latitude"=as.numeric(input$map_lat), "Longitude"=as.numeric(input$map_lng), "comment"=input$map_comment, timestamp=format(Sys.time(),"%F %T"))))
-  })
+})
 
 observeEvent(input$map_marker_click,{
   leafletProxy("map") %>% removeMarker(input$map_marker_click$id)
@@ -40,16 +44,6 @@ observeEvent(input$map_marker_click,{
 
 observeEvent(input$map_rm_markers,{
   leafletProxy("map") %>% clearGroup("user_markers")
-})
-
-observe({
-  global$map_markers
-  if(is.null(global$map_markers))
-    return(NULL)
-  for (i in seq_len(nrow(global$map_markers))) {
-    m<-global$map_markers[i,]
-    leafletProxy("map") %>% addMarkers(lat=m$Latitude, lng=m$Longitude, group="user_markers", label=m$comment, layerId = paste0("marker_",i))
-  }
 })
 
 observe({
@@ -153,7 +147,7 @@ sorted_data <- reactive({
 # creates basic map
 
 map <- reactive({
-  leaflet() %>%
+  l<-leaflet() %>%
     addProviderTiles(providers[[input$map_choose]]) %>%
     addMeasure(position = "bottomleft", 
     primaryLengthUnit = "meters",  
@@ -163,6 +157,9 @@ map <- reactive({
     addEasyButton(easyButton(
       icon="fa-crosshairs", title="Locate Me",
       onClick=JS("function(btn, map){ map.locate({setView: true}); }"))) %>% 
-    addScaleBar(position="bottomright") %>%
+    addScaleBar(position="bottomright")
+  if (is.null(global$map_markers))
+    return(l)
+  l<-l %>%
     addMarkers(lat=isolate(global$map_markers$Latitude), lng=isolate(global$map_markers$Longitude), group="user_markers", layerId=paste0("marker_",seq_len(nrow(isolate(global$map_markers)))), label = isolate(global$map_markers$comment))
 })
