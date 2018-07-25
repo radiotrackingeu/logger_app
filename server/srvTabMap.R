@@ -12,7 +12,9 @@ observe({
   req(leafletProxy("map"))
   req(global$receivers)
   req(sorted_data())
+  
   leafletProxy("map") %>% 
+    clearControls() %>%
     addAntennaeCones() %>% 
     addLegend(position="topleft",   
               pal=color_palette(),
