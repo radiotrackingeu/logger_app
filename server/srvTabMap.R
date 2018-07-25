@@ -92,34 +92,39 @@ selected_time <- reactive({
   req(smoothed_curves()$timestamp)
   req(input$map_choose_single_data_set)
   tmp<-unique(smoothed_curves()$timestamp)
+  rv<-NULL
   if(!input$app_live_mode){
-    tmp<-tmp[order(tmp)][input$map_choose_single_data_set]
+    rv<-tmp[order(tmp)][input$map_choose_single_data_set]
   }else{
-    tmp<-tmp[order(tmp,decreasing = TRUE)][input$map_choose_single_data_set]
+    rv<-tmp[order(tmp,decreasing = TRUE)][input$map_choose_single_data_set]
   }
-  return(tmp)
+  return(rv)
 })
 
 
 observe({
   req(leafletProxy("map"))
+  req(selected_time())
+  req(doa_smoothed())
   leafletProxy("map") %>% clearGroup("bats") %>% clearPopups() %>% clearMarkers() %>% clearGroup("Bearing") %>% clearGroup("GPX") 
   if(input$map_activate_single_data){
-    data<-subset(doa_smoothed(),timestamp==selected_time())
-    data_cones<-subset(smoothed_curves(),timestamp==selected_time())
+    data_cones<-subset(smoothed_curves(),timestamp %in% selected_time())
     if(!is.null(gpx_data())){
       mytrack<-subset(gpx_data(),timestamp>=(selected_time()-30)&timestamp<=(selected_time()+30))
       if(nrow(mytrack)>0){
         leafletProxy("map") %>% addCircles(lng = mytrack$lon, lat=mytrack$lat, radius=5, label=mytrack$timestamp, group = "GPX")
       }
     }
-    leafletProxy("map") %>% addDetectionCones(data_cones) 
-    if(nrow(data)>0){
-      data<-merge(data,global$receivers[!duplicated(global$receivers$Station),c("Station","Longitude","Latitude")],by.x="Station",by.y="Station")
-      data<-cbind(data,utm=wgstoutm(data[,"Longitude"],data[,"Latitude"]))
-      colnames(data)[which(colnames(data)=='Longitude')]<-"pos_x"
-      colnames(data)[which(colnames(data)=='Latitude')]<-"pos_y"
-      leafletProxy("map") %>% addBearings(data)
+    leafletProxy("map") %>% addDetectionCones(data_cones)
+    if(nrow(doa_smoothed())>0){
+      data<-subset(doa_smoothed(),timestamp %in% selected_time())
+      if(nrow(data)>0){
+        data<-merge(data,global$receivers[!duplicated(global$receivers$Station),c("Station","Longitude","Latitude")],by.x="Station",by.y="Station")
+        data<-cbind(data,utm=wgstoutm(data[,"Longitude"],data[,"Latitude"]))
+        colnames(data)[which(colnames(data)=='Longitude')]<-"pos_x"
+        colnames(data)[which(colnames(data)=='Latitude')]<-"pos_y"
+        leafletProxy("map") %>% addBearings(data)
+      }
     }
   }
 })

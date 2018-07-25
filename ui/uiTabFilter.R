@@ -28,8 +28,7 @@ tabPanel("Filter",
                   ),
                   tabsetPanel(type = "tabs",
                               tabPanel("Frequency",
-                                       plotOutput("histo",hover = "plot_freq_hover"),
-                                       h4(textOutput("freq_hover"))
+                                       plotOutput("histo",hover = "plot_freq_hover")
                               ),
                               tabPanel("Duration",
                                        plotOutput("histo_length")
@@ -64,7 +63,8 @@ tabPanel("Filter",
                               value = c(0.8,1.2)),
                   selectInput("input_select_receiver", "Select Receiver/s", choices = NULL, multiple = TRUE, selectize = TRUE),
                   selectInput("input_select_station", "Select Station/s", choices = NULL, multiple = TRUE, selectize = TRUE),
-                  textOutput("total_counts")
+                  textOutput("total_counts"),
+                  h4(textOutput("freq_hover"))
            )
          )
 )

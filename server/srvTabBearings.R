@@ -29,7 +29,7 @@ output$polar_output <- renderPlot({
   tmp<-doa_smoothed()[1:4,]
   tmp<-tmp[order(tmp$timestamp),]
   p<-ggplot(doa_smoothed()[1:4,])+
-    geom_bar(aes(x=round(angle),y=strength),stat="identity")+
+    geom_bar(aes(x=round(angle),y=strength),stat="identity",width=10)+
     coord_polar()+theme_minimal()+
     scale_x_continuous(breaks = c(0,90,180,270),limits = c(0, 359))
   if(input$filter_freq){
