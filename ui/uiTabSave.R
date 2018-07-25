@@ -7,5 +7,6 @@ tabPanel("Save Data",
     downloadButton("download_excel_frequencies", "Download frequencies"),
     downloadButton("download_excel_remote_connections", "Download remote connections"),
     downloadButton("download_excel_calibrations", "Download calibrations"),
-    downloadButton("download_excel_receivers", "Download receivers")
+    downloadButton("download_excel_receivers", "Download receivers"),
+  downloadButton("download_excel_map_markers", "Download map markers")
 )

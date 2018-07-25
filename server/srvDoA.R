@@ -44,7 +44,18 @@ doa_smoothed<-reactive({
   data<-merge(smoothed_curves(),global$receivers,by.x="receiver",by.y="Name")
   tmp_angles<-NULL
   #for each timestamp of the smoothed data
-  for(t in unique(data$timestamp)){
+  if(!global$live_mode){
+    time_to_look_for<-unique(data$timestamp)
+  }else{
+    if(length(unique(data$timestamp))<global$live_update_interval){
+      end_point<-length(unique(data$timestamp))-1
+    }else{
+      end_point<-global$live_update_interval-1
+    }
+    time_to_look_for<-unique(data$timestamp)[order(unique(data$timestamp),decreasing = TRUE)][1:end_point]
+  }
+  
+  for(t in time_to_look_for){
     #build subset for the timestamp
     data_t<-subset(data,timestamp==t)
     for (f in unique(data_t$freq_tag)) {
@@ -79,6 +90,7 @@ doa_smoothed<-reactive({
 
 #smoothing in second intervalls
 smoothed_curves <- reactive({
+  req(filtered_data())
   data<-filtered_data()
   smoothed_data<-NULL
   for(i in unique(data$receiver)){

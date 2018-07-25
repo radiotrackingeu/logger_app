@@ -226,6 +226,18 @@ output$download_excel_receivers <- downloadHandler(
     }
 )
 
+output$download_excel_map_markers <- downloadHandler(
+  filename = "map_markers.xlsx",
+  content = function(file) {
+    if (!is.null(global$map_markers)) {
+      write_xlsx(global$map_markers, file)
+    }
+    else {
+      write_xlsx(data.frame(), file)
+    }
+  }
+)
+
 safe_read_excel <- function(filepath) {
     tryCatch({
             read_excel(filepath, sheet = 1)
