@@ -8,6 +8,7 @@
 #global$frequencies to list the transmitters porperties like frequency, etc.
 #global$calibration to list the sensitivy of each receiver
 #global$signals is a the dataframe to store all received signals
+#global$map_markers is a dataframe containing positions and labels of markers added to the map
 
 ### observe and add data ###
 
@@ -17,7 +18,8 @@ observeEvent(input$add_data,{
   global$receivers<-unique.data.frame(rbind(receiver_list(),global$receivers))
   global$frequencies<-unique.data.frame(rbind(frequencies_list(),global$frequencies))
   global$calibration <- unique.data.frame(rbind(calibration_list(), global$calibration))
-
+  global$map_markers <- unique.data.frame(rbind(map_markers(), global$map_markers))
+  
   if(input$data_type_input == "Data folder" && !is.null(local_logger_data())) {
     global$signals<-unique.data.frame(rbind(local_logger_data(),global$signals))
     print(paste("Added",nrow(local_logger_data()),"points of data from local files."))
@@ -203,8 +205,8 @@ calibration_list <- reactive({
 gpx_data <- reactive({
   mytrack<-NULL
   switch(input$data_type_input,
-         "Excel Files" = {
-           if(input$excel_data_content == "GPX" && !is.null(input$excel_filepath_gpx)) {
+         "Miscellaneous" = {
+           if(input$misc_type_input == "GPX" && !is.null(input$excel_filepath_gpx)) {
              mygpx <- readGPX(input$excel_filepath_gpx$datapath, waypoints = FALSE)
              mytrack <- mygpx$tracks[[1]]$'NA'
              mytrack$timestamp<-as.POSIXct(mytrack$time,format="%Y-%m-%dT%H:%M:%S.000Z",tz="CEST")
@@ -213,6 +215,18 @@ gpx_data <- reactive({
          }
   )
   mytrack
+})
+
+map_markers <- reactive({
+  markers <-NULL
+  switch(input$data_type_input,
+    "Excel Files" = {
+      if (input$excel_data_content == "Map Markers" && !is.null(input$excel_filepath_map_markers)) {
+        markers <- safe_read_excel(input$excel_filepath_map_markers$datapath)
+      }
+    }
+  )
+  return(markers)
 })
 
 local_logger_data <- reactive({
@@ -278,6 +292,9 @@ output$data_tab_preview <- renderDataTable({
                 },
                 Calibration = {
                     tmp <- calibration_list()
+                },
+                "Map Markers" = {
+                  tmp <- map_markers()
                 }
             )
         },
