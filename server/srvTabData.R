@@ -200,6 +200,17 @@ calibration_list <- reactive({
     tmp
 })
 
+map_markers_list <- reactive({
+    tmp <- NULL
+    switch(input$data_type_input,
+        "Excel Files" = {
+            if (input$excel_data_content == "Map markers" && !is.null(input$excel_filepath_map_markers)) {
+                tmp <- safe_read_excel(input$excel_filepath_map_markers)
+            }
+        }
+    )
+})
+
 gpx_data <- reactive({
   mytrack<-NULL
   switch(input$data_type_input,
@@ -262,7 +273,6 @@ get_signals <- reactive({
 
 
 ### render Tables ###
-
 output$data_tab_preview <- renderDataTable({
     switch(input$data_type_input,
         "Excel Files" = {
@@ -278,6 +288,9 @@ output$data_tab_preview <- renderDataTable({
                 },
                 Calibration = {
                     tmp <- calibration_list()
+                },
+                "Map markers" = {
+                    tmp <- map_markers_list()
                 }
             )
         },

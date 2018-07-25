@@ -34,7 +34,7 @@ tabPanel("File Input",
              conditionalPanel(
                condition = "input.data_type_input == 'Excel Files'",
                radioButtons("excel_data_content",
-                            choices = c("Receivers", "Frequencies", "Connections", "Calibration"),
+                            choices = c("Receivers", "Frequencies", "Connections", "Calibration", "Map markers"),
                             label = "Add following data:"
                ),
                conditionalPanel(
@@ -75,6 +75,17 @@ tabPanel("File Input",
                  h6("Calibration of receiver's sensitivity"),
                  fileInput(
                    "excel_filepath_calibration",
+                   "",
+                   multiple = FALSE,
+                   accept = c(".xlsx", ".xls"),
+                   width = NULL
+                 )
+               ),
+               conditionalPanel(
+                 condition = "input.excel_data_content == 'Map markers'",
+                 h6("Map markers with comments"),
+                 fileInput(
+                   "excel_filepath_map_markers",
                    "",
                    multiple = FALSE,
                    accept = c(".xlsx", ".xls"),
