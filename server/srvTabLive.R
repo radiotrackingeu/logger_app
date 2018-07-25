@@ -3,7 +3,7 @@
 ### render ui elements ###
 
 observeEvent(input$connect_to_db, {
-    global$connections <- rbind(global$connections, 
+    global$connections <- rbind(global$connections,
       data.frame("Name"=input$MySQL_name, "Host"=input$MySQL_host, "Port"=input$MySQL_port,"User"=input$MySQL_user,"Password"=input$MySQL_pw,stringsAsFactors=F)
     )
 })
@@ -178,21 +178,30 @@ build_signals_query <- reactive({
 
     query_freq_filter<-""
     inner_join <- ""
-    if(input$query_filter_freq){
-      for(k in global$frequencies$Frequency){
-        error<-2000
-        and<-""
-        if(any(input$check_sql_duration,input$check_sql_strength)) {
-          and<-"AND("
-        }
-        if(nrow(global$frequencies)>1&&query_freq_filter!=""){
-          and<-"OR"
-        }
-        inner_join <- "INNER JOIN `runs` r ON s.run = r.id"
-        query_freq_filter<-paste(query_freq_filter, and, "((signal_freq + center_freq + ",error,") >", k*1000, "  AND (signal_freq + center_freq - ",error,")  <", k*1000, ")")
+    if (input$query_filter_freq){
+      error<-2000
+      and<-""
+      inner_join <- "INNER JOIN `runs` r ON s.run = r.id"
+      if (input$query_filter_frequency_type == "Multiple") {
+          for(k in global$frequencies$Frequency){
+            if(any(input$check_sql_duration,input$check_sql_strength)) {
+              and<-"AND("
+            }
+            if(nrow(global$frequencies)>1&&query_freq_filter!=""){
+              and<-"OR"
+            }
+            query_freq_filter<-paste(query_freq_filter, and, "((signal_freq + center_freq + ",error,") >", k*1000, "  AND (signal_freq + center_freq - ",error,")  <", k*1000, ")")
+          }
+          if(any(input$check_sql_duration,input$check_sql_strength)){
+            query_freq_filter<-paste(query_freq_filter,")")
+          }
       }
-      if(any(input$check_sql_duration,input$check_sql_strength)){
-        query_freq_filter<-paste(query_freq_filter,")")
+      else if (input$query_filter_frequency_type == "Single") {
+            k <- input$query_filter_single_frequency
+            if(any(input$check_sql_duration,input$check_sql_strength)) {
+              and<-"AND("
+            }
+            query_freq_filter<-paste(query_freq_filter, and, "((signal_freq + center_freq + ",error,") >", k*1000, "  AND (signal_freq + center_freq - ",error,")  <", k*1000, ")")
       }
     }
     where<-""

@@ -60,7 +60,20 @@ tabPanel("Live Data",
              conditionalPanel("input.check_sql_strength",
                               sliderInput("query_filter_strength", "Strength",min=0,max = 100, value=c(15,90))
              ),
-             checkboxInput("query_filter_freq", "Frequencies")
+             checkboxInput("query_filter_freq", "Frequencies"),
+             conditionalPanel(cond = "input.query_filter_freq",
+                radioButtons("query_filter_frequency_type",
+                    choices = c("Multiple", "Single"),
+                    label = "Frequencies selection: "
+                ),
+                conditionalPanel(cond = "input.query_filter_frequency_type == 'Single'",
+                    numericInput("query_filter_single_frequency",
+                        label = "kHz",
+                        value = 1000,
+                        min = 0
+                    )
+                )
+             )
            ),
            mainPanel(
              tabsetPanel(

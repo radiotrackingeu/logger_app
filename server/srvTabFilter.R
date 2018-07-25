@@ -10,7 +10,7 @@ observe({
     old_min <- isolate(input$slider_datetime[1])
     min_date<-min(global$signals$timestamp)-1
     max_date<-max(global$signals$timestamp)+1
-    if (isolate(input$app_live_mode)) 
+    if (isolate(input$app_live_mode))
       updateSliderInput(session, "slider_datetime",min=min_date,max=max_date,value = c(old_min,max_date) )
     else
       updateSliderInput(session, "slider_datetime",min=min_date,max=max_date,value = c(min_date,max_date) )
@@ -39,11 +39,12 @@ observeEvent(input$filter_freq,
 
 # applying filters
 filtered_data <- reactive({
+  global$invalidate_filtered_data
+
   if (is.null(global$signals))
     return(NULL)
   tempo<-global$signals
-  
-  tempo<-subset(tempo, (tempo$timestamp>=input$slider_datetime[1])&(tempo$timestamp<=input$slider_datetime[2]) )
+  tempo<-subset(tempo, (tempo$timestamp>=isolate(input$slider_datetime[1]))&(tempo$timestamp<=isolate(input$slider_datetime[2])) )
 
   if(input$filter_length){
     tempo<-filter_data_length(tempo,input$signal_length)

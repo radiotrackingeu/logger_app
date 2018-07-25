@@ -22,7 +22,7 @@ patientReactive <- function(id, delay, update_function) {
     time <- Sys.time()
     global$patients_list[[id]] <- time
     uid <- toString(global$patients_next_id)
-    global$patients_next_id <- global$patients_call_next_id + 1
+    global$patients_next_id <- global$patients_next_id + 1
     global$patients_first_passage[[uid]] <- TRUE
 
     observer <- observe({
