@@ -293,7 +293,7 @@ output$data_tab_preview <- renderDataTable({
                     tmp <- calibration_list()
                 },
                 "Map Markers" = {
-                    tmp <- map_markers_list()
+                    tmp <- map_markers()
                 }
             )
         },
