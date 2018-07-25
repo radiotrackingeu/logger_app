@@ -23,6 +23,19 @@ observe({
     )
 })
 
+observeEvent(input$map_click,{
+  updateTextInput(session,"map_lat",value = round(input$map_click$lat,digits=5))
+  updateTextInput(session,"map_lng",value = round(input$map_click$lng,digits=5))
+})
+
+observeEvent(input$map_add_marker,{
+  leafletProxy("map") %>% addMarkers(lat=as.numeric(input$map_lat), lng=as.numeric(input$map_lng), group="user_markers", label=input$map_comment)
+})
+
+observeEvent(input$map_rm_markers,{
+  leafletProxy("map") %>% clearGroup("user_markers")
+})
+
 observe({
   req(smoothed_curves())
   if(!input$app_live_mode){

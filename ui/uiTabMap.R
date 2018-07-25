@@ -1,4 +1,11 @@
 ############ tabMap.R ############
+textInput_alt<-function (inputId, label, ...) 
+{
+  div(style="display:inline-block",
+    tags$label(label, `for` = inputId), 
+    tags$input(id = inputId, type = "text", ...))
+}
+
 tabPanel("Map",
   div(class="outer",
     tags$head(
@@ -46,7 +53,17 @@ tabPanel("Map",
         sliderInput("map_choose_single_data_set","Data Steps", min=1, max =500,value = 1, animate = list(interval=400), step = 1),
         plotOutput("map_miniplot", height = "150px")
       ),
-      htmlOutput("map_signal_select_prop")
+      htmlOutput("map_signal_select_prop"),
+      splitLayout(
+        textInput("map_lat", "Lat."),
+        textInput("map_lng", "Lng.")
+      ),
+      textInput("map_comment", "Comment"),
+      splitLayout(
+        actionButton("map_add_marker","Set Marker"),
+        actionButton("map_rm_markers", "Clear Markers")
+      )
+      
     )
   )
 )

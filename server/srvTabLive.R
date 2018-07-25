@@ -163,6 +163,51 @@ get_mysql_data <- eventReactive(global$mysql_data_invalidator, {
   }
 })
 
+keepalive_data <- reactive({
+  if(!is.null(get_info_of_entries())){
+    tmp<-data.frame()
+
+    if(!is.null(get_info_of_entries())){
+      withProgress(
+        expr = {
+          for(i in get_info_of_entries()[get_info_of_entries()$timestamp!="offline",]$Name) {
+            setProgress(detail=i)
+            if(is.null(open_connections()[[i]])) {
+              next
+            }
+            else {
+              if(dbIsValid(open_connections()[[i]])) {
+                query <- paste("SELECT timestamp, device FROM `signals` s INNER JOIN runs r ON r.id = s.run WHERE max_signal = 0 LIMIT ", input$live_last_points, ";")
+                results<-dbGetQuery(open_connections()[[i]], query)
+
+                if(nrow(results)>0){
+                  results$Name <- i
+                  results$receiver <- substrLeft(results$device,17)
+                  results$device <- NULL
+                  results$timestamp <- as.POSIXct(results$timestamp)
+                  tmp <- rbind(tmp,results)
+                }
+              }
+              else{
+                results <- data.frame(Name=i,id=NA,timestamp="offline")
+                tmp <- rbind(tmp,results)
+              }
+            }
+            incProgress(amount=1)
+          }
+        },
+        message = "Loading data: ",
+        max = nrow(get_info_of_entries()[get_info_of_entries()$timestamp!="offline",]),
+        value = 0
+      )
+    }
+    else{
+      tmp<-NULL
+    }
+    tmp
+  }
+})
+
 build_signals_query <- reactive({
     query_duration_filter<-""
     query_max_signal_filter<-""
@@ -181,7 +226,7 @@ build_signals_query <- reactive({
     query_freq_filter<-""
     inner_join <- ""
     if (input$query_filter_freq){
-      error<-2000
+      error <- input$freq_error * 1000
       and<-""
       inner_join <- "INNER JOIN `runs` r ON s.run = r.id"
       if (input$query_filter_frequency_type == "Multiple") {
@@ -234,15 +279,6 @@ signal_data<-function(){
   tmp
 }
 
-keepalive_data<-reactive({
-  tmp<-get_mysql_data()
-  if(is.null(tmp)) return(NULL)
-  if(nrow(tmp)==0) return(NULL)
-  tmp<-subset(tmp, signal_freq==0)
-  tmp$timestamp<-as.POSIXct(tmp$timestamp)
-  data.frame(Timestamp = tmp$timestamp,Station = tmp$Name, Receiver = substrLeft(tmp$device,17))
-})
-
 output$live_tab_remote_entries_table <- renderDataTable({
   validate(need(get_info_of_entries(), "Please provide remote connection data file."))
   if (nrow(get_info_of_entries()) == 0) {
@@ -258,7 +294,10 @@ output$live_tab_mysql_data <- renderDataTable({
   global$signals
 }, options = list(pageLength = 10))
 
-output$live_tab_keepalive<- renderDataTable({
-  validate(need(keepalive_data(), "Please check connections first"))
-  keepalive_data()
-}, options = list(pageLength = 10))
+output$live_tab_keepalive_plot <- renderPlot({
+    ggplot(keepalive_data()) +
+    geom_point(aes(x=timestamp, y=receiver, color=receiver)) +
+    labs(x = "Time", y = "Receiver") +
+    theme(axis.text.x=element_text(angle = 60, hjust = 1)) +
+    scale_x_datetime(labels = function(x) format(x, "%d-%m \n %H:%M:%S"))
+})
