@@ -82,7 +82,7 @@ tabPanel("File Input",
                  )
                ),
                conditionalPanel(
-                 condition = "input.excel_data_content == 'Map markers'",
+                 condition = "input.excel_data_content == 'Map Markers'",
                  h6("Map markers with comments"),
                  fileInput(
                    "excel_filepath_map_markers",
