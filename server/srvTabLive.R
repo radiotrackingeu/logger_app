@@ -213,6 +213,7 @@ build_signals_query <- reactive({
 })
 
 signal_data<-function(){
+  req(get_mysql_data())
   tmp<-get_mysql_data()
 
   if(is.null(tmp)) return(NULL)

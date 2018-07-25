@@ -28,11 +28,14 @@ output$correction_list <- renderUI({
 output$polar_output <- renderPlot({
   tmp<-doa_smoothed()[1:4,]
   tmp<-tmp[order(tmp$timestamp),]
-  ggplot(doa_smoothed()[1:4,])+
+  p<-ggplot(doa_smoothed()[1:4,])+
     geom_bar(aes(x=round(angle),y=strength),stat="identity")+
-    geom_text(aes(x=round(angle),y=strength,label=timestamp), vjust=0)+
     coord_polar()+theme_minimal()+
     scale_x_continuous(breaks = c(0,90,180,270),limits = c(0, 359))
+  if(input$filter_freq){
+    p <- p + facet_wrap(~freq_tag)
+  }
+  p
 })
 
 #save manual calibration factors

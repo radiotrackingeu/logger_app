@@ -69,7 +69,7 @@ tabPanel("Live Data",
                 conditionalPanel(cond = "input.query_filter_frequency_type == 'Single'",
                     numericInput("query_filter_single_frequency",
                         label = "kHz",
-                        value = 1000,
+                        value = 150175,
                         min = 0
                     )
                 )
