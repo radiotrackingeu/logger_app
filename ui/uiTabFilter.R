@@ -28,7 +28,8 @@ tabPanel("Filter",
                   ),
                   tabsetPanel(type = "tabs",
                               tabPanel("Frequency",
-                                       plotOutput("histo")
+                                       plotOutput("histo",hover = "plot_freq_hover"),
+                                       h4(textOutput("freq_hover"))
                               ),
                               tabPanel("Duration",
                                        plotOutput("histo_length")
@@ -38,14 +39,7 @@ tabPanel("Filter",
                               ),
                               tabPanel("Signal Bandwidth",
                                        plotOutput("histo_bandwidth")
-                              )#,
-                              #tabPanel("Results",plotOutput("facet")),
-                              #tabPanel("DoA",dataTableOutput("angle")),
-                              #tabPanel("DoA Plot",plotOutput("doa_plot")),
-                              #tabPanel("Temperature",dataTableOutput("timediffs")),
-                              #tabPanel("T Plot",{
-                              #  plotOutput("timediffs_plot")
-                              #})
+                              )
                   )
            ),
            column(3,
@@ -71,13 +65,6 @@ tabPanel("Filter",
                   selectInput("input_select_receiver", "Select Receiver/s", choices = NULL, multiple = TRUE, selectize = TRUE),
                   selectInput("input_select_station", "Select Station/s", choices = NULL, multiple = TRUE, selectize = TRUE),
                   textOutput("total_counts")
-                  #checkboxInput("correct_signal_strength",strong("Signal Strength Correction"),value = FALSE),
-                  #uiOutput("correction_list"),
-                  #numericInput("dBLoss","dB between Antennas", 13 , min = 0 ,max = 50),
-                  #numericInput("angle_sep","Anlge between Antennas", 90 , min = 0 ,max = 359),
-                  #h5("y=A*exp(B*Temperature)"),
-                  #numericInput("temp_cal_a","Enter Coefficient A",value=20.307)
-                  #numericInput("temp_cal_b","Enter Coefficient B",value=0.0408)
            )
          )
 )

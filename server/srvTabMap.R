@@ -9,15 +9,19 @@ output$map <- renderLeaflet({
     addStations(global$receivers, color="black", radius=10, group="Stations") %>% 
     addAntennaeCones() %>% 
     addLegend(position="topleft",   
-      pal=color_palette(),
-      values=sorted_data()$max_signal,
-      title="SNR"
+              pal=color_palette(),
+              values=sorted_data()$max_signal,
+              title="SNR"
     )
 })
 
 observe({
-  if(is.null(smoothed_curves())) return(NULL)
-  updateSliderInput(session,"map_choose_single_data_set",min = 1,max = length(unique(smoothed_curves()$timestamp)))
+  req(smoothed_curves())
+  if(!input$app_live_mode){
+    updateSliderInput(session,"map_choose_single_data_set",min = 1,max = length(unique(smoothed_curves()$timestamp)))
+  }else{
+    updateSliderInput(session,"map_choose_single_data_set",min = 1,max = input$live_update_interval)
+  }
 })
 
 
@@ -64,25 +68,29 @@ color_palette <- reactive({
 })
 
 selected_time <- reactive({
+  req(smoothed_curves()$timestamp)
+  req(input$map_choose_single_data_set)
   tmp<-unique(smoothed_curves()$timestamp)
-  tmp[order(tmp)][input$map_choose_single_data_set]
+  if(!input$app_live_mode){
+    tmp<-tmp[order(tmp)][input$map_choose_single_data_set]
+  }else{
+    tmp<-tmp[order(tmp,decreasing = TRUE)][input$map_choose_single_data_set]
+  }
+  return(tmp)
 })
 
 
-observeEvent(input$map_choose_single_data_set,{
-  # validate(
-  #   need(global$receivers, "Please provide file with antennae specifications."),
-  #   need(sorted_data(), "Please have a look at the filter settings.")
-  # )
-  if (is.null(leafletProxy("map")))
-    return(NULL)
+observe({
+  req(leafletProxy("map"))
   leafletProxy("map") %>% clearGroup("bats") %>% clearPopups() %>% clearMarkers() %>% clearGroup("Bearing") %>% clearGroup("GPX") 
   if(input$map_activate_single_data){
     data<-subset(doa_smoothed(),timestamp==selected_time())
     data_cones<-subset(smoothed_curves(),timestamp==selected_time())
-    mytrack<-subset(gpx_data(),timestamp>=(selected_time()-30)&timestamp<=(selected_time()+30))
-    if(nrow(mytrack)>0){
-      leafletProxy("map") %>% addCircles(lng = mytrack$lon, lat=mytrack$lat, radius=5, label=mytrack$timestamp, group = "GPX")
+    if(!is.null(gpx_data())){
+      mytrack<-subset(gpx_data(),timestamp>=(selected_time()-30)&timestamp<=(selected_time()+30))
+      if(nrow(mytrack)>0){
+        leafletProxy("map") %>% addCircles(lng = mytrack$lon, lat=mytrack$lat, radius=5, label=mytrack$timestamp, group = "GPX")
+      }
     }
     leafletProxy("map") %>% addDetectionCones(data_cones) 
     if(nrow(data)>0){

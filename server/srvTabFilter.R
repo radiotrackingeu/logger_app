@@ -123,4 +123,9 @@ output$total_counts<-renderText({
   return(paste("Number of observations in plot",dim(filtered_data())[1],"of total", dim(global$signals)[1]))
 })
 
+output$freq_hover<-renderText({
+  req(input$plot_freq_hover)
+  print(paste("kHz:",input$plot_freq_hover$x))
+  return(paste("kHz:",round(input$plot_freq_hover$x)))
+})
 
