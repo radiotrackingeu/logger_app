@@ -1,4 +1,4 @@
-############ srvTabData.R ############
+#_########### srvTabData.R ############
 
 # maybe predefine content of tables
 
@@ -333,7 +333,7 @@ output$data_tab_preview <- renderDataTable({
         "Data folder" = {
             tmp <- NULL
 
-            files <- c("Antennas", "Frequencies", "RemoteConnections", "Calibration")
+            files <- c("Antennas", "Frequencies", "RemoteConnections", "Calibration", "MapMarkers")
 
             for (file in files) {
                 filepath = paste0("data/", file, ".xlsx")

@@ -167,7 +167,7 @@ output$filtered_data_sqlite <- downloadHandler(
 )
 
 output$download_excel_frequencies <- downloadHandler(
-    filename = "frequencies.xlsx",
+    filename = "Frequencies.xlsx",
     content = function(file) {
         if (!is.null(global$frequencies)) {
             write_xlsx(global$frequencies, file)
@@ -179,7 +179,7 @@ output$download_excel_frequencies <- downloadHandler(
 )
 
 output$download_excel_calibrations <- downloadHandler(
-    filename = "calibrations.xlsx",
+    filename = "Calibration.xlsx",
     content = function(file) {
         if (!is.null(global$calibration)) {
             write_xlsx(global$calibration, file)
@@ -203,7 +203,7 @@ output$download_excel_signals <- downloadHandler(
 )
 
 output$download_excel_remote_connections <- downloadHandler(
-    filename = "remote_connections.xlsx",
+    filename = "RemoteConnections.xlsx",
     content = function(file) {
         if (!is.null(global$connections)) {
             write_xlsx(global$connections, file)
@@ -215,7 +215,7 @@ output$download_excel_remote_connections <- downloadHandler(
 )
 
 output$download_excel_receivers <- downloadHandler(
-    filename = "receivers.xlsx",
+    filename = "Antennas.xlsx",
     content = function(file) {
         if (!is.null(global$receivers)) {
             write_xlsx(global$receivers, file)
@@ -227,7 +227,7 @@ output$download_excel_receivers <- downloadHandler(
 )
 
 output$download_excel_map_markers <- downloadHandler(
-  filename = "map_markers.xlsx",
+  filename = "MapMarkers.xlsx",
   content = function(file) {
     if (!is.null(global$map_markers)) {
       write_xlsx(global$map_markers, file)
