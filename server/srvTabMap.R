@@ -5,8 +5,14 @@ output$map <- renderLeaflet({
   validate(
     need(global$receivers, "Please provide receiver data.")
   )
-  map() %>% 
-    addStations(global$receivers, color="black", radius=10, group="Stations") %>% 
+  map()%>%addStations(global$receivers, color="black", radius=10, group="Stations")
+})
+
+observe({
+  req(leafletProxy("map"))
+  req(global$receivers)
+  req(sorted_data())
+  leafletProxy("map") %>% 
     addAntennaeCones() %>% 
     addLegend(position="topleft",   
               pal=color_palette(),

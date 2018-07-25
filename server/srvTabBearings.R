@@ -28,11 +28,14 @@ output$correction_list <- renderUI({
 output$polar_output <- renderPlot({
   tmp<-doa_smoothed()[1:4,]
   tmp<-tmp[order(tmp$timestamp),]
-  ggplot(doa_smoothed()[1:4,])+
+  p<-ggplot(doa_smoothed()[1:4,])+
     geom_bar(aes(x=round(angle),y=strength),stat="identity")+
-    geom_text(aes(x=round(angle),y=strength,label=timestamp), vjust=0)+
     coord_polar()+theme_minimal()+
     scale_x_continuous(breaks = c(0,90,180,270),limits = c(0, 359))
+  if(input$filter_freq){
+    p <- p + facet_wrap(~freq_tag)
+  }
+  p
 })
 
 #save manual calibration factors
@@ -65,15 +68,13 @@ output$cal_factors <- renderDataTable({
 
 # calculate time match and DoA #1
 output$doa<- renderDataTable({
-  if(is.null(doa_smoothed()))
-    return(NULL)
+  req(doa_smoothed())
   doa_smoothed()[order(doa_smoothed()$timestamp,decreasing=TRUE),]
 })
 
 # output DoA plot
 output$doa_plot <- renderPlot({
-  if(is.null(doa_smoothed()))
-    return(NULL)
+  req(doa_smoothed())
   ggplot(doa_smoothed()) + geom_point(mapping=aes(x=timestamp,y=angle,col=Station)) + facet_wrap(~freq_tag)+
     scale_x_datetime(labels = function(x) format(x, "%d-%m \n %H:%M:%S"))
 })

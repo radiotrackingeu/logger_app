@@ -216,8 +216,10 @@ build_signals_query <- reactive({
     if(input$check_sql_strength){
       if(any(input$check_sql_duration)){
         and<-"AND"
+      }else{
+        and<-""
       }
-      query_max_signal_filter<-paste(and,"max_signal >",input$query_filter_strength[1],"AND max_signal <",input$query_filter_strength[2])
+      query_max_signal_filter<-paste(and,"max_signal >=",input$query_filter_strength[1],"AND max_signal <=",input$query_filter_strength[2])
     }
 
     query_freq_filter<-""
@@ -257,6 +259,7 @@ build_signals_query <- reactive({
 })
 
 signal_data<-function(){
+  req(get_mysql_data())
   tmp<-get_mysql_data()
 
   if(is.null(tmp)) return(NULL)
