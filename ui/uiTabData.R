@@ -34,7 +34,7 @@ tabPanel("File Input",
              conditionalPanel(
                condition = "input.data_type_input == 'Excel Files'",
                radioButtons("excel_data_content",
-                            choices = c("Receivers", "Frequencies", "Connections", "Calibration","GPX"),
+                            choices = c("Receivers", "Frequencies", "Connections", "Calibration"),
                             label = "Add following data:"
                ),
                conditionalPanel(
@@ -80,19 +80,27 @@ tabPanel("File Input",
                    accept = c(".xlsx", ".xls"),
                    width = NULL
                  )
-               ),
-               conditionalPanel(
-                 condition = "input.excel_data_content == 'GPX'",
-                 h6("GPX data to compare"),
-                 fileInput(
-                   "excel_filepath_gpx",
-                   "",
-                   multiple = FALSE,
-                   accept = c(".gpx"),
-                   width = NULL
-                 )
                )
              ),
+             conditionalPanel(
+                condition = "input.data_type_input == 'Miscellaneous'",
+                radioButtons(
+                  "misc_type_input",
+                  choices = c("GPX"),
+                  label = "File type:"
+                ),
+                conditionalPanel(
+                    condition = "input.misc_type_input == 'GPX'",
+                    h6("GPX data to compare"),
+                    fileInput(
+                       "gpx_filepath",
+                       "",
+                       multiple = FALSE,
+                       accept = c(".gpx"),
+                       width = NULL
+                    )
+                )
+            ),
              actionButton(
                "add_data",
                h4("    Add Data    ")
