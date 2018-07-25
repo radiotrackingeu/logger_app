@@ -163,6 +163,50 @@ get_mysql_data <- eventReactive(global$mysql_data_invalidator, {
   }
 })
 
+keepalive_data <- reactive({
+  if(!is.null(get_info_of_entries())){
+    tmp<-data.frame()
+
+    if(!is.null(get_info_of_entries())){
+      withProgress(
+        expr = {
+          for(i in get_info_of_entries()[get_info_of_entries()$timestamp!="offline",]$Name) {
+            setProgress(detail=i)
+            if(is.null(open_connections()[[i]])) {
+              next
+            }
+            else {
+              if(dbIsValid(open_connections()[[i]])) {
+                query <- paste("SELECT timestamp, device FROM `signals` s INNER JOIN runs r ON r.id = s.run WHERE max_signal = 0 LIMIT ", input$live_last_points, ";")
+                results<-dbGetQuery(open_connections()[[i]], query)
+
+                if(nrow(results)>0){
+                  results$Name <- i
+                  results$receiver <- substrLeft(results$device,17)
+                  results$device <- NULL
+                  tmp <- rbind(tmp,results)
+                }
+              }
+              else{
+                results <- data.frame(Name=i,id=NA,timestamp="offline")
+                tmp <- rbind(tmp,results)
+              }
+            }
+            incProgress(amount=1)
+          }
+        },
+        message = "Loading data: ",
+        max = nrow(get_info_of_entries()[get_info_of_entries()$timestamp!="offline",]),
+        value = 0
+      )
+    }
+    else{
+      tmp<-NULL
+    }
+    tmp
+  }
+})
+
 build_signals_query <- reactive({
     query_duration_filter<-""
     query_max_signal_filter<-""
@@ -172,14 +216,16 @@ build_signals_query <- reactive({
     if(input$check_sql_strength){
       if(any(input$check_sql_duration)){
         and<-"AND"
+      }else{
+        and<-""
       }
-      query_max_signal_filter<-paste(and,"max_signal >",input$query_filter_strength[1],"AND max_signal <",input$query_filter_strength[2])
+      query_max_signal_filter<-paste(and,"max_signal >=",input$query_filter_strength[1],"AND max_signal <=",input$query_filter_strength[2])
     }
 
     query_freq_filter<-""
     inner_join <- ""
     if (input$query_filter_freq){
-      error<-2000
+      error <- input$freq_error * 1000
       and<-""
       inner_join <- "INNER JOIN `runs` r ON s.run = r.id"
       if (input$query_filter_frequency_type == "Multiple") {
@@ -231,15 +277,6 @@ signal_data<-function(){
   global$receivers<-unique.data.frame(rbind(isolate(global$receivers), receiver_info))
   tmp
 }
-
-keepalive_data<-reactive({
-  tmp<-get_mysql_data()
-  if(is.null(tmp)) return(NULL)
-  if(nrow(tmp)==0) return(NULL)
-  tmp<-subset(tmp, signal_freq==0)
-  tmp$timestamp<-as.POSIXct(tmp$timestamp)
-  data.frame(Timestamp = tmp$timestamp,Station = tmp$Name, Receiver = substrLeft(tmp$device,17))
-})
 
 output$live_tab_remote_entries_table <- renderDataTable({
   validate(need(get_info_of_entries(), "Please provide remote connection data file."))

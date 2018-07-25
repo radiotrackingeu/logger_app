@@ -52,7 +52,7 @@ tabPanel("Filter",
                                    selectInput("choose_tag", "Choose Tag", choices = NULL)
                   ),
                   sliderInput("freq_error",
-                              "Frequency Error:",
+                              "Frequency Error (kHz):",
                               min = 1,
                               max = 30,
                               value = 5),

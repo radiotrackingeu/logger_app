@@ -43,7 +43,7 @@ calculate_temperature <- function(td,a=20.307,b=0.0408) {
 
 output$plot_x_y <- renderText({
   req(input$plot_hover$x)
-  return(paste0("Time: ", as.POSIXct(input$plot_hover$x,origin="1970-01-01")))
+  return(paste0("Time: ", round(as.POSIXct(input$plot_hover$x,origin="1970-01-01"))))
 })
 
 #Temperature would be great here

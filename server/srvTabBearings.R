@@ -68,15 +68,13 @@ output$cal_factors <- renderDataTable({
 
 # calculate time match and DoA #1
 output$doa<- renderDataTable({
-  if(is.null(doa_smoothed()))
-    return(NULL)
+  req(doa_smoothed())
   doa_smoothed()[order(doa_smoothed()$timestamp,decreasing=TRUE),]
 })
 
 # output DoA plot
 output$doa_plot <- renderPlot({
-  if(is.null(doa_smoothed()))
-    return(NULL)
+  req(doa_smoothed())
   ggplot(doa_smoothed()) + geom_point(mapping=aes(x=timestamp,y=angle,col=Station)) + facet_wrap(~freq_tag)+
     scale_x_datetime(labels = function(x) format(x, "%d-%m \n %H:%M:%S"))
 })
