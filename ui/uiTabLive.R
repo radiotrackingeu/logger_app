@@ -87,7 +87,7 @@ tabPanel("Live Data",
                       actionButton("clear_logger_data_from_live", "Clear table")
              ),
              tabPanel("List of Keepalives",
-                      dataTableOutput("live_tab_keepalive")
+                      plotOutput("live_tab_keepalive_plot")
              ),
              tabPanel("Help",
                       "1) First select the data source on the right",

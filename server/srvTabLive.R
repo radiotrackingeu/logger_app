@@ -184,6 +184,7 @@ keepalive_data <- reactive({
                   results$Name <- i
                   results$receiver <- substrLeft(results$device,17)
                   results$device <- NULL
+                  results$timestamp <- as.POSIXct(results$timestamp)
                   tmp <- rbind(tmp,results)
                 }
               }
@@ -293,7 +294,10 @@ output$live_tab_mysql_data <- renderDataTable({
   global$signals
 }, options = list(pageLength = 10))
 
-output$live_tab_keepalive<- renderDataTable({
-  validate(need(keepalive_data(), "Please check connections first"))
-  keepalive_data()
-}, options = list(pageLength = 10))
+output$live_tab_keepalive_plot <- renderPlot({
+    ggplot(keepalive_data()) +
+    geom_point(aes(x=timestamp, y=receiver, color=receiver)) +
+    labs(x = "Time", y = "Receiver") +
+    theme(axis.text.x=element_text(angle = 60, hjust = 1)) +
+    scale_x_datetime(labels = function(x) format(x, "%d-%m \n %H:%M:%S"))
+})
