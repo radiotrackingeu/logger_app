@@ -7,10 +7,10 @@ observe({
    need(global$signals, "Please provide file with antennae specifications.")
   )
   if(!is.null(global$signals)){
-    old_min <- isolate(input$slider_datetime[1])
+    old_min <-isolate(input$slider_datetime[1])
     min_date<-min(global$signals$timestamp)-1
     max_date<-max(global$signals$timestamp)+1
-    if (isolate(input$app_live_mode)) 
+    if(isolate(input$app_live_mode)) 
       updateSliderInput(session, "slider_datetime",min=min_date,max=max_date,value = c(old_min,max_date) )
     else
       updateSliderInput(session, "slider_datetime",min=min_date,max=max_date,value = c(min_date,max_date) )

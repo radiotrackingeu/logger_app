@@ -50,7 +50,12 @@ tabPanel("Map",
       checkboxInput("map_show_antennae_outline", "Show antennae outlines", value=TRUE),
       checkboxInput("map_activate_single_data","Show Timeline",value = FALSE),
       conditionalPanel(condition="input.map_activate_single_data==true",
-        sliderInput("map_choose_single_data_set","Data Steps", min=1, max =15,value = 1, animate = list(interval=400), step = 1),
+        sliderInput("map_choose_single_data_set","Data Steps", min=1, max =15,value = 1, animate = list(interval=400)),
+        splitLayout(
+          actionButton("minus", "Minus"),
+          actionButton("plus", "Plus")
+        ),
+
         plotOutput("map_miniplot", height = "150px")
       ),
       htmlOutput("map_signal_select_prop"),

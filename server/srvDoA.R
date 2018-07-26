@@ -17,6 +17,11 @@ calc_angle_linear <- function(sig_a, sig_b, angle_a, angle_b,dbLoss){
   return(dif_angle)
 }
 
+#condition angles above 0
+angle_between <- function(angle_a,angle_b){
+    ((((angle_b - angle_a) %% 360) + 540) %% 360) - 180
+}
+
 #calculates linear approx of doa between two antennas
 get_angle_linear <- function(sig_a, sig_b, angle_a, angle_b, dbLoss){
   #first the one with the smaller angle
@@ -68,12 +73,22 @@ doa_smoothed<-reactive({
         data_tfs<-unique(data_tfs[order(data_tfs$max_signal, decreasing = TRUE, na.last=NA),])
         if(nrow(data_tfs)>1){
           #check angle between strongest and second strongest and if it is smaller then 90 degree, calc it linearly
-          if(abs(data_tfs[1,"Orientation"]-data_tfs[2,"Orientation"])<=90||abs(data_tfs[1,"Orientation"]-data_tfs[2,"Orientation"])>=270){
-            angle<-get_angle_linear(data_tfs[1,"max_signal"],data_tfs[2,"max_signal"],data_tfs[1,"Orientation"],data_tfs[2,"Orientation"],input$dBLoss)
+          if(abs(angle_between(data_tfs[1,"Orientation"],data_tfs[2,"Orientation"]))<=90){
+            if(nrow(data_tfs)>2){
+              if(abs(angle_between(data_tfs[2,"Orientation"],data_tfs[3,"Orientation"]))==180&&abs(angle_between(data_tfs[2,"max_signal"],data_tfs[3,"max_signal"])<3)){
+                angle<-get_angle_linear(data_tfs[2,"max_signal"],data_tfs[3,"max_signal"],data_tfs[2,"Orientation"],data_tfs[3,"Orientation"],input$dBLoss)
+              }else{#to do see case line 88
+                angle<-get_angle_linear(data_tfs[1,"max_signal"],data_tfs[2,"max_signal"],data_tfs[1,"Orientation"],data_tfs[2,"Orientation"],input$dBLoss)
+              }
+            }else{
+              angle<-get_angle_linear(data_tfs[1,"max_signal"],data_tfs[2,"max_signal"],data_tfs[1,"Orientation"],data_tfs[2,"Orientation"],input$dBLoss)
+            }
           }else{
             #back antenna plays a big role here
             if(nrow(data_tfs)>2){
-              angle<-get_angle_linear(data_tfs[1,"max_signal"],data_tfs[3,"max_signal"],data_tfs[1,"Orientation"],data_tfs[3,"Orientation"],input$dBLoss)
+              angle_1<-data_tfs[1,"Orientation"]
+              angle_2<-get_angle_linear(data_tfs[1,"max_signal"],data_tfs[3,"max_signal"],data_tfs[1,"Orientation"],data_tfs[3,"Orientation"],input$dBLoss)
+              angle<-angle_1+angle_between(angle_1,angle_2)/abs(data_tfs[1,"Orientation"]-data_tfs[2,"Orientation"])*30
             }
             if(nrow(data_tfs)<=2){
               angle<-data_tfs[1,"Orientation"]
