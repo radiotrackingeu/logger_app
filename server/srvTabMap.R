@@ -24,6 +24,7 @@ observe({
 
 observe({
   req(global$map_markers)
+  req(nrow(global$map_markers)>0)
   leafletProxy("map") %>% addMarkers(lat=global$map_markers$Latitude, lng=global$map_markers$Longitude, group="user_markers", layerId=paste0("marker_",seq_len(nrow(global$map_markers))), label = global$map_markers$comment)
 })
 
@@ -40,6 +41,9 @@ observeEvent(input$map_add_marker,{
 
 observeEvent(input$map_marker_click,{
   leafletProxy("map") %>% removeMarker(input$map_marker_click$id)
+  id<-strsplit(x = input$map_marker_click$id, split="_")
+  id<-as.numeric(unlist(id)[2])
+  global$map_markers <- global$map_markers[-c(id),]
 })
 
 observeEvent(input$map_rm_markers,{
@@ -158,7 +162,7 @@ map <- reactive({
       icon="fa-crosshairs", title="Locate Me",
       onClick=JS("function(btn, map){ map.locate({setView: true}); }"))) %>% 
     addScaleBar(position="bottomright")
-  if (is.null(global$map_markers))
+  if (is.null(isolate(global$map_markers)))
     return(l)
   l<-l %>%
     addMarkers(lat=isolate(global$map_markers$Latitude), lng=isolate(global$map_markers$Longitude), group="user_markers", layerId=paste0("marker_",seq_len(nrow(isolate(global$map_markers)))), label = isolate(global$map_markers$comment))
