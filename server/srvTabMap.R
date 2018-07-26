@@ -49,9 +49,9 @@ observeEvent(input$map_rm_markers,{
 observe({
   req(smoothed_curves())
   if(!input$app_live_mode){
-    updateSliderInput(session,"map_choose_single_data_set",min = 1,max = length(unique(smoothed_curves()$timestamp)))
+    updateSliderInput(session,"map_choose_single_data_set",min = 1,max = length(unique(smoothed_curves()$timestamp)), step = 1)
   }else{
-    updateSliderInput(session,"map_choose_single_data_set",min = 1,max = input$live_update_interval)
+    updateSliderInput(session,"map_choose_single_data_set",min = 1,max = input$live_update_interval, step = 1)
   }
 })
 

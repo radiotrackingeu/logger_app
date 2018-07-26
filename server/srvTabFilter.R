@@ -77,7 +77,7 @@ filtered_data <- reactive({
   }
   if(xor(input$correct_signal_strength_auto,input$correct_signal_strength_manu)){
     if(!is.null(global$calibration)){
-      for(i in unique(global$calibration$receiver)){
+      for(i in unique(tempo$receiver)){
         tempo[tempo$receiver==i,]$max_signal<-global$calibration[global$calibration$receiver==i,]$correction+tempo[tempo$receiver==i,]$max_signal
       }
     }

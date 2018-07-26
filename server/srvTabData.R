@@ -206,8 +206,8 @@ gpx_data <- reactive({
   mytrack<-NULL
   switch(input$data_type_input,
          "Miscellaneous" = {
-           if(input$misc_type_input == "GPX" && !is.null(input$excel_filepath_gpx)) {
-             mygpx <- readGPX(input$excel_filepath_gpx$datapath, waypoints = FALSE)
+           if(input$misc_type_input == "GPX" && !is.null(input$gpx_filepath)) {
+             mygpx <- readGPX(input$gpx_filepath$datapath, waypoints = FALSE)
              mytrack <- mygpx$tracks[[1]]$'NA'
              mytrack$timestamp<-as.POSIXct(mytrack$time,format="%Y-%m-%dT%H:%M:%S.000Z",tz="CEST")
              mytrack$extensions<-NULL
