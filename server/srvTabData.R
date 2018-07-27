@@ -63,11 +63,17 @@ observe({
     global$calibration <- NULL
 })
 
+observe({
+    input$clear_map_markers_data
+    global$map_markers <- NULL
+})
+
 js$mark_invalid("Frequencies")
 js$mark_invalid("Receivers")
 js$mark_invalid("Connections")
 js$mark_invalid("Logger data")
 js$mark_invalid("Calibration")
+js$mark_invalid("Map Markers")
 
 update_single_tab_title_colour <- function(data, label) {
     if (!is.null(data)) {
@@ -83,6 +89,7 @@ observe({update_single_tab_title_colour(global$receivers, "Receivers")})
 observe({update_single_tab_title_colour(global$connections, "Connections")})
 observe({update_single_tab_title_colour(global$frequencies, "Frequencies")})
 observe({update_single_tab_title_colour(global$calibration, "Calibration")})
+observe({update_single_tab_title_colour(global$map_markers, "Map Markers")})
 
 ### get data stored in the data folder ###
 
@@ -400,6 +407,11 @@ output$data_tab_freq_table <- renderDataTable({
 output$data_tab_calibration_table <- renderDataTable({
   validate(need(global$calibration, "Please provide calibration data file."))
   global$calibration
+}, options = list(pageLength = 10))
+
+output$data_tab_map_markers_table <- renderDataTable({
+  validate(need(global$map_markers, "Please provide map markers data file."))
+  global$map_markers
 }, options = list(pageLength = 10))
 
 output$data_tab_antennae_table <- renderDataTable({
