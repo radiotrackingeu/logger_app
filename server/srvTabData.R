@@ -224,6 +224,16 @@ map_markers <- reactive({
       if (input$excel_data_content == "Map Markers" && !is.null(input$excel_filepath_map_markers)) {
         markers <- safe_read_excel(input$excel_filepath_map_markers$datapath)
       }
+    },
+    "SQLite File" = {
+        for (file in input$SQLite_filepath[, "datapath"]) {
+            con <- dbConnect(RSQLite::SQLite(), file)
+            if (dbExistsTable(con, "rteu_map_markers")) {
+                markers <- rbind(markers, dbReadTable(con, "rteu_map_markers"))
+            }
+            dbDisconnect(con)
+        }
+        markers <- unique(markers)
     }
   )
   return(markers)
