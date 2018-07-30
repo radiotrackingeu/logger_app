@@ -251,12 +251,16 @@ build_signals_query <- reactive({
             query_freq_filter<-paste(query_freq_filter, and, "((signal_freq + center_freq + ",error,") >", k*1000, "  AND (signal_freq + center_freq - ",error,")  <", k*1000, ")")
       }
     }
-    where<-""
-    if(any(input$check_sql_duration,input$check_sql_strength,input$query_filter_freq)){
-      where<-"WHERE"
-    }
 
-    paste("SELECT timestamp, duration, signal_freq, run, max_signal FROM `signals` s", inner_join, where,query_duration_filter,query_max_signal_filter,query_freq_filter,"ORDER BY s.id DESC LIMIT",input$live_last_points,";")
+    where<-"WHERE"
+    and <- ""
+
+    if(any(input$check_sql_duration,input$check_sql_strength,input$query_filter_freq)){
+        and <- "AND"
+    }
+    keepalive_filter <- paste(and, "max_signal != 0")
+
+    paste("SELECT timestamp, duration, signal_freq, run, max_signal FROM `signals` s", inner_join, where,query_duration_filter,query_max_signal_filter,query_freq_filter, keepalive_filter,"ORDER BY s.id DESC LIMIT",input$live_last_points,";")
 })
 
 signal_data<-function(){
