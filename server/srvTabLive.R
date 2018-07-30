@@ -133,7 +133,7 @@ get_mysql_data <- eventReactive(global$mysql_data_invalidator, {
             else {
               if(dbIsValid(open_connections()[[i]])) {
                 signals<-dbGetQuery(open_connections()[[i]], build_signals_query())
-                mysql_query_runs<-paste("SELECT id, device, pos_x, pos_y, orientation, beam_width, center_freq FROM `runs` ORDER BY id DESC LIMIT",input$live_last_points,";")
+                mysql_query_runs<-paste("SELECT id, device, pos_x, pos_y, orientation, beam_width, center_freq FROM `runs`;")
                 runs<-dbGetQuery(open_connections()[[i]],mysql_query_runs)
                 if(nrow(signals)>0){
                   results<-merge(signals,runs,by.x="run",by.y="id")
