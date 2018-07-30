@@ -56,7 +56,7 @@ get_info_of_entries <- reactive({
       expr = {
         for(i in connect_to$Name){
             setProgress(detail=i)
-            if (input$connect_to_db == 0 || is.null(open_connections()[[i]])) {
+            if (input$connect_mysql == 0 || is.null(open_connections()[[i]])) {
                 results<-data.frame(Name=i,id=NA,timestamp="unknown",size="unknown",running="unknown",time="unknown")
                 tmp<-rbind(tmp,results)
             }
