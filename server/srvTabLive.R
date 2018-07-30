@@ -4,7 +4,7 @@
 
 observeEvent(input$add_manual_connection, {
     if (input$MySQL_name %in% global$connections$Name) {
-        show_error("Couldn't add connection: name already in use")
+        show_error("Could not add connection: name already in use")
     }
     else {
         global$connections <- rbind(global$connections,
