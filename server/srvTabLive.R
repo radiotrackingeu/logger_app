@@ -9,7 +9,7 @@ observeEvent(input$connect_to_db, {
 })
 
 output$con_tags <- renderUI({
-    selectizeInput("select_connection", multiple=TRUE,selected=global$connections$Name,label="Please select connections",choices = global$connections$Name)
+    selectizeInput("select_connection", multiple=TRUE,selected=global$connections$Name,label="Connections selection", choices = global$connections$Name)
 })
 
 open_connections <- eventReactive(input$connect_mysql,{

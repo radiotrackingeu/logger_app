@@ -40,9 +40,7 @@ tabPanel("Live Data",
                   br(),
                   br()
              ),
-             conditionalPanel("input.live_data_number == 'Multiple'",
-                 uiOutput('con_tags')
-             ),
+             uiOutput('con_tags'),
              numericInput("live_last_points", "Number of entries to read", 50, 1, 10000),
              actionButton("connect_mysql","Connect to DBs"),
              actionButton("load_mysql_data","Load Data"),
