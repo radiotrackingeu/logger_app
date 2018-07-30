@@ -53,15 +53,15 @@ get_info_of_entries <- reactive({
   if(!is.null(global$connections)){
     connect_to <- subset(global$connections,Name %in% input$select_connection)
     withProgress(
-      expr = { for(i in connect_to$Name){
-        setProgress(detail=i)
-        if(is.null(open_connections()[[i]])){
-          results<-data.frame(Name=i,id=NA,timestamp="unknown",size="unknown",running="unknown",time="unknown")
-          tmp<-rbind(tmp,results)
-          next
-        }
-        else{
-          if(dbIsValid(open_connections()[[i]])) {
+      expr = {
+        for(i in connect_to$Name){
+            setProgress(detail=i)
+            if (input$connect_to_db == 0 || is.null(open_connections()[[i]])) {
+                results<-data.frame(Name=i,id=NA,timestamp="unknown",size="unknown",running="unknown",time="unknown")
+                tmp<-rbind(tmp,results)
+            }
+            else {
+            if(dbIsValid(open_connections()[[i]])) {
             results<-dbGetQuery(open_connections()[[i]],"SELECT id,timestamp FROM `signals` ORDER BY id DESC LIMIT 1;")
             results$size <- dbGetQuery(open_connections()[[i]], '
                                        SELECT ROUND(SUM(data_length + index_length) / 1024 / 1024, 1) "size"
