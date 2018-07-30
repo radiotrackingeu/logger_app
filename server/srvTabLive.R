@@ -2,7 +2,7 @@
 
 ### render ui elements ###
 
-observeEvent(input$connect_to_db, {
+observeEvent(input$add_manual_connection, {
     if (input$MySQL_name %in% global$connections$Name) {
         show_error("Couldn't add connection: name already in use")
     }

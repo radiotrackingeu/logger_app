@@ -34,7 +34,7 @@ tabPanel("Live Data",
                     "rteuv2!"
                   ),
                   actionButton(
-                    "connect_to_db",
+                    "add_manual_connection",
                     "Add remote connection"
                   ),
                   br(),
