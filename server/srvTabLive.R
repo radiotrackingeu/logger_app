@@ -3,9 +3,14 @@
 ### render ui elements ###
 
 observeEvent(input$connect_to_db, {
-    global$connections <- rbind(global$connections,
-      data.frame("Name"=input$MySQL_name, "Host"=input$MySQL_host, "Port"=input$MySQL_port,"User"=input$MySQL_user,"Password"=input$MySQL_pw,stringsAsFactors=F)
-    )
+    if (input$MySQL_name %in% global$connections$Name) {
+        show_error("Couldn't add connection: name already in use")
+    }
+    else {
+        global$connections <- rbind(global$connections,
+            data.frame("Name"=input$MySQL_name, "Host"=input$MySQL_host, "Port"=input$MySQL_port,"User"=input$MySQL_user,"Password"=input$MySQL_pw,stringsAsFactors=F)
+        )
+    }
 })
 
 output$con_tags <- renderUI({
