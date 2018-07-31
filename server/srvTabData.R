@@ -387,6 +387,13 @@ preview_content <- reactive({
             }
 
             tmp
+        },
+        "Miscellaneous" = {
+            tmp <- NULL
+
+           if (input$misc_type_input == "GPX") {
+               tmp <- gpx_data()
+           }
         })
 })
 
