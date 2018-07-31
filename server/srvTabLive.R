@@ -168,7 +168,7 @@ get_mysql_data <- eventReactive(global$mysql_data_invalidator, {
   }
 })
 
-keepalive_data <- reactive({
+keepalive_data <- eventReactive(global$mysql_data_invalidator, {
   if(!is.null(get_info_of_entries())){
     tmp<-data.frame()
 
