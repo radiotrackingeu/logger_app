@@ -115,6 +115,11 @@ observeEvent(input$load_mysql_data, {
   }
 })
 
+observeEvent(input$connect_mysql, {
+    open_connections()
+    get_info_of_entries()
+})
+
 live_invalidator <- observe({
     if (global$live_mode) {
         global$mysql_data_invalidator = !isolate(global$mysql_data_invalidator)
