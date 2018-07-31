@@ -1,7 +1,6 @@
 ############ srvTabLive.R ############
 
 ### render ui elements ###
-
 observeEvent(input$add_manual_connection, {
     if (input$MySQL_name %in% global$connections$Name) {
         show_error("Could not add connection: name already in use")
@@ -67,12 +66,12 @@ get_info_of_entries <- reactive({
             }
             else {
             if(dbIsValid(open_connections()[[i]])) {
-            results<-dbGetQuery(open_connections()[[i]],"SELECT id,timestamp FROM `signals` ORDER BY id DESC LIMIT 1;")
-            results$size <- dbGetQuery(open_connections()[[i]], '
+            results<-suppressWarnings(dbGetQuery(open_connections()[[i]],"SELECT id,timestamp FROM `signals` ORDER BY id DESC LIMIT 1;"))
+            results$size <- suppressWarnings(dbGetQuery(open_connections()[[i]], '
                                        SELECT ROUND(SUM(data_length + index_length) / 1024 / 1024, 1) "size"
                                        FROM information_schema.tables;
-                                       ')$size
-            results$time <- dbGetQuery(open_connections()[[i]], 'SELECT NOW();')$'NOW()'
+                                       ')$size)
+            results$time <- suppressWarnings(dbGetQuery(open_connections()[[i]], 'SELECT NOW();')$'NOW()')
             if(as.POSIXct(Sys.time(), tz="UTC")-as.POSIXct(results$timestamp, tz="UTC")<360){
               results$running<-"Yes"
             }else{
@@ -138,9 +137,9 @@ get_mysql_data <- eventReactive(global$mysql_data_invalidator, {
             }
             else {
               if(dbIsValid(open_connections()[[i]])) {
-                signals<-dbGetQuery(open_connections()[[i]], build_signals_query())
+                signals<-suppressWarnings(dbGetQuery(open_connections()[[i]], build_signals_query()))
                 mysql_query_runs<-paste("SELECT id, device, pos_x, pos_y, orientation, beam_width, center_freq FROM `runs`;")
-                runs<-dbGetQuery(open_connections()[[i]],mysql_query_runs)
+                runs<-suppressWarnings(dbGetQuery(open_connections()[[i]],mysql_query_runs))
                 if(nrow(signals)>0){
                   results<-merge(signals,runs,by.x="run",by.y="id")
                   results$run <- NULL
@@ -184,7 +183,7 @@ keepalive_data <- reactive({
             else {
               if(dbIsValid(open_connections()[[i]])) {
                 query <- paste("SELECT timestamp, device FROM `signals` s INNER JOIN runs r ON r.id = s.run WHERE max_signal = 0 LIMIT ", input$live_last_points, ";")
-                results<-dbGetQuery(open_connections()[[i]], query)
+                results<-suppressWarnings(dbGetQuery(open_connections()[[i]], query))
 
                 if(nrow(results)>0){
                   results$Name <- i
