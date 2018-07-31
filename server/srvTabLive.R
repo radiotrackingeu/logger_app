@@ -18,8 +18,17 @@ output$con_tags <- renderUI({
 
 open_connections <- eventReactive(input$connect_mysql,{
   tmp_list<-list()
-  if(!is.null(global$connections)){
+  if (is.null(global$connections)) {
+        show_error("Please select at least one connection")
+        return (NULL)
+  }
+  else {
     connect_to <- subset(global$connections,Name %in% input$select_connection)
+    if (nrow(connect_to) == 0) {
+        show_error("Please select at least one connection")
+        return (NULL)
+    }
+
     withProgress(
       expr = {
         for(i in 1:nrow(connect_to)){
@@ -46,8 +55,6 @@ open_connections <- eventReactive(input$connect_mysql,{
       max = nrow(connect_to),
       value = 0
     )
-  }else{
-    tmp_list<-NULL
   }
   return(tmp_list)
 })
