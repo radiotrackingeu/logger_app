@@ -291,9 +291,7 @@ get_signals <- reactive({
   data
 })
 
-
-### render Tables ###
-output$data_tab_preview <- renderDataTable({
+preview_content <- reactive({
     switch(input$data_type_input,
         "Excel Files" = {
             switch(input$excel_data_content,
@@ -389,9 +387,13 @@ output$data_tab_preview <- renderDataTable({
             }
 
             tmp
-        }
-    )
-    tmp
+        })
+})
+
+### render Tables ###
+output$data_tab_preview <- renderDataTable({
+    validate(need(preview_content(), "Please select a file."))
+    preview_content()
 }, options = list(pageLength = 10))
 
 output$data_tab_logger_table <- renderDataTable({
