@@ -83,7 +83,7 @@ tabPanel("Live Data",
                       dataTableOutput("live_tab_mysql_data"),
                       actionButton("clear_logger_data_from_live", "Clear table")
              ),
-             tabPanel("List of Keepalives",
+             tabPanel("Plot of Keepalives",
                       plotOutput("live_tab_keepalive_plot")
              ),
              tabPanel("Help",

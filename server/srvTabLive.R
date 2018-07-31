@@ -112,6 +112,7 @@ observeEvent(input$load_mysql_data, {
   else {
     global$mysql_data_invalidator = !global$mysql_data_invalidator
     signal_data()
+    keepalive_data()
   }
 })
 
@@ -201,7 +202,7 @@ keepalive_data <- reactive({
             incProgress(amount=1)
           }
         },
-        message = "Loading data: ",
+        message = "Loading keepalives: ",
         max = nrow(get_info_of_entries()[get_info_of_entries()$timestamp!="offline",]),
         value = 0
       )
@@ -305,6 +306,9 @@ output$live_tab_mysql_data <- renderDataTable({
 }, options = list(pageLength = 10))
 
 output$live_tab_keepalive_plot <- renderPlot({
+    validate(need(global$signals, "Please load some data"))
+    validate(need(keepalive_data(), "No keepalives found."))
+    validate(need(nrow(keepalive_data()) > 0, "No keepalives found."))
     ggplot(keepalive_data()) +
     geom_point(aes(x=timestamp, y=receiver, color=receiver)) +
     labs(x = "Time", y = "Receiver") +
