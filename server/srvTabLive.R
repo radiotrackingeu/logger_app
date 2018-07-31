@@ -289,7 +289,8 @@ signal_data<-function(){
 }
 
 output$live_tab_remote_entries_table <- renderDataTable({
-  validate(need(get_info_of_entries(), "Please provide remote connection data file."))
+  validate(need(get_info_of_entries(), "No known connections."))
+  validate(need(nrow(get_info_of_entries()) > 0, "No connections selected."))
   if (nrow(get_info_of_entries()) == 0) {
     return (NULL)
   }
