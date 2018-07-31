@@ -111,14 +111,22 @@ global$live_mode = FALSE
 global$mysql_data_invalidator = FALSE
 
 observeEvent(input$load_mysql_data, {
-  global$live_mode = input$app_live_mode
-  if (global$live_mode) {
-      global$live_update_interval = input$live_update_interval
+  if (!is.numeric(input$live_last_points)) {
+    show_error("Malformed number of entries request")
+  }
+  else if (input$live_last_points <= 0) {
+    show_error("Can't request less than one entry")
   }
   else {
-    global$mysql_data_invalidator = !global$mysql_data_invalidator
-    signal_data()
-    keepalive_data()
+      global$live_mode = input$app_live_mode
+      if (global$live_mode) {
+          global$live_update_interval = input$live_update_interval
+      }
+      else {
+        global$mysql_data_invalidator = !global$mysql_data_invalidator
+        signal_data()
+        keepalive_data()
+      }
   }
 })
 
