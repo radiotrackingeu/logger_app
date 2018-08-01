@@ -43,7 +43,7 @@ open_connections <- eventReactive(input$connect_mysql,{
               password = connect_to$Password[i]
             ),
             error = function(err){
-              NULL
+              show_error(paste0("Could not connect to ", connect_to$Name[i], ": ", err[1]))
             },
             finally = {
               incProgress(amount=1)
