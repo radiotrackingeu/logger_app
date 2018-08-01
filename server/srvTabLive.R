@@ -120,6 +120,12 @@ observeEvent(input$load_mysql_data, {
   else if (input$live_last_points <= 0) {
     show_error("Can't request less than one entry")
   }
+  else if (input$app_live_mode && !is.numeric(input$live_update_interval)) {
+    show_error("Malformed update interval input")
+  }
+  else if (input$app_live_mode && input$live_update_interval < 1) {
+    show_error("The update interval has to be greater or equal to 1")
+  }
   else {
       global$live_mode = input$app_live_mode
       if (global$live_mode) {
