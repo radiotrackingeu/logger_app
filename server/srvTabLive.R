@@ -111,7 +111,10 @@ global$live_mode = FALSE
 global$mysql_data_invalidator = FALSE
 
 observeEvent(input$load_mysql_data, {
-  if (!is.numeric(input$live_last_points)) {
+  if (input$connect_mysql == 0 || length(open_connections()) == 0) {
+    show_error("No open connections found")
+  }
+  else if (!is.numeric(input$live_last_points)) {
     show_error("Malformed number of entries request")
   }
   else if (input$live_last_points <= 0) {
