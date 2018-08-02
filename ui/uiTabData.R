@@ -3,9 +3,8 @@ tabPanel("File Input",
            sidebarPanel(
              radioButtons(
                "data_type_input",
-               choices = c("SQLite File", "Excel Files", "Logger Files", "Data folder", "Miscellaneous"),
-               label = "Add data using:",
-               selected = "SQLite File"
+               choices = c("Data folder", "SQLite File", "Excel Files", "Logger Files", "Miscellaneous"),
+               label = "Add data using:"
              ),
              conditionalPanel(
                condition = "input.data_type_input == 'SQLite File'",
