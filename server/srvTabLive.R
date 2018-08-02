@@ -33,22 +33,8 @@ open_connections <- eventReactive(input$connect_mysql,{
       expr = {
         for(i in 1:nrow(connect_to)){
           setProgress(detail=connect_to$Name[i])
-          tmp_list[[connect_to$Name[i]]]<-tryCatch(
-            dbConnect(
-              drv=RMySQL::MySQL(),
-              dbname = "rteu",
-              host = connect_to$Host[i],
-              port = connect_to$Port[i],
-              username = connect_to$User[i],
-              password = connect_to$Password[i]
-            ),
-            error = function(err){
-              show_error(paste0("Could not connect to ", connect_to$Name[i], ": ", err[1]))
-            },
-            finally = {
-              incProgress(amount=1)
-            }
-          )
+          tmp_list[[connect_to$Name[i]]] <- open_connection(connect_to[i, ])
+          incProgress(amount=1)
         }
       },
       message = "Attempting connection: ",
@@ -58,6 +44,22 @@ open_connections <- eventReactive(input$connect_mysql,{
   }
   return(tmp_list)
 })
+
+open_connection <- function(connection_info) {
+  tryCatch(
+    dbConnect(
+      drv = RMySQL::MySQL(),
+      dbname = "rteu",
+      host = connection_info$Host,
+      port = connection_info$Port,
+      username = connection_info$User,
+      password = connection_info$Password
+    ),
+    error = function(err){
+      show_error(paste0("Could not connect to ", connection_info$Name, ": ", err[1]))
+    }
+  )
+}
 
 get_info_of_entries <- reactive({
   tmp<-data.frame()
