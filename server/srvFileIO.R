@@ -12,7 +12,6 @@ read_logger_folder <-function(){
   for(i in list_of_stations){
     receivers_count <- receivers_count + length(list.dirs(file.path(path,i), full.names = FALSE, recursive = FALSE))
   }
-  print(receivers_count)
   status_read<-0
 
   withProgress(
@@ -23,7 +22,6 @@ read_logger_folder <-function(){
           list_of_records <- list.files(file.path(path,i,j), no..=T)
           status_read<-status_read+1
           for (k in list_of_records) {
-            print(k)
             p<-file.path(path,i,j,k)
             data<-read_logger_data(p)
             if(!is.null(data)){
@@ -168,6 +166,9 @@ output$filtered_data_sqlite <- downloadHandler(
     }
     if(!is.null(global$calibration)){
       dbWriteTable(con,"rteu_calibration",global$calibration,overwrite=TRUE)
+    }
+    if(!is.null(global$map_markers)){
+      dbWriteTable(con,"rteu_map_markers",global$map_markers,overwrite=TRUE)
     }
     dbDisconnect(con)
   }

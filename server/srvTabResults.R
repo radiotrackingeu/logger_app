@@ -43,7 +43,7 @@ calculate_temperature <- function(td,a=20.307,b=0.0408) {
 
 output$plot_x_y <- renderText({
   req(input$plot_hover$x)
-  return(paste0("Time: ", round(as.POSIXct(input$plot_hover$x,origin="1970-01-01"))))
+  return(paste0("Time: ", round(as.POSIXct(input$plot_hover$x,origin="1970-01-01", "UTC"))))
 })
 
 #Temperature would be great here
@@ -53,14 +53,14 @@ output$facet <- renderPlot({
   switch(input$choose_plot,
          'Time-Strength-Receiver-Station'={
            ggplot(filtered_data()) +
-           geom_point(aes(x=timestamp, y=max_signal, color=receiver)) +
+           geom_point(aes(x=as.POSIXlt(timestamp, "UTC"), y=max_signal, color=receiver)) +
            labs(x="Time", y = "Signal Strength") +
            scale_x_datetime(labels = function(x) format(x, "%d-%m \n %H:%M:%S"))+
            facet_wrap(~Name)
          },
          'Time-Strength-Receiver-Station-Freq'={
            ggplot(filtered_data()) +
-             geom_point(aes(x=timestamp, y=max_signal, color=receiver,group=freq_tag,shape=freq_tag)) +
+             geom_point(aes(x=as.POSIXlt(timestamp, "UTC"), y=max_signal, color=receiver,group=freq_tag,shape=freq_tag)) +
              labs(x="Time", y = "Signal Strength") +
              scale_x_datetime(labels = function(x) format(x, "%d-%m \n %H:%M:%S"))+
              facet_wrap(~Name)
@@ -74,16 +74,16 @@ output$facet <- renderPlot({
          },
          'Time-Strength-Frequency-Station'={
            ggplot(filtered_data()) +
-             geom_point(aes(x=timestamp, y=max_signal, color=freq_tag)) +
+             geom_point(aes(x=as.POSIXlt(timestamp, "UTC"), y=max_signal, color=freq_tag)) +
              labs(x="Time", y = "Signal Strength") +
              scale_x_datetime(labels = function(x) format(x, "%d-%m \n %H:%M:%S"))+
              facet_wrap(~Name)
          },
          'Time-Temperature-Station-Frequency'={
            ggplot(filtered_data_td())+
-             geom_point(aes(x=timestamp,y=temperature,color=Name))+
+             geom_point(aes(x=as.POSIXlt(timestamp, "UTC"), y=temperature,color=freq_tag))+
              ylim(10,45)+
-             facet_wrap(~freq_tag)
+             facet_wrap(~Name)
          }
          )
 })

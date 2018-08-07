@@ -17,6 +17,9 @@ shinyjs.mark_valid = function(tab_name) {
         case "Calibration":
             tabset_panel[5].children[0].className = "available";
             break;
+        case "Map Markers":
+            tabset_panel[6].children[0].className = "available";
+            break;
     }
 }
 
@@ -39,6 +42,9 @@ shinyjs.mark_invalid = function(tab_name) {
             break;
         case "Calibration":
             tabset_panel[5].children[0].className = "needed";
+            break;
+        case "Map Markers":
+            tabset_panel[6].children[0].className = "needed";
             break;
     }
 }

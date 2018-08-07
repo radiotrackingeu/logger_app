@@ -3,9 +3,8 @@ tabPanel("File Input",
            sidebarPanel(
              radioButtons(
                "data_type_input",
-               choices = c("SQLite File", "Excel Files", "Logger Files", "Data folder", "Miscellaneous"),
-               label = "Add data using:",
-               selected = "SQLite File"
+               choices = c("Data folder", "SQLite File", "Excel Files", "Logger Files", "Miscellaneous"),
+               label = "Add data using:"
              ),
              conditionalPanel(
                condition = "input.data_type_input == 'SQLite File'",
@@ -141,6 +140,10 @@ tabPanel("File Input",
              tabPanel("Calibration",
                       dataTableOutput("data_tab_calibration_table"),
                       actionButton("clear_calibration_data", "Clear table")
+             ),
+             tabPanel("Map Markers",
+                      dataTableOutput("data_tab_map_markers_table"),
+                      actionButton("clear_map_markers_data", "Clear table")
              ),
              tabPanel("Help",
                       "1) First select the data source on the right",

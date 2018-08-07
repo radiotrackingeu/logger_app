@@ -75,11 +75,17 @@ observe({
     global$calibration <- NULL
 })
 
+observe({
+    input$clear_map_markers_data
+    global$map_markers <- NULL
+})
+
 js$mark_invalid("Frequencies")
 js$mark_invalid("Receivers")
 js$mark_invalid("Connections")
 js$mark_invalid("Logger data")
 js$mark_invalid("Calibration")
+js$mark_invalid("Map Markers")
 
 update_single_tab_title_colour <- function(data, label) {
     if (!is.null(data)) {
@@ -95,6 +101,7 @@ observe({update_single_tab_title_colour(global$receivers, "Receivers")})
 observe({update_single_tab_title_colour(global$connections, "Connections")})
 observe({update_single_tab_title_colour(global$frequencies, "Frequencies")})
 observe({update_single_tab_title_colour(global$calibration, "Calibration")})
+observe({update_single_tab_title_colour(global$map_markers, "Map Markers")})
 
 ### get data stored in the data folder ###
 
@@ -235,6 +242,16 @@ map_markers <- reactive({
       if (input$excel_data_content == "Map Markers" && !is.null(input$excel_filepath_map_markers)) {
         markers <- safe_read_excel(input$excel_filepath_map_markers$datapath)
       }
+    },
+    "SQLite File" = {
+        for (file in input$SQLite_filepath[, "datapath"]) {
+            con <- dbConnect(RSQLite::SQLite(), file)
+            if (dbExistsTable(con, "rteu_map_markers")) {
+                markers <- rbind(markers, dbReadTable(con, "rteu_map_markers"))
+            }
+            dbDisconnect(con)
+        }
+        markers <- unique(markers)
     }
   )
   return(markers)
@@ -284,9 +301,7 @@ get_signals <- reactive({
   data
 })
 
-
-### render Tables ###
-output$data_tab_preview <- renderDataTable({
+preview_content <- reactive({
     switch(input$data_type_input,
         "Excel Files" = {
             switch(input$excel_data_content,
@@ -382,9 +397,20 @@ output$data_tab_preview <- renderDataTable({
             }
 
             tmp
-        }
-    )
-    tmp
+        },
+        "Miscellaneous" = {
+            tmp <- NULL
+
+           if (input$misc_type_input == "GPX") {
+               tmp <- gpx_data()
+           }
+        })
+})
+
+### render Tables ###
+output$data_tab_preview <- renderDataTable({
+    validate(need(preview_content(), "Please select a file."))
+    preview_content()
 }, options = list(pageLength = 10))
 
 output$data_tab_logger_table <- renderDataTable({
@@ -400,6 +426,11 @@ output$data_tab_freq_table <- renderDataTable({
 output$data_tab_calibration_table <- renderDataTable({
   validate(need(global$calibration, "Please provide calibration data file."))
   global$calibration
+}, options = list(pageLength = 10))
+
+output$data_tab_map_markers_table <- renderDataTable({
+  validate(need(global$map_markers, "Please provide map markers data file."))
+  global$map_markers
 }, options = list(pageLength = 10))
 
 output$data_tab_antennae_table <- renderDataTable({

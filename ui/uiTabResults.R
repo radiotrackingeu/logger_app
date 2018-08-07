@@ -1,7 +1,7 @@
 ############ tabFilters.R ############
 tabPanel("Results",
          fluidRow(
-           column(3,selectInput("choose_plot","Choose Plot", 
+           column(3,selectInput("choose_plot","Choose Plot",
                                 choices = c("Time-Strength-Receiver-Station",
                                             "Time-Strength-Receiver-Station-Freq",
                                             "Time-Freq-Strength-Station",
@@ -15,7 +15,6 @@ tabPanel("Results",
                   h4(textOutput("plot_x_y"))
                   )
          ),
-                
                 plotOutput("facet",hover = "plot_hover"),
          fluidRow(
            column(10,offset = 1,

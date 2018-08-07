@@ -1,48 +1,7 @@
 tabPanel("Live Data",
          sidebarLayout(
            sidebarPanel(
-             radioButtons(
-               "live_data_number",
-               choices = c("Multiple", "Single"),
-               label = "Add live data:",
-               selected = "Multiple"
-             ),
-             conditionalPanel("input.live_data_number == 'Single'",
-                  textInput(
-                    "MySQL_name",
-                    "Connection name",
-                    "Manual connection"
-                  ),
-                  textInput(
-                    "MySQL_host",
-                    "Enter Host Name",
-                    "192.168.1.1"
-                  ),
-                  numericInput(
-                    "MySQL_port",
-                    "Enter Port",
-                    3306
-                  ),
-                  textInput(
-                    "MySQL_user",
-                    "Enter User Name",
-                    "rteu"
-                  ),
-                  passwordInput(
-                    "MySQL_pw",
-                    "Enter Password",
-                    "rteuv2!"
-                  ),
-                  actionButton(
-                    "connect_to_db",
-                    "Add remote connection"
-                  ),
-                  br(),
-                  br()
-             ),
-             conditionalPanel("input.live_data_number == 'Multiple'",
-                 uiOutput('con_tags')
-             ),
+             uiOutput('con_tags'),
              numericInput("live_last_points", "Number of entries to read", 50, 1, 10000),
              actionButton("connect_mysql","Connect to DBs"),
              actionButton("load_mysql_data","Load Data"),
@@ -73,6 +32,44 @@ tabPanel("Live Data",
                         min = 0
                     )
                 )
+             ),
+             tags$b("Add new connection:"),
+             br(),
+             checkboxInput(
+               "show_add_connection_panel", "Show manual connection input panel"
+             ),
+             conditionalPanel("input.show_add_connection_panel",
+                  textInput(
+                    "MySQL_name",
+                    "Connection name",
+                    "Manual connection"
+                  ),
+                  textInput(
+                    "MySQL_host",
+                    "Enter Host Name",
+                    "192.168.1.1"
+                  ),
+                  numericInput(
+                    "MySQL_port",
+                    "Enter Port",
+                    3306
+                  ),
+                  textInput(
+                    "MySQL_user",
+                    "Enter User Name",
+                    "rteu"
+                  ),
+                  passwordInput(
+                    "MySQL_pw",
+                    "Enter Password",
+                    "rteuv2!"
+                  ),
+                  actionButton(
+                    "add_manual_connection",
+                    "Add remote connection"
+                  ),
+                  br(),
+                  br()
              )
            ),
            mainPanel(
@@ -86,7 +83,7 @@ tabPanel("Live Data",
                       dataTableOutput("live_tab_mysql_data"),
                       actionButton("clear_logger_data_from_live", "Clear table")
              ),
-             tabPanel("List of Keepalives",
+             tabPanel("Plot of Keepalives",
                       plotOutput("live_tab_keepalive_plot")
              ),
              tabPanel("Help",
