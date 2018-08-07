@@ -68,10 +68,11 @@ get_info_of_entries <- reactive({
                                        FROM information_schema.tables;
                                        ')$size
             results$time <- dbGetQuery(open_connections()[[i]], 'SELECT NOW();')$'NOW()'
-            if(as.POSIXct(Sys.time(), tz="UTC")-as.POSIXct(results$timestamp, tz="UTC")<360){
-              results$running<-"Yes"
+            if(abs(as.POSIXct(Sys.time(), tz="UTC")-as.POSIXct(results$timestamp, tz="UTC"))<360){
+              print(abs(as.POSIXct(Sys.time(), tz="UTC")-as.POSIXct(results$timestamp, tz="UTC")))
+              results$running<-"Recording"
             }else{
-              results$running<-"No"
+              results$running<-"Not recording"
             }
             if(nrow(results)==0){
               results<-data.frame(id = 0 , timestamp="logger not running")
@@ -132,6 +133,7 @@ get_mysql_data <- eventReactive(global$mysql_data_invalidator, {
             }
             else {
               if(dbIsValid(open_connections()[[i]])) {
+                print(build_signals_query())
                 signals<-dbGetQuery(open_connections()[[i]], build_signals_query())
                 mysql_query_runs<-paste("SELECT id, device, pos_x, pos_y, orientation, beam_width, center_freq FROM `runs` ORDER BY id DESC LIMIT",input$live_last_points,";")
                 runs<-dbGetQuery(open_connections()[[i]],mysql_query_runs)
@@ -184,7 +186,7 @@ keepalive_data <- reactive({
                   results$Name <- i
                   results$receiver <- substrLeft(results$device,17)
                   results$device <- NULL
-                  results$timestamp <- as.POSIXct(results$timestamp)
+                  results$timestamp <- as.POSIXct(results$timestamp, tz="UTC")
                   tmp <- rbind(tmp,results)
                 }
               }
@@ -249,6 +251,9 @@ build_signals_query <- reactive({
               and<-"AND("
             }
             query_freq_filter<-paste(query_freq_filter, and, "((signal_freq + center_freq + ",error,") >", k*1000, "  AND (signal_freq + center_freq - ",error,")  <", k*1000, ")")
+            if(any(input$check_sql_duration,input$check_sql_strength)){
+              query_freq_filter<-paste(query_freq_filter,")")
+            }
       }
     }
     where<-""
@@ -266,7 +271,7 @@ signal_data<-function(){
   if(is.null(tmp)) return(NULL)
   if(nrow(tmp)==0) return(NULL)
   #tmp<-subset(get_mysql_data(),signal_freq!=0)
-  tmp$timestamp <- as.POSIXct(tmp$timestamp)
+  tmp$timestamp <- as.POSIXct(tmp$timestamp,tz="UTC")
   tmp$signal_freq <- round((tmp$signal_freq+tmp$center_freq)/1000)
   tmp$receiver <- substrLeft(tmp$device,17)
 

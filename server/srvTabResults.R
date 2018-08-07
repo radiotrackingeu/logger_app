@@ -65,6 +65,13 @@ output$facet <- renderPlot({
              scale_x_datetime(labels = function(x) format(x, "%d-%m \n %H:%M:%S"))+
              facet_wrap(~Name)
          },
+         'Time-Freq-Strength-Station'={
+           ggplot(filtered_data()) +
+             geom_point(aes(x=timestamp, y=signal_freq, color=max_signal)) +
+             labs(x="Time", y = "Frequency") +
+             scale_x_datetime(labels = function(x) format(x, "%d-%m \n %H:%M:%S"))+
+             facet_wrap(~Name)
+         },
          'Time-Strength-Frequency-Station'={
            ggplot(filtered_data()) +
              geom_point(aes(x=timestamp, y=max_signal, color=freq_tag)) +
@@ -74,9 +81,9 @@ output$facet <- renderPlot({
          },
          'Time-Temperature-Station-Frequency'={
            ggplot(filtered_data_td())+
-             geom_point(aes(x=timestamp,y=temperature,color=freq_tag))+
+             geom_point(aes(x=timestamp,y=temperature,color=Name))+
              ylim(10,45)+
-             facet_wrap(~Name)
+             facet_wrap(~freq_tag)
          }
          )
 })

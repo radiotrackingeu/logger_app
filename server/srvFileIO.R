@@ -61,19 +61,26 @@ get_logger_files <- function() {
   files
 }
 
-read_logger_data <- function(filepath) {
+read_logger_data <- function(filepath){
   lines_to_skip <- findHeader(filepath) #skip meta data in files
   if (lines_to_skip < 0) return(NULL)
 
   mid_freq <- findMidFreq(filepath) # find center frequency of tuner
-  if (mid_freq < 0) return(NULL)
-
+  if(mid_freq < 0) return(NULL)
+  data_in_file <- readLines(filepath) #reads two times... 
+  last_rows_skip<-0
+  if(grepl("total transforms",data_in_file[length(data_in_file)])){
+    print("that recording crashed")
+    last_rows_skip <- length(data_in_file)-3-lines_to_skip
+    if(last_rows_skip<1) return(NULL)
+  }
   data <-
     read.csv2(
       filepath,
       skip = lines_to_skip,
       stringsAsFactors = FALSE,
-      dec = "."
+      dec = ".",
+      nrows=last_rows_skip
     )
   data$max_signal[is.na(data$max_signal)]<-0
   data$timestamp <-

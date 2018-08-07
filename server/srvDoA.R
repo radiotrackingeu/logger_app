@@ -46,6 +46,7 @@ get_angle_linear <- function(sig_a, sig_b, angle_a, angle_b, dbLoss){
 doa_smoothed<-reactive({
   if (is.null(smoothed_curves()))
     return(NULL)
+  req(global$receivers)
   data<-merge(smoothed_curves(),global$receivers,by.x="receiver",by.y="Name")
   tmp_angles<-NULL
   #for each timestamp of the smoothed data
@@ -74,15 +75,7 @@ doa_smoothed<-reactive({
         if(nrow(data_tfs)>1){
           #check angle between strongest and second strongest and if it is smaller then 90 degree, calc it linearly
           if(abs(angle_between(data_tfs[1,"Orientation"],data_tfs[2,"Orientation"]))<=90){
-            if(nrow(data_tfs)>2){
-              if(abs(angle_between(data_tfs[2,"Orientation"],data_tfs[3,"Orientation"]))==180&&abs(angle_between(data_tfs[2,"max_signal"],data_tfs[3,"max_signal"])<3)){
-                angle<-get_angle_linear(data_tfs[2,"max_signal"],data_tfs[3,"max_signal"],data_tfs[2,"Orientation"],data_tfs[3,"Orientation"],input$dBLoss)
-              }else{#to do see case line 88
-                angle<-get_angle_linear(data_tfs[1,"max_signal"],data_tfs[2,"max_signal"],data_tfs[1,"Orientation"],data_tfs[2,"Orientation"],input$dBLoss)
-              }
-            }else{
               angle<-get_angle_linear(data_tfs[1,"max_signal"],data_tfs[2,"max_signal"],data_tfs[1,"Orientation"],data_tfs[2,"Orientation"],input$dBLoss)
-            }
           }else{
             #back antenna plays a big role here
             if(nrow(data_tfs)>2){
@@ -116,7 +109,7 @@ smoothed_curves <- reactive({
         print(paste0('skipping freq "',l,'" on receiver "',i,'": not enough signals (',nrow(tmp2),')'))
         next
       }
-      time_seq<-unique(c(round(tmp2$timestamp),round(tmp2$timestamp)+1,round(tmp2$timestamp)-1))
+      time_seq<-unique(c(round(tmp2$timestamp))) #,round(tmp2$timestamp)+1,round(tmp2$timestamp)-1)
       smoothed<-data.frame(max_signal=predict(
         smooth.spline(tmp2$timestamp,tmp2$max_signal,spar=input$spar_in),
         as.numeric(time_seq))$y,

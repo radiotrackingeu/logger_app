@@ -129,6 +129,7 @@ observe({
   req(leafletProxy("map"))
   req(selected_time())
   req(doa_smoothed())
+  if(is.null(doa_smoothed())) return(NULL)
   leafletProxy("map") %>% clearGroup("bats") %>% clearGroup("Bearing") %>% clearGroup("GPX") #clearPopups() %>% clearMarkers()
   if(input$map_activate_single_data){
     data_cones<-subset(smoothed_curves(),timestamp %in% selected_time())

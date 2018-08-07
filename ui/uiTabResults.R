@@ -3,8 +3,10 @@ tabPanel("Results",
          fluidRow(
            column(3,selectInput("choose_plot","Choose Plot", 
                                 choices = c("Time-Strength-Receiver-Station",
-                                            "Time-Temperature-Station-Frequency Tag",
-                                            "Time-Strength-Frequency-Station"
+                                            "Time-Strength-Receiver-Station-Freq",
+                                            "Time-Freq-Strength-Station",
+                                            "Time-Strength-Frequency-Station",
+                                            "Time-Temperature-Station-Frequency"
                                 ),
                                 selected="Time-Strength-Receiver-Station")
                   ),

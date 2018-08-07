@@ -27,6 +27,18 @@ observeEvent(input$add_data,{
   # add signal data if either SQLite or Logger Files has been selected
   if(input$data_type_input=="Logger Files"||input$data_type_input=="SQLite File"&&!input$data_type_input == "Data folder"){
     tmp<-get_signals()
+    if(is.null(tmp$freq_tag)){
+      tmp$freq_tag<-NA
+    }
+    if(is.null(global$signals$freq_tag)&&!is.null(global$signals)){
+      global$signals$freq_tag<-NA
+    }
+    if(is.null(tmp$signal_bw)){
+      tmp$signal_bw<-NA
+    }
+    if(is.null(global$signals$signal_bw)&&!is.null(global$signals)){
+      global$signals$signal_bw<-NA
+    }
     if(!is.null(tmp) && input$data_type_input != "SQLite File"){
         global$signals<-unique.data.frame(rbind(cbind(tmp,receiver = input$receiver_name_input, Name = input$station_name_input),global$signals))
     }
@@ -91,7 +103,7 @@ remote_connections <- reactive({
   tmp<-NULL
     switch(input$data_type_input,
            "Data folder" = {
-                tmp<-safe_read_excel_silent("data/RemoteConnections.xlsx")
+                tmp<-safe_read_excel_silent("data/RemoteConnections.xlsx")[,c("Name","Host","Port","User","Password")]
            },
            "SQLite File" = {
               tmp <- NULL
@@ -102,15 +114,14 @@ remote_connections <- reactive({
                 }
                 dbDisconnect(con)
               }
-              tmp <- unique(tmp)
-              tmp
+              tmp<-tmp[,c("Name","Host","Port","User","Password")]
            },
            "Excel Files" = {
              if(input$excel_data_content=="Connections") {
                if(is.null(input$excel_filepath_remote)) {
                  return(NULL)
                }
-               tmp<-safe_read_excel(input$excel_filepath_remote$datapath)
+               tmp<-safe_read_excel(input$excel_filepath_remote$datapath)[,c("Name","Host","Port","User","Password")]
              }
            }
     )
@@ -252,7 +263,6 @@ get_signals <- reactive({
                   data <- rbind(data, read_logger_data(file))
                 }
               }
-              #data <- unique(data) - done twice... the add button does it again
               data
             },
             'SQLite File' = {
@@ -260,13 +270,13 @@ get_signals <- reactive({
                 for (file in input$SQLite_filepath[, "datapath"]) {
                     con <- dbConnect(RSQLite::SQLite(), file)
                     if (dbExistsTable(con, "rteu_logger_data")) {
-                        data <- rbind(data, dbReadTable(con, "rteu_logger_data"))
+                        data <- rbind(data, dbReadTable(con, "rteu_logger_data"), stringsAsFactors=FALSE)
                     }
                     dbDisconnect(con)
                 }
                 if (!is.null(data)) {
                     data <- unique(data)
-                    data$timestamp <- as.POSIXct(data$timestamp, tz = "UTC", origin = "1970-01-01")
+                    data$timestamp <- as.POSIXct(data$timestamp, tz = "UTC", origin="1970-01-01 00:00:00 UTC")
                 }
                 data
             }
