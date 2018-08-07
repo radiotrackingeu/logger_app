@@ -277,7 +277,7 @@ get_signals <- reactive({
               for (file in input$logger_filepath[, "datapath"]) {
                 tmp <- read_logger_data(file)
                 if(!is.null(tmp)){
-                  data <- rbind(data, read_logger_data(file))
+                  data <- rbind(data, tmp)
                 }
               }
               data
