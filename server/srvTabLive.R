@@ -82,7 +82,7 @@ get_info_of_entries <- reactive({
                                        ')$size)
             results$time <- suppressWarnings(dbGetQuery(open_connections()[[i]], 'SELECT NOW();')$'NOW()')
             if(abs(as.POSIXct(Sys.time(), tz="UTC")-as.POSIXct(results$timestamp, tz="UTC"))<360){
-              print(abs(as.POSIXct(Sys.time(), tz="UTC")-as.POSIXct(results$timestamp, tz="UTC")))
+              if(abs(as.POSIXct(Sys.time(), tz="UTC")-as.POSIXct(results$timestamp, tz="UTC")))
               results$running<-"Recording"
             }else{
               results$running<-"Not recording"
@@ -171,9 +171,8 @@ get_mysql_data <- eventReactive(global$mysql_data_invalidator, {
             else {
               if(dbIsValid(open_connections()[[i]])) {
                 signals<-suppressWarnings(dbGetQuery(open_connections()[[i]], build_signals_query()))
-                signals<-dbGetQuery(open_connections()[[i]], build_signals_query())
-                mysql_query_runs<-paste("SELECT id, device, pos_x, pos_y, orientation, beam_width, center_freq FROM `runs` ORDER BY id DESC LIMIT",input$live_last_points,";")
-                runs<-dbGetQuery(open_connections()[[i]],mysql_query_runs)
+                mysql_query_runs<-paste("SELECT id, device, pos_x, pos_y, orientation, beam_width, center_freq FROM `runs`;")
+                runs<-suppressWarnings(dbGetQuery(open_connections()[[i]],mysql_query_runs))
                 if(nrow(signals)>0){
                   results<-merge(signals,runs,by.x="run",by.y="id")
                   results$run <- NULL
@@ -293,7 +292,8 @@ build_signals_query <- reactive({
             }
       }
     }
-    where<-""
+    where <- "WHERE"
+    and <- ""
     if(any(input$check_sql_duration,input$check_sql_strength,input$query_filter_freq)){
         and <- "AND"
     }
@@ -318,7 +318,8 @@ signal_data<-function(){
 
   receiver_info <- tmp[, c("receiver", "Name", "pos_x", "pos_y", "orientation", "beam_width")]
   names(receiver_info) <- c("Name", "Station","Latitude","Longitude", "Orientation", "Beam width")
-  global$receivers<-unique.data.frame(rbind(isolate(global$receivers), receiver_info))
+
+  global$receivers <- unique.data.frame(rbind(isolate(global$receivers), receiver_info))
   tmp
 }
 
