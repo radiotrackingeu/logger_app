@@ -64,25 +64,25 @@ read_logger_data <- function(filepath){
   if (lines_to_skip < 0) return(NULL)
 
   mid_freq <- findMidFreq(filepath) # find center frequency of tuner
-  if(mid_freq < 0) return(NULL)
-  data_in_file <- readLines(filepath) #reads two times... 
-  last_rows_skip<-0
-  if(grepl("total transforms",data_in_file[length(data_in_file)])){
-    print("that recording crashed")
-    last_rows_skip <- length(data_in_file)-3-lines_to_skip
-    if(last_rows_skip<1) return(NULL)
-  }
+  if (mid_freq < 0) return(NULL)
+
   data <-
     read.csv2(
       filepath,
       skip = lines_to_skip,
       stringsAsFactors = FALSE,
-      dec = ".",
-      nrows=last_rows_skip
+      dec = "."
     )
+  
+  last_rows_skip<-0
+  if (grepl("transforms", data[nrow(data), ]$timestamp, fixed=TRUE)) {
+    print("that recording crashed")
+    if (nrow(data) < 2) return(NULL)
+    data <- head(data, nrow(data) - 2)
+  }
+
   data$max_signal[is.na(data$max_signal)]<-0
-  data$timestamp <-
-    as.POSIXct(data$timestamp, tz = "UTC")
+  data$timestamp <- as.POSIXct(data$timestamp, tz = "UTC")
   data$signal_freq <- (data$signal_freq + mid_freq) / 1000
   data$freq_tag<-NA
   return(data)
