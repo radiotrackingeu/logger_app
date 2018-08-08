@@ -1,4 +1,4 @@
-#_########### srvTabData.R ############
+############ srvTabData.R ############
 
 # maybe predefine content of tables
 
@@ -257,12 +257,15 @@ map_markers <- reactive({
   return(markers)
 })
 
+
+
 local_logger_data <- reactive({
-    tmp <- NULL
     if (input$data_type_input == "Data folder") {
-       tmp<-read_logger_folder()
+        read_logger_folder()
     }
-    return(tmp)
+    else {
+      NULL
+    }
 })
 
 ### read Signal data from files ###

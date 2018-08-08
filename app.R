@@ -10,7 +10,9 @@ required_packages<-c("shiny",
                      "htmltools",
                      "shinycssloaders",
                      "RMySQL",
-                     "plotKML"
+                     "plotKML",
+                     "promises",
+                     "future"
                      )
 
 # try to load packages and install missing ones
@@ -21,6 +23,7 @@ for (package in required_packages) {
         require(package, character.only = TRUE)
     }
 }
+plan(multiprocess)
 
 #timestamps to be shown with 3 digits
 options(digits.secs = 3)
