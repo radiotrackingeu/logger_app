@@ -13,28 +13,28 @@ read_logger_folder <-function(){
     receivers_count <- receivers_count + length(list.dirs(file.path(path,i), full.names = FALSE, recursive = FALSE))
   }
   status_read<-0
-
-  withProgress(
-      for(i in list_of_stations){
-        list_of_receivers<-list.dirs(file.path(path,i), full.names = FALSE, recursive = FALSE)
-        for (j in list_of_receivers) {
-          setProgress(detail=paste0(i, ", ", j))
-          list_of_records <- list.files(file.path(path,i,j), no..=T)
-          status_read<-status_read+1
-          for (k in list_of_records) {
-            p<-file.path(path,i,j,k)
-            data<-read_logger_data(p)
-            if(!is.null(data)){
-              tmp_data<-rbind(cbind(data, receiver = j, Name = i),tmp_data)
-            }
-          }
-          incProgress(amount=1)
+  
+    for(i in list_of_stations){
+      list_of_receivers<-list.dirs(file.path(path,i), full.names = FALSE, recursive = FALSE)
+      for (j in list_of_receivers) {
+        list_of_records <- list.files(file.path(path,i,j), no..=T)
+        status_read<-status_read+1
+        for (k in list_of_records) {
+          p <- file.path(path,i,j,k)
+          data <- tryCatch({
+              read_logger_data(p)
+              if(!is.null(data)){
+                tmp_data<-rbind(cbind(data, receiver = j, Name = i),tmp_data)
+              }
+          }, error = function(info) {
+              print(paste("Could not read file", p, ":", info))
+          })
         }
-      },
-      message = "Reading data from ",
-      max = receivers_count,
-      value = 0
-  )
+      }
+    }
+  
+  print(head(tmp_data))
+  
   return(tmp_data[, c("timestamp", "duration", "signal_freq", "Name", "receiver", "max_signal","signal_bw")])
 }
 
@@ -60,7 +60,7 @@ get_logger_files <- function() {
 }
 
 read_logger_data <- function(filepath){
-  lines_to_skip <- findHeader(filepath) #skip meta data in files
+  lines_to_skip <- findHeader(filepath) # skip meta data in files
   if (lines_to_skip < 0) return(NULL)
 
   mid_freq <- findMidFreq(filepath) # find center frequency of tuner
@@ -85,7 +85,7 @@ read_logger_data <- function(filepath){
   data$timestamp <- as.POSIXct(data$timestamp, tz = "UTC")
   data$signal_freq <- (data$signal_freq + mid_freq) / 1000
   data$freq_tag<-NA
-  return(data)
+  data
 }
 
 findHeader <- function(file) {
