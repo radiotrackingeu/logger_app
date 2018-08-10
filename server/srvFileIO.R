@@ -21,8 +21,8 @@ read_logger_folder <-function(){
         status_read<-status_read+1
         for (k in list_of_records) {
           p <- file.path(path,i,j,k)
-          data <- tryCatch({
-              read_logger_data(p)
+          tryCatch({
+              data <- read_logger_data(p)
               if(!is.null(data)){
                 tmp_data<-rbind(cbind(data, receiver = j, Name = i),tmp_data)
               }
