@@ -33,8 +33,6 @@ read_logger_folder <-function(){
       }
     }
   
-  print(head(tmp_data))
-  
   return(tmp_data[, c("timestamp", "duration", "signal_freq", "Name", "receiver", "max_signal","signal_bw")])
 }
 
