@@ -295,8 +295,7 @@ build_signals_query <- reactive({
             }
       }
     }
-    where <- "WHERE"
-    and <- ""
+    where<-""
     and <- ""
     if(any(input$check_sql_duration,input$check_sql_strength,input$query_filter_freq)){
         and <- "AND"
@@ -325,8 +324,7 @@ signal_data<-function(){
 
   receiver_info <- tmp[, c("receiver", "Name", "pos_x", "pos_y", "orientation", "beam_width")]
   names(receiver_info) <- c("Name", "Station","Latitude","Longitude", "Orientation", "Beam width")
-
-  global$receivers <- unique.data.frame(rbind(isolate(global$receivers), receiver_info))
+  global$receivers<-unique.data.frame(rbind(isolate(global$receivers), receiver_info))
   tmp
 }
 
