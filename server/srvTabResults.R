@@ -42,14 +42,14 @@ calculate_temperature <- function(td,a=20.307,b=0.0408) {
 }
 
 output$plot_x_y <- renderText({
-  req(input$plot_hover$x)
+  if(is.null(input$plot_hover$x)) return(NULL)
   return(paste0("Time: ", round(as.POSIXct(input$plot_hover$x,origin="1970-01-01", "UTC"))))
 })
 
 #Temperature would be great here
 
 output$facet <- renderPlot({
-  req(filtered_data())
+  if(is.null(filtered_data())) return(NULL)
   switch(input$choose_plot,
          'Time-Strength-Receiver-Station'={
            ggplot(filtered_data()) +

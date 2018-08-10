@@ -9,9 +9,9 @@ output$map <- renderLeaflet({
 })
 
 observe({
-  req(leafletProxy("map"))
-  req(global$receivers)
-  req(sorted_data())
+  if(is.null(leafletProxy("map"))) return(NULL)
+  if(is.null((global$receivers))) return(NULL)
+  if(is.null((sorted_data()))) return(NULL)
   leafletProxy("map") %>% 
     clearControls() %>%
     addAntennaeCones() %>% 
@@ -23,8 +23,8 @@ observe({
 })
 
 observe({
-  req(global$map_markers)
-  req(nrow(global$map_markers)>0)
+  if(is.null(global$map_markers)) return(NULL)
+  if(is.null((nrow(global$map_markers)>0))) return(NULL)
   leafletProxy("map") %>% addMarkers(lat=global$map_markers$Latitude, lng=global$map_markers$Longitude, group="user_markers", layerId=paste0("marker_",seq_len(nrow(global$map_markers))), label = global$map_markers$comment)
 })
 
@@ -51,7 +51,7 @@ observeEvent(input$map_rm_markers,{
 })
 
 observe({
-  req(smoothed_curves())
+  if(is.null(smoothed_curves())) return(NULL)
   if(!input$app_live_mode){
     print(str(length(unique(smoothed_curves()$timestamp))))
     updateSliderInput(session,"map_choose_single_data_set",min = 1,max = length(unique(smoothed_curves()$timestamp)))
@@ -112,8 +112,8 @@ color_palette <- reactive({
 })
 
 selected_time <- reactive({
-  req(smoothed_curves()$timestamp)
-  req(input$map_choose_single_data_set)
+  if(is.null(smoothed_curves()$timestamp)) return(NULL)
+  if(is.null((input$map_choose_single_data_set))) return(NULL)
   tmp<-unique(smoothed_curves()$timestamp)
   rv<-NULL
   if(!input$app_live_mode){
@@ -126,11 +126,10 @@ selected_time <- reactive({
 
 
 observe({
-  req(leafletProxy("map"))
-  req(selected_time())
-  req(doa_smoothed())
+  if(is.null((leafletProxy("map")))) return(NULL)
+  if(is.null((selected_time()))) return(NULL)
   if(is.null(doa_smoothed())) return(NULL)
-  leafletProxy("map") %>% clearGroup("bats") %>% clearGroup("Bearing") %>% clearGroup("GPX") #clearPopups() %>% clearMarkers()
+  leafletProxy("map") %>% clearGroup("bats") %>% clearGroup("Bearings") %>% clearGroup("GPX") #clearPopups() %>% clearMarkers()
   if(input$map_activate_single_data){
     data_cones<-subset(smoothed_curves(),timestamp %in% selected_time())
     if(!is.null(gpx_data())){

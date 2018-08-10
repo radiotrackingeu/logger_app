@@ -78,9 +78,11 @@ read_logger_data <- function(filepath){
       skip = lines_to_skip,
       stringsAsFactors = FALSE,
       dec = ".",
-      nrows=last_rows_skip
+      nrows=last_rows_skip,
+      fill=TRUE
     )
   data$max_signal[is.na(data$max_signal)]<-0
+  data<-data[!is.na(data$timestamp),]
   data$timestamp <-
     as.POSIXct(data$timestamp, tz = "UTC")
   data$signal_freq <- (data$signal_freq + mid_freq) / 1000

@@ -24,7 +24,7 @@ addBearings <-function(m, data, strength=25, ...) {
   data<-cbind(data, pos2=utmtowgs(data$utm2.X,data$utm2.Y,data$utm.zone))
   for (i in 1:nrow(data)) {
     line<-data[i,]
-    m<-m %>% addPolylines(lng=c(line$pos_x,line$pos2.X),lat=c(line$pos_y,line$pos2.Y), label = htmltools::HTML(sprintf("angle: %f <br/> strength: %.2f",line$angle, line$strength)),color="red", group="Bearing" )
+    m<-m %>% addPolylines(lng=c(line$pos_x,line$pos2.X),lat=c(line$pos_y,line$pos2.Y), label = htmltools::HTML(sprintf("angle: %f <br/> strength: %.2f",line$angle, line$strength)),color="red", group="Bearings" )
   }
   return(m)
 }
@@ -88,6 +88,10 @@ addTriangulations <- function(m, data, showBearings=T, error=0,  errorColor="blu
 
   triangulations<-cbind(triangulations, pos=utmtowgs(triangulations$utm.X,triangulations$utm.Y,triangulations$utm.zone))
   
+  pal <- colorNumeric(
+    palette = "Spectral",
+    domain = triangulations$timestamp)
+  
   if (showBearings) {
     for (i in seq_len(nrow(triangulations))){
       t<-triangulations[i,]
@@ -95,7 +99,7 @@ addTriangulations <- function(m, data, showBearings=T, error=0,  errorColor="blu
       }
   }
   
-  m <- m %>% addCircles(lng=triangulations$pos.X, lat=triangulations$pos.Y,label=paste("time:",triangulations$timestamp), ...)
+  m <- m %>% addCircles(lng=triangulations$pos.X, lat=triangulations$pos.Y,label=paste("time:",triangulations$timestamp),color=pal(triangulations$timestamp), ...) #as.POSIXct(triangulations$timestamp,tz="UTC",origin="1970-01-01"
 }
 
 #' Draws a filled cone for every antenna, that has detected a bat

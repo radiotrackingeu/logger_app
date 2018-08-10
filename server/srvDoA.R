@@ -44,9 +44,8 @@ get_angle_linear <- function(sig_a, sig_b, angle_a, angle_b, dbLoss){
 }
 
 doa_smoothed<-reactive({
-  if (is.null(smoothed_curves()))
-    return(NULL)
-  req(global$receivers)
+  if(is.null(smoothed_curves())) return(NULL)
+  if(is.null(global$receivers)) return(NULL)
   data<-merge(smoothed_curves(),global$receivers,by.x="receiver",by.y="Name")
   tmp_angles<-NULL
   #for each timestamp of the smoothed data
@@ -81,7 +80,7 @@ doa_smoothed<-reactive({
             if(nrow(data_tfs)>2){
               angle_1<-data_tfs[1,"Orientation"]
               angle_2<-get_angle_linear(data_tfs[1,"max_signal"],data_tfs[3,"max_signal"],data_tfs[1,"Orientation"],data_tfs[3,"Orientation"],input$dBLoss)
-              angle<-angle_1+angle_between(angle_1,angle_2)/abs(data_tfs[1,"Orientation"]-data_tfs[2,"Orientation"])*30
+              angle<-angle_1+angle_between(angle_1,angle_2)/abs(angle_between(data_tfs[1,"Orientation"]-data_tfs[2,"Orientation"]))*30
             }
             if(nrow(data_tfs)<=2){
               angle<-data_tfs[1,"Orientation"]
@@ -98,7 +97,7 @@ doa_smoothed<-reactive({
 
 #smoothing in second intervalls
 smoothed_curves <- reactive({
-  req(filtered_data())
+  if(is.null(filtered_data())) return(NULL)
   data<-filtered_data()
   smoothed_data<-NULL
   for(i in unique(data$receiver)){

@@ -87,7 +87,7 @@ observe({
     clearPopups() %>% 
     clearMarkers()
   leafletProxy("tri_map") %>% addBearings(tri_timeslots_lines_points()$lines, weight=1, color="red", group="Bearings")
-  leafletProxy("tri_map") %>% addTriangulations(tri_timeslots_lines_points()$points, error=input$tri_error, color="blue", radius=7, group="Triangulations")
+  leafletProxy("tri_map") %>% addTriangulations(tri_timeslots_lines_points()$points, error=input$tri_error, radius=7, group="Triangulations")
 })
 
 #output$tri_positions_and_angles<-renderDataTable({tri_filtered_data()[,c("timestamp","station","angle","freq_tag")]},

@@ -70,25 +70,26 @@ get_info_of_entries <- reactive({
         for(i in connect_to$Name){
         setProgress(detail=i)
             if (input$connect_mysql == 0 || is.null(open_connections()[[i]])) {
-          results<-data.frame(Name=i,id=NA,timestamp="unknown",size="unknown",running="unknown",time="unknown")
+          results<-data.frame(Name=i,id=NA,timestamp="unknown",size="unknown",running="unknown",time="unknown",stringsAsFactors = FALSE)
           tmp<-rbind(tmp,results)
         }
             else {
           if(dbIsValid(open_connections()[[i]])) {
             results<-suppressWarnings(dbGetQuery(open_connections()[[i]],"SELECT id,timestamp FROM `signals` ORDER BY id DESC LIMIT 1;"))
-            results$size <- suppressWarnings(dbGetQuery(open_connections()[[i]], '
+            if(nrow(results)>0){
+              results$size <- suppressWarnings(dbGetQuery(open_connections()[[i]], '
                                        SELECT ROUND(SUM(data_length + index_length) / 1024 / 1024, 1) "size"
                                        FROM information_schema.tables;
                                        ')$size)
-            results$time <- suppressWarnings(dbGetQuery(open_connections()[[i]], 'SELECT NOW();')$'NOW()')
-            if(abs(as.POSIXct(Sys.time(), tz="UTC")-as.POSIXct(results$timestamp, tz="UTC"))<360){
-              print(abs(as.POSIXct(Sys.time(), tz="UTC")-as.POSIXct(results$timestamp, tz="UTC")))
-              results$running<-"Recording"
-            }else{
-              results$running<-"Not recording"
-            }
+              results$time <- suppressWarnings(dbGetQuery(open_connections()[[i]], 'SELECT NOW();')$'NOW()')
+              if(abs(difftime(as.POSIXct(Sys.time(), tz="UTC"),as.POSIXct(results$timestamp, tz="UTC"),units="mins"))<6){
+                results$running<-"Recording"
+              }else{
+                results$running<-"Not recording"
+              }
+              }
             if(nrow(results)==0){
-              results<-data.frame(id = 0 , timestamp="logger not running")
+              results<-data.frame(timestamp="unknow",Name=i,id=NA,size="unknown",running="no data",time="unknown")
             }
             results$Name<-i
             tmp<-rbind(tmp,results)
@@ -170,9 +171,10 @@ get_mysql_data <- eventReactive(global$mysql_data_invalidator, {
             }
             else {
               if(dbIsValid(open_connections()[[i]])) {
+                print(build_signals_query())
                 signals<-suppressWarnings(dbGetQuery(open_connections()[[i]], build_signals_query()))
                 signals<-dbGetQuery(open_connections()[[i]], build_signals_query())
-                mysql_query_runs<-paste("SELECT id, device, pos_x, pos_y, orientation, beam_width, center_freq FROM `runs` ORDER BY id DESC LIMIT",input$live_last_points,";")
+                mysql_query_runs<-paste("SELECT id, device, pos_x, pos_y, orientation, beam_width, center_freq FROM `runs`") #ORDER BY id DESC LIMIT",input$live_last_points,";
                 runs<-dbGetQuery(open_connections()[[i]],mysql_query_runs)
                 if(nrow(signals)>0){
                   results<-merge(signals,runs,by.x="run",by.y="id")
@@ -294,12 +296,16 @@ build_signals_query <- reactive({
       }
     }
     where<-""
+    and <- ""
     if(any(input$check_sql_duration,input$check_sql_strength,input$query_filter_freq)){
         and <- "AND"
     }
-    keepalive_filter <- paste(and, "max_signal != 0")
+    if(any(input$check_sql_duration,input$check_sql_strength,input$query_filter_freq)){
+      where<-"WHERE"
+    }
+    #keepalive_filter <- paste(and, "max_signal != 0")
 
-    paste("SELECT timestamp, duration, signal_freq, run, max_signal FROM `signals` s", inner_join, where,query_duration_filter,query_max_signal_filter,query_freq_filter, keepalive_filter,"ORDER BY s.id DESC LIMIT",input$live_last_points,";")
+    paste("SELECT timestamp, duration, signal_freq, run, max_signal FROM `signals` s", inner_join, where,query_duration_filter,query_max_signal_filter,query_freq_filter, "ORDER BY s.id DESC LIMIT",input$live_last_points,";")
 })
 
 signal_data<-function(){
