@@ -1,4 +1,4 @@
-#_########### srvTabData.R ############
+############ srvTabData.R ############
 
 # maybe predefine content of tables
 
@@ -20,9 +20,9 @@ observeEvent(input$add_data,{
   global$calibration <- unique.data.frame(rbind(calibration_list(), global$calibration))
   global$map_markers <- unique.data.frame(rbind(map_markers(), global$map_markers))
 
-  if(input$data_type_input == "Data folder" && !is.null(local_logger_data())) {
-    global$signals<-unique.data.frame(rbind(local_logger_data(),global$signals))
-    print(paste("Added",nrow(local_logger_data()),"points of data from local files."))
+  if(input$data_type_input == "Data folder") {
+      show_message("Loading data from logger folder, this may take a while")
+      add_local_logger_data()
   }
   # add signal data if either SQLite or Logger Files has been selected
   if(input$data_type_input=="Logger Files"||input$data_type_input=="SQLite File"&&!input$data_type_input == "Data folder"){
@@ -257,12 +257,18 @@ map_markers <- reactive({
   return(markers)
 })
 
-local_logger_data <- reactive({
-    tmp <- NULL
+add_local_logger_data <- reactive({
     if (input$data_type_input == "Data folder") {
-       tmp<-read_logger_folder()
+      future({
+        read_logger_folder()
+      }) %...>% {
+        global$signals <- unique.data.frame(rbind(., global$signals))
+        show_message("Loading data from logger folder done")
+      }
     }
-    return(tmp)
+    else {
+      NULL
+    }
 })
 
 ### read Signal data from files ###
@@ -277,7 +283,7 @@ get_signals <- reactive({
               for (file in input$logger_filepath[, "datapath"]) {
                 tmp <- read_logger_data(file)
                 if(!is.null(tmp)){
-                  data <- rbind(data, read_logger_data(file))
+                  data <- rbind(data, tmp)
                 }
               }
               data
