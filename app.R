@@ -10,9 +10,7 @@ required_packages<-c("shiny",
                      "htmltools",
                      "shinycssloaders",
                      "RMySQL",
-                     "plotKML",
-                     "promises",
-                     "future"
+                     "plotKML"
                      )
 
 # try to load packages and install missing ones
@@ -23,10 +21,10 @@ for (package in required_packages) {
         require(package, character.only = TRUE)
     }
 }
-plan(multiprocess)
 
 #timestamps to be shown with 3 digits
 options(digits.secs = 3)
+options(shiny.maxRequestSize=3000*1024^2)
 
 ui <- tagList(
   useShinyjs(),
