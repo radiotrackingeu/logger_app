@@ -9,6 +9,9 @@
 #global$calibration to list the sensitivy of each receiver
 #global$signals is a the dataframe to store all received signals
 #global$map_markers is a dataframe containing positions and labels of markers added to the map
+#global$calibrated is a boolean indicating whether or not the currently loaded data has already been calibrated
+global$calibrated = FALSE
+
 
 ### observe and add data ###
 
@@ -19,6 +22,7 @@ observeEvent(input$add_data,{
   global$frequencies<-unique.data.frame(rbind(frequencies_list(),global$frequencies))
   global$calibration <- unique.data.frame(rbind(calibration_list(), global$calibration))
   global$map_markers <- unique.data.frame(rbind(map_markers(), global$map_markers))
+  global$calibrated <- FALSE
 
   if(input$data_type_input == "Data folder" && !is.null(local_logger_data())) {
     global$signals<-unique.data.frame(rbind(local_logger_data(),global$signals))
@@ -44,6 +48,14 @@ observeEvent(input$add_data,{
     }
     else {
         global$signals<-unique.data.frame(rbind(tmp, global$signals))
+        for (file in input$SQLite_filepath[, "datapath"]) {
+          con <- dbConnect(RSQLite::SQLite(), file)
+          if (dbExistsTable(con, "rteu_calibrated")) {
+            calibrated <- dbReadTable(con, "rteu_calibrated")
+            global$calibrated <- (calibrated[1, 1] == 1)
+          }
+          dbDisconnect(con)
+        }
     }
   }
 })

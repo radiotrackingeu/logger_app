@@ -51,13 +51,25 @@ observeEvent(input$change_manu,{
 #calculate automatic calibration factors
 observeEvent(input$calibrate_signal_strength,{
   maxis<-NULL
+
   for(i in unique(as.character(filtered_data()$receiver))){
     tmp<-subset(filtered_data(),receiver == i)
     maxis<-rbind(maxis,tmp[which.max(tmp$max_signal),])
   }
+
   max_max<-maxis[which.max(maxis$max_signal),]
   maxis<-data.frame(correction = max_max$max_signal-maxis$max_signal, receiver=maxis$receiver, station = maxis$Name)
   global$calibration<-maxis
+  global$calibrated = TRUE
+  })
+
+observeEvent(global$calibrated, {
+  if (global$calibrated){
+    output$calibration_state_warning <- renderUI({"This data has already been calibrated"})
+  }
+  else {
+    output$calibration_state_warning <- renderUI({NULL})
+  }
 })
 
 output$cal_factors <- renderDataTable({
