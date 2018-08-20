@@ -6,7 +6,8 @@ tabPanel("Results",
                                             "Time-Strength-Receiver-Station-Freq",
                                             "Time-Freq-Strength-Station",
                                             "Time-Strength-Frequency-Station",
-                                            "Time-Temperature-Station-Frequency"
+                                            "Time-Temperature-Station-Frequency",
+                                            "Time-TD-Station-Frequency"
                                 ),
                                 selected="Time-Strength-Receiver-Station")
                   ),

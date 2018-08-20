@@ -240,6 +240,20 @@ output$download_excel_receivers <- downloadHandler(
     }
 )
 
+
+
+output$download_csv_temperature <- downloadHandler(
+  filename = "TemperatureData.csv",
+  content = function(file) {
+    if (!is.null(filtered_data_td())) {
+      write.csv2(filtered_data_td(), file)
+    }
+    else {
+      write_xlsx(data.frame(), file)
+    }
+  }
+)
+
 output$download_excel_map_markers <- downloadHandler(
   filename = "MapMarkers.xlsx",
   content = function(file) {

@@ -43,7 +43,7 @@ calculate_temperature <- function(td,a=20.307,b=0.0408) {
 
 output$plot_x_y <- renderText({
   if(is.null(input$plot_hover$x)) return(NULL)
-  return(paste0("Time: ", round(as.POSIXct(input$plot_hover$x,origin="1970-01-01", "UTC"))))
+  return(paste0("Time: ", round(as.POSIXct(input$plot_hover$x,origin="1970-01-01", "UTC")),"\n Strength: ",input$plot_hover$y))
 })
 
 #Temperature would be great here
@@ -83,6 +83,14 @@ output$facet <- renderPlot({
            ggplot(filtered_data_td())+
              geom_point(aes(x=as.POSIXct(timestamp, "UTC"), y=temperature,color=freq_tag))+
              ylim(10,45)+
+             facet_wrap(~Name)
+         },
+         'Time-TD-Station-Frequency'={
+           ggplot(filtered_data_td())+
+             geom_point(aes(x=as.POSIXct(timestamp, "UTC"), y=td,color=freq_tag))+
+             ylab("Time difference [s]")+
+             xlab("Date and Time in UTC")+
+             scale_x_datetime(labels = function(x) format(x, "%d-%m \n %H:%M:%S"))+
              facet_wrap(~Name)
          }
          )
