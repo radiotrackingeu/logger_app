@@ -2,6 +2,7 @@
 tabPanel("Bearings",
          tabsetPanel(
            tabPanel("Auto Calibration",
+                    uiOutput("calibration_state_warning"),
                     actionButton("calibrate_signal_strength","Calibrate"),
                     checkboxInput("correct_signal_strength_auto","Correct Signal Strengths"),
                     sliderInput("spar_in","Spar for smooth",0,1,value=0.1),

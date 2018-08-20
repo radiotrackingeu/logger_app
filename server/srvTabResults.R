@@ -53,14 +53,14 @@ output$facet <- renderPlot({
   switch(input$choose_plot,
          'Time-Strength-Receiver-Station'={
            ggplot(filtered_data()) +
-           geom_point(aes(x=as.POSIXlt(timestamp, "UTC"), y=max_signal, color=receiver)) +
+           geom_point(aes(x=as.POSIXct(timestamp, "UTC"), y=max_signal, color=receiver)) +
            labs(x="Time", y = "Signal Strength") +
            scale_x_datetime(labels = function(x) format(x, "%d-%m \n %H:%M:%S"))+
            facet_wrap(~Name)
          },
          'Time-Strength-Receiver-Station-Freq'={
            ggplot(filtered_data()) +
-             geom_point(aes(x=as.POSIXlt(timestamp, "UTC"), y=max_signal, color=receiver,group=freq_tag,shape=freq_tag)) +
+             geom_point(aes(x=as.POSIXct(timestamp, "UTC"), y=max_signal, color=receiver,group=freq_tag,shape=freq_tag)) +
              labs(x="Time", y = "Signal Strength") +
              scale_x_datetime(labels = function(x) format(x, "%d-%m \n %H:%M:%S"))+
              facet_wrap(~Name)
@@ -74,14 +74,14 @@ output$facet <- renderPlot({
          },
          'Time-Strength-Frequency-Station'={
            ggplot(filtered_data()) +
-             geom_point(aes(x=as.POSIXlt(timestamp, "UTC"), y=max_signal, color=freq_tag)) +
+             geom_point(aes(x=as.POSIXct(timestamp, "UTC"), y=max_signal, color=freq_tag)) +
              labs(x="Time", y = "Signal Strength") +
              scale_x_datetime(labels = function(x) format(x, "%d-%m \n %H:%M:%S"))+
              facet_wrap(~Name)
          },
          'Time-Temperature-Station-Frequency'={
            ggplot(filtered_data_td())+
-             geom_point(aes(x=as.POSIXlt(timestamp, "UTC"), y=temperature,color=freq_tag))+
+             geom_point(aes(x=as.POSIXct(timestamp, "UTC"), y=temperature,color=freq_tag))+
              ylim(10,45)+
              facet_wrap(~Name)
          }

@@ -48,6 +48,7 @@ observeEvent(input$map_marker_click,{
 
 observeEvent(input$map_rm_markers,{
   leafletProxy("map") %>% clearGroup("user_markers")
+  global$map_markers <- NULL
 })
 
 observe({

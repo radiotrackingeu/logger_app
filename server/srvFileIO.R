@@ -172,6 +172,10 @@ output$filtered_data_sqlite <- downloadHandler(
     if(!is.null(global$map_markers)){
       dbWriteTable(con,"rteu_map_markers",global$map_markers,overwrite=TRUE)
     }
+    calibration_state <- data.frame(global$calibrated)
+    print(calibration_state)
+    dbWriteTable(con, "rteu_calibrated", calibration_state, overwrite=TRUE)
+
     dbDisconnect(con)
   }
 )
