@@ -80,7 +80,7 @@ doa_smoothed<-reactive({
             if(nrow(data_tfs)>2){
               angle_1<-data_tfs[1,"Orientation"]
               angle_2<-get_angle_linear(data_tfs[1,"max_signal"],data_tfs[3,"max_signal"],data_tfs[1,"Orientation"],data_tfs[3,"Orientation"],input$dBLoss)
-              angle<-angle_1+angle_between(angle_1,angle_2)/abs(angle_between(data_tfs[1,"Orientation"]-data_tfs[2,"Orientation"]))*30
+              angle<-angle_1+angle_between(angle_1,angle_2)/abs(angle_between(data_tfs[1,"Orientation"],data_tfs[2,"Orientation"]))*30
             }
             if(nrow(data_tfs)<=2){
               angle<-data_tfs[1,"Orientation"]

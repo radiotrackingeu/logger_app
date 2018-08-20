@@ -23,6 +23,7 @@ read_logger_folder <-function(){
           status_read<-status_read+1
           for (k in list_of_records) {
             p<-file.path(path,i,j,k)
+            print(p)
             data<-read_logger_data(p)
             if(!is.null(data)){
               tmp_data<-rbind(cbind(data, receiver = j, Name = i),tmp_data)
@@ -82,9 +83,8 @@ read_logger_data <- function(filepath){
       fill=TRUE
     )
   data$max_signal[is.na(data$max_signal)]<-0
-  data<-data[nchar(data$timestamp)==29,]
-  data$timestamp <-
-    as.POSIXct(data$timestamp, tz = "UTC")
+  data<-data[countCharOccurrences("[:-]",data$timestamp)==4,]
+  data$timestamp <- as.POSIXct(data$timestamp, tz = "UTC")
   data$signal_freq <- (data$signal_freq + mid_freq) / 1000
   data$freq_tag<-NA
   return(data)
@@ -270,4 +270,9 @@ safe_read_excel_silent <- function(filepath) {
         error = function(cond) {
         }
     )
+}
+
+countCharOccurrences <- function(char, s) {
+  s2 <- gsub(char,"",s)
+  return (nchar(s) - nchar(s2))
 }
