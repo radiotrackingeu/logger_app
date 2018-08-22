@@ -42,12 +42,11 @@ tabPanel("Filter",
                   )
            ),
            column(3,
-                  checkboxInput("filter_one_freq",strong("Single Frequency kHz"),value = FALSE),
-                  conditionalPanel(condition='input.filter_one_freq && !input.filter_freq',
-                                   numericInput("single_freq", "", value = 150175)
+                  radioButtons("filter_type", strong("Filter type:"), c("Multiple frequencies", "Custom frequency")),
+                  conditionalPanel(condition='input.filter_type == "Custom frequency"',
+                                   numericInput("single_freq", "Enter a frequency", value = 150175)
                                    ),
-                  checkboxInput("filter_freq",strong("Multiple Frequency Filter"),value = FALSE),
-                  conditionalPanel(condition='!input.filter_one_freq && input.filter_freq',
+                  conditionalPanel(condition='input.filter_type == "Multiple frequencies"',
                                    uiOutput("freq_tags")
                   ),
                   sliderInput("freq_error",

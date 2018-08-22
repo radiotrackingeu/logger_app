@@ -44,10 +44,10 @@ filtered_data <- reactive({
   if(input$filter_length){
     tempo<-filter_data_length(tempo,input$signal_length)
   }
-  if(input$filter_one_freq){
+  if(input$filter_type == "Custom frequency"){
     tempo<-filter_data_freq(tempo,input$single_freq,input$freq_error,input$center_freq,paste0(input$single_freq/1000," MHz"))
   }
-  if(input$filter_freq){
+  if(input$filter_type == "Multiple frequencies"){
     tempo<-filter_data_freq(tempo,global$frequencies$Frequency,input$freq_error,input$center_freq,global$frequencies$Name)
   }
   if(input$filter_strength){
@@ -59,7 +59,7 @@ filtered_data <- reactive({
   if(input$filter_interval){
     tempo<-filter_data_time_interval(tempo,input$signal_interval)
   }
-  if(input$filter_freq){
+  if(input$filter_type == "Multiple frequencies"){
     tempo<-subset(tempo,tempo$freq_tag %in% input$choose_tag)
   }
   if(input$input_select_receiver!="all"&& !is.null(input$input_select_receiver) && input$input_select_receiver!=""){
