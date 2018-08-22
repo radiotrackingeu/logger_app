@@ -59,10 +59,7 @@ filtered_data <- reactive({
   if(input$filter_interval){
     tempo<-filter_data_time_interval(tempo,input$signal_interval)
   }
-  if(input$filter_freq&&input$filter_one_freq){
-    return(NULL)
-  }
-  if(input$choose_tag!="all"&& !is.null(input$choose_tag) && input$choose_tag!=""){
+  if(input$filter_freq){
     tempo<-subset(tempo,tempo$freq_tag %in% input$choose_tag)
   }
   if(input$input_select_receiver!="all"&& !is.null(input$input_select_receiver) && input$input_select_receiver!=""){
