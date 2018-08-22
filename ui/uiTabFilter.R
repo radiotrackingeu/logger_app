@@ -48,7 +48,7 @@ tabPanel("Filter",
                                    ),
                   checkboxInput("filter_freq",strong("Multiple Frequency Filter"),value = FALSE),
                   conditionalPanel(condition='!input.filter_one_freq && input.filter_freq',
-                                   selectInput("choose_tag", "Choose Tag", choices = NULL)
+                                   uiOutput("freq_tags")
                   ),
                   sliderInput("freq_error",
                               "Frequency Error (kHz):",

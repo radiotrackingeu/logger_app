@@ -29,12 +29,8 @@ observe({
   }
 })
 
-observeEvent(input$filter_freq,
-             {
-               validate(
-                 need(filtered_data(), "Please provide frequency information in data tab.")
-               )
-               updateSelectInput(session, "choose_tag", label = "Select Tag", choices = c("all",unique(filtered_data()$freq_tag)))
+output$freq_tags <- renderUI({
+  selectizeInput("choose_tag", multiple=TRUE, label=strong("Choose tags"), choices = c(unique(global$frequencies$Name)), selected = c(unique(global$frequencies$Name)))
 })
 
 # applying filters
