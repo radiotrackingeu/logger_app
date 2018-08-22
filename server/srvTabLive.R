@@ -303,7 +303,7 @@ build_signals_query <- reactive({
     }
     #keepalive_filter <- paste(and, "max_signal != 0")
 
-    paste("SELECT timestamp, duration, signal_freq, run, max_signal FROM `signals` s", inner_join, where,query_duration_filter,query_max_signal_filter,query_freq_filter, "ORDER BY s.id DESC LIMIT",input$live_last_points,";")
+    paste("SELECT timestamp, duration, signal_freq, run, max_signal, signal_bw FROM `signals` s", inner_join, where,query_duration_filter,query_max_signal_filter,query_freq_filter, "ORDER BY s.id DESC LIMIT",input$live_last_points,";")
 })
 
 signal_data<-function(){
@@ -317,7 +317,7 @@ signal_data<-function(){
   tmp$signal_freq <- round((tmp$signal_freq+tmp$center_freq)/1000)
   tmp$receiver <- substrLeft(tmp$device,17)
 
-  signal_info <- tmp[, c("timestamp", "duration", "signal_freq", "Name", "receiver", "max_signal")]
+  signal_info <- tmp[, c("timestamp", "duration", "signal_freq", "Name", "receiver", "max_signal", "signal_bw")]
   global$signals<-unique.data.frame(rbind(isolate(global$signals), signal_info))
 
   receiver_info <- tmp[, c("receiver", "Name", "pos_x", "pos_y", "orientation", "beam_width")]
