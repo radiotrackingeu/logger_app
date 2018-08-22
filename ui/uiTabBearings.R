@@ -7,8 +7,8 @@ tabPanel("Bearings",
                     checkboxInput("correct_signal_strength_auto","Correct Signal Strengths"),
                     sliderInput("spar_in","Spar for smooth",0,1,value=0.1),
                     dataTableOutput("cal_factors"),
-                    numericInput("dBLoss","dB between to neighbouring antennas",value=14),
-                    numericInput("angle_sep","angle between to neighbouring antennas",value=90)
+                    numericInput("dBLoss","dB between two neighbouring antennas",value=14),
+                    numericInput("angle_sep","angle between two neighbouring antennas",value=90)
                     ),
            tabPanel("Manual Calibration",
                     checkboxInput("correct_signal_strength_manu","Correct Signal Strengths"),

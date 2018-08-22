@@ -51,7 +51,7 @@ calc_time_distance <- function(data){
     for(k in list_of_frequencies){
       tmp2<-subset(tmp1,freq_tag==k)
       tmp2<-tmp2[order(tmp2$timestamp),]
-      #calcualte the time distance between the impulses
+      #calculate the time distance between the impulses
       if(nrow(tmp2)>1){
         td<-diff(tmp2$timestamp)
         if(attr(td,"units")=="secs"){
