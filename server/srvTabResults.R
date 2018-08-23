@@ -49,7 +49,7 @@ output$plot_x_y <- renderText({
 #Temperature would be great here
 
 output$facet <- renderPlot({
-  if(is.null(filtered_data())) return(NULL)
+  validate(need(filtered_data(), "No data loaded"))
   switch(input$choose_plot,
          'Time-Strength-Receiver-Station'={
            ggplot(filtered_data()) +
