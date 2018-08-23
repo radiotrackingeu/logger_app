@@ -69,7 +69,7 @@ tabPanel("Triangulation",
       #),
       absolutePanel(
         class="panel panel-default tri",
-        bottom="10",
+        bottom="50",
         right="10",
         draggable=F,
         fixed=T,
