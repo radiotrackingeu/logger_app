@@ -92,7 +92,7 @@ output$doa_plot <- renderPlot({
 })
 
 output$smoothed_curves <- renderPlot({
-  validate(need(doa_smoothed(), "No data found"))
+  validate(need(smoothed_curves(), "No data found"))
   ggplot()+geom_point(data=smoothed_curves(),aes(x=smoothed_curves()$timestamp,y=smoothed_curves()$max_signal,col=smoothed_curves()$receiver))+
     scale_x_datetime(labels = function(x) format(x, "%d-%m \n %H:%M:%S"))
 })
