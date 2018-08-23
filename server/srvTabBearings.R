@@ -26,18 +26,17 @@ output$correction_list <- renderUI({
 
 #plot polar plots
 output$polar_output <- renderPlot({
+  validate(need(doa_smoothed(), "No data found"))
   tmp<-doa_smoothed()[1:4,]
-  if (!is.null(tmp)) {
-    tmp<-tmp[order(tmp$timestamp),]
-    p<-ggplot(doa_smoothed()[1:4,])+
-      geom_bar(aes(x=round(angle),y=strength),stat="identity",width=10)+
-      coord_polar()+theme_minimal()+
-      scale_x_continuous(breaks = c(0,90,180,270),limits = c(0, 359))
-    if(input$filter_freq){
-      p <- p + facet_wrap(~freq_tag)
-    }
-    p
+  tmp<-tmp[order(tmp$timestamp),]
+  p<-ggplot(doa_smoothed()[1:4,])+
+    geom_bar(aes(x=round(angle),y=strength),stat="identity",width=10)+
+    coord_polar()+theme_minimal()+
+    scale_x_continuous(breaks = c(0,90,180,270),limits = c(0, 359))
+  if(input$filter_freq){
+    p <- p + facet_wrap(~freq_tag)
   }
+  p
 })
 
 #save manual calibration factors
@@ -75,27 +74,25 @@ observeEvent(global$calibrated, {
 })
 
 output$cal_factors <- renderDataTable({
-  if (is.null(global$calibration))
-    return(NULL)
+  validate(need(global$calibration, "No calibration data found"))
   global$calibration
 })
 
 # calculate time match and DoA #1
 output$doa<- renderDataTable({
-  if(is.null(doa_smoothed())) return(NULL)
+  validate(need(doa_smoothed(), "No data found"))
   doa_smoothed()[order(doa_smoothed()$timestamp,decreasing=TRUE),]
 })
 
 # output DoA plot
 output$doa_plot <- renderPlot({
-  if(is.null(doa_smoothed())) return(NULL)
+  validate(need(doa_smoothed(), "No data found"))
   ggplot(doa_smoothed()) + geom_point(mapping=aes(x=timestamp,y=angle,col=Station)) + facet_wrap(~freq_tag)+
     scale_x_datetime(labels = function(x) format(x, "%d-%m \n %H:%M:%S"))
 })
 
 output$smoothed_curves <- renderPlot({
-  if(is.null(smoothed_curves()))
-    return(NULL)
+  validate(need(doa_smoothed(), "No data found"))
   ggplot()+geom_point(data=smoothed_curves(),aes(x=smoothed_curves()$timestamp,y=smoothed_curves()$max_signal,col=smoothed_curves()$receiver))+
     scale_x_datetime(labels = function(x) format(x, "%d-%m \n %H:%M:%S"))
 })

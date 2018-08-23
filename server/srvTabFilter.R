@@ -82,29 +82,25 @@ filtered_data <- reactive({
 })
 
 output$histo <- renderPlot({
-  if(is.null(filtered_data()))
-    return(NULL)
+  validate(need(filtered_data(), "No data loaded"))
+
   ggplot(filtered_data()) + geom_histogram(aes(signal_freq),bins=200)+ scale_y_log10()
 })
 
 output$histo_length <- renderPlot({
-  if(is.null(global$signals)){
-    return(NULL)
-  }
+  validate(need(filtered_data(), "No data loaded"))
 
   ggplot(filtered_data()) + geom_histogram(aes(duration),bins= 100)
 })
 
 output$histo_strength <- renderPlot({
-  if (is.null(filtered_data()))
-    return(NULL)
+  validate(need(filtered_data(), "No data loaded"))
 
   ggplot(filtered_data()) + geom_histogram(aes(max_signal),bins= 200)
 })
 
 output$histo_bandwidth<- renderPlot({
-  if (is.null(filtered_data()))
-    return(NULL)
+  validate(need(filtered_data(), "No data loaded"))
 
   ggplot(filtered_data()) + geom_histogram(aes(signal_bw),bins= 200)
 })
