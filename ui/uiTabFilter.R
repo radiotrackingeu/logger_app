@@ -42,7 +42,8 @@ tabPanel("Filter",
                   )
            ),
            column(3,
-                  radioButtons("filter_type", strong("Filter type:"), c("Multiple frequencies", "Custom frequency")),
+                  dateRangeInput("filter_for_dates","Choose dates"),
+                  radioButtons("filter_type", strong("Filter type:"), c("all","Multiple frequencies", "Custom frequency")),
                   conditionalPanel(condition='input.filter_type == "Custom frequency"',
                                    numericInput("single_freq", "Enter a frequency", value = 150175)
                                    ),

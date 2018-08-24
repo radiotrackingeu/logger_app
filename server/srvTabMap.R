@@ -10,7 +10,7 @@ output$map <- renderLeaflet({
 
 observe({
   if(is.null(leafletProxy("map"))) return(NULL)
-  if(is.null((global$receivers))) return(NULL)
+  if(is.null((global$receivers$Longitude))) return(NULL)
   if(is.null((sorted_data()))) return(NULL)
   leafletProxy("map") %>% 
     clearControls() %>%

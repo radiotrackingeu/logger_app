@@ -4,17 +4,26 @@
 
 observe({
   validate(
-   need(global$signals, "Please provide file with antennae specifications.")
+   need(pre_filtered_data(), "Please provide logger data.")
   )
   if(!is.null(global$signals)){
     old_min <-isolate(input$slider_datetime[1])
-    min_date<-min(global$signals$timestamp)-1
-    max_date<-max(global$signals$timestamp)+1
+    min_date<-min(pre_filtered_data()$timestamp)-1
+    max_date<-max(pre_filtered_data()$timestamp)+1
     if(isolate(input$app_live_mode)) 
       updateSliderInput(session, "slider_datetime",min=min_date,max=max_date,value = c(old_min,max_date) )
     else
-      updateSliderInput(session, "slider_datetime",min=min_date,max=max_date,value = c(min_date,max_date) )
+      updateSliderInput(session, "slider_datetime",min=min_date,max=max_date,value = c(min_date,max_date))
   }
+})
+
+observe({
+  validate(
+    need(global$signals, "Please provide logger data.")
+  )
+  min_date<-as.Date(min(global$signals$timestamp))
+  max_date<-as.Date(max(global$signals$timestamp))
+  updateDateRangeInput(session,"filter_for_dates",start=min_date,end=max_date,min=min_date,max=max_date)
 })
 
 observe({
@@ -30,14 +39,20 @@ observe({
 })
 
 output$freq_tags <- renderUI({
-  selectizeInput("choose_tag", multiple=TRUE, label=strong("Choose tags"), choices = c(unique(global$frequencies$Name)), selected = c(unique(global$frequencies$Name)))
+  selectizeInput("choose_tag", multiple=TRUE, label=strong("Choose tags"), choices = unique(global$frequencies$Name), selected=unique(global$frequencies$Name))
+})
+
+pre_filtered_data <-reactive({
+  if (is.null(global$signals))
+    return(NULL)
+  subset(global$signals, (timestamp>=as.POSIXct(input$filter_for_dates[1]))&(timestamp<=as.POSIXct(input$filter_for_dates[2])))
 })
 
 # applying filters
 filtered_data <- reactive({
   if (is.null(global$signals))
     return(NULL)
-  tempo<-global$signals
+  tempo<-pre_filtered_data()#global$signals
   
   tempo<-subset(tempo, (tempo$timestamp>=input$slider_datetime[1])&(tempo$timestamp<=input$slider_datetime[2]) )
 
