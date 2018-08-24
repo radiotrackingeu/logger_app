@@ -24,6 +24,11 @@ observe({
   min_date<-as.Date(min(global$signals$timestamp))
   max_date<-as.Date(max(global$signals$timestamp))
   updateDateRangeInput(session,"filter_for_dates",start=min_date,end=max_date,min=min_date,max=max_date)
+  old_min <-isolate(input$filter_for_dates[1])
+  old_max <-isolate(input$filter_for_dates[2])
+  if(input$plus_one_day){
+    updateDateRangeInput(session,"filter_for_dates",start=old_min+1,end=old_max+1,min=min_date,max=max_date)
+  }
 })
 
 observe({
@@ -45,7 +50,7 @@ output$freq_tags <- renderUI({
 pre_filtered_data <-reactive({
   if (is.null(global$signals))
     return(NULL)
-  subset(global$signals, (timestamp>=as.POSIXct(input$filter_for_dates[1]))&(timestamp<=as.POSIXct(input$filter_for_dates[2])))
+  subset(global$signals, (timestamp>=as.POSIXct(input$filter_for_dates[1]))&(timestamp<=as.POSIXct(input$filter_for_dates[2]+1)))
 })
 
 # applying filters

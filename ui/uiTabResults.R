@@ -11,7 +11,11 @@ tabPanel("Results",
                                 ),
                                 selected="Time-Strength-Receiver-Station")
                   ),
-           column(3,offset = 6,
+           column(3,
+                  actionButton("minus_one_day","Minus one day"),
+                  actionButton("plus_one_day","Plus one day")
+                  ),
+           column(3,offset = 3,
                   br(),
                   h4(textOutput("plot_x_y"))
                   )
