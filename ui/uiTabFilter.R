@@ -45,8 +45,13 @@ tabPanel("Filter",
                   dateRangeInput("filter_for_dates","Choose dates"),
                   radioButtons("filter_type", strong("Filter type:"), c("all","Multiple frequencies", "Custom frequency")),
                   conditionalPanel(condition='input.filter_type == "Custom frequency"',
-                                   numericInput("single_freq", "Enter a frequency", value = 150175)
-                                   ),
+                                   numericInput("single_freq", "Enter a frequency", value = 150175),
+                                   tags$span(style="font-weight:bold","For temperature curve a*e^b:"),
+                                   splitLayout(
+                                     numericInput("single_freq_temp_a", "Coefficient a",value = 20.307),
+                                     numericInput("single_freq_temp_b", "Coefficient b",value = 0.0408)
+                                   )
+                  ),
                   conditionalPanel(condition='input.filter_type == "Multiple frequencies"',
                                    uiOutput("freq_tags")
                   ),

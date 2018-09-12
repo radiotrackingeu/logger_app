@@ -9,7 +9,7 @@ redraw_results_plot <- function() {
 
 #calculate time difference between two consecutive signals
 filtered_data_td <- reactive({
-  if(!any(input$filter_type == c("Multiple frequencies","Custom frequency")))
+  if (input$filter_type=="all")
     return(NULL)
   data<-filtered_data()
   #find for each receiver
@@ -28,7 +28,8 @@ filtered_data_td <- reactive({
         td<-diff(tmp2$timestamp)
         if(attr(td,"units")=="secs"){
           td<-c(0,td)
-          tmp2<-cbind(tmp2,td=td,temperature=calculate_temperature(td))
+          ab<-get_temp_coefficients(k)
+          tmp2<-cbind(tmp2,td=td,temperature=calculate_temperature(td, ab$a, ab$b))
           return_td<-rbind(tmp2,return_td)
         }
       }
@@ -37,6 +38,30 @@ filtered_data_td <- reactive({
   return(return_td)
 })
 
+get_temp_coefficients <-function(freq_tag) {
+  l<-switch(input$filter_type,
+    "Multiple frequencies" = list(
+      "a"=global$frequencies[global$frequencies$Name==freq_tag,]$Temp_A,
+      "b"=global$frequencies[global$frequencies$Name==freq_tag,]$Temp_B
+    ),
+    "Custom frequency" = list(
+      "a" = input$single_freq_temp_a,
+      "b" = input$single_freq_temp_b
+    ),
+    "all" = list(
+      "a" = 20.307,
+      "b" = 0.0408
+    )
+  )
+  return(l)
+}
+
+calculate_temperature <- function(td,a,b) {
+  if (is.na(a) | is.na(b) | (a==0 & b==0)) {
+    print(paste("Bad Temp curve values read: a=",a," b=",b,". Using defaults of a=20.307 b=0.0408"))
+    a<-20.307
+    b<-0.0408
+  }
 calculate_temperature <- function(td,a=19.449,b=0.0398) {
   return(log(60/as.numeric(td)/a)/b)
 }
