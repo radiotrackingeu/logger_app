@@ -96,19 +96,16 @@ tabPanel("File Input",
                 condition = "input.data_type_input == 'Miscellaneous'",
                 radioButtons(
                   "misc_type_input",
-                  choices = c("GPX"),
+                  choices = c("GPX","KML","KMZ"),
                   label = "File type:"
                 ),
-                conditionalPanel(
-                    condition = "input.misc_type_input == 'GPX'",
-                    h6("GPX data to compare"),
-                    fileInput(
-                       "gpx_filepath",
-                       "",
-                       multiple = FALSE,
-                       accept = c(".gpx"),
-                       width = NULL
-                    )
+                h6("Coordinates for map"),
+                fileInput(
+                  "coordinates_filepath",
+                  "",
+                  multiple = FALSE,
+                  accept = c(".gpx",".kmz",".kml"),
+                  width = NULL
                 )
             ),
              actionButton(

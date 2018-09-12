@@ -29,6 +29,9 @@ observe({
   if(input$plus_one_day){
     updateDateRangeInput(session,"filter_for_dates",start=old_min+1,end=old_max+1,min=min_date,max=max_date)
   }
+  if(input$minus_one_day){
+    updateDateRangeInput(session,"filter_for_dates",start=old_min-1,end=old_max-1,min=min_date,max=max_date)
+  }
 })
 
 observe({

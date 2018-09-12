@@ -236,11 +236,23 @@ gpx_data <- reactive({
   mytrack<-NULL
   switch(input$data_type_input,
          "Miscellaneous" = {
-           if(input$misc_type_input == "GPX" && !is.null(input$gpx_filepath)) {
-             mygpx <- readGPX(input$gpx_filepath$datapath, waypoints = FALSE)
+           if(input$misc_type_input == "GPX" && !is.null(input$coordinates_filepath)) {
+             mygpx <- readGPX(input$coordinates_filepath$datapath, waypoints = FALSE)
              mytrack <- mygpx$tracks[[1]]$'NA'
-             mytrack$timestamp<-as.POSIXct(mytrack$time,format="%Y-%m-%dT%H:%M:%S.000Z",tz="CEST")
+             mytrack$timestamp<-as.POSIXct(mytrack$time,format="%Y-%m-%dT%H:%M:%S.000Z")
              mytrack$extensions<-NULL
+           }
+           if(input$misc_type_input == "KML" && !is.null(input$coordinates_filepath)) {
+             mytrack<-readOGR(input$coordinates_filepath$datapath)
+             #maybe variables need to be renamed
+             mytrack<-data.frame(Lat=mytrack@coords[,1],Lon=mytrack@coords[,2],timestamp=mytrack$Name)
+           }
+           if(input$misc_type_input == "KMZ" && !is.null(input$coordinates_filepath)) {
+             filename<-unzip(input$coordinates_filepath$datapath)
+             mytrack<-readOGR(filename)
+             file.remove(filename)
+             #maybe variables need to be renamed
+             mytrack<-data.frame(Lat=mytrack@coords[,1],Lon=mytrack@coords[,2],timestamp=mytrack$Name)
            }
          }
   )
@@ -411,9 +423,8 @@ preview_content <- reactive({
             tmp
         },
         "Miscellaneous" = {
-            tmp <- NULL
-
-           if (input$misc_type_input == "GPX") {
+           tmp <- NULL
+           if (any(input$misc_type_input == c("GPX","KML","KMZ"))) {
                tmp <- gpx_data()
            }
         })

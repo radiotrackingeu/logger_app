@@ -9,7 +9,7 @@ redraw_results_plot <- function() {
 
 #calculate time difference between two consecutive signals
 filtered_data_td <- reactive({
-  if (!input$filter_one_freq & !input$filter_freq)
+  if(!any(input$filter_type == c("Multiple frequencies","Custom frequency")))
     return(NULL)
   data<-filtered_data()
   #find for each receiver
@@ -37,7 +37,7 @@ filtered_data_td <- reactive({
   return(return_td)
 })
 
-calculate_temperature <- function(td,a=20.307,b=0.0408) {
+calculate_temperature <- function(td,a=19.449,b=0.0398) {
   return(log(60/as.numeric(td)/a)/b)
 }
 
@@ -81,9 +81,10 @@ output$facet <- renderPlot({
          },
          'Time-Temperature-Station-Frequency'={
            ggplot(filtered_data_td())+
-             geom_point(aes(x=as.POSIXct(timestamp, "UTC"), y=temperature,color=freq_tag))+
-             ylim(10,45)+
-             facet_wrap(~Name)
+             geom_point(aes(x=as.POSIXct(timestamp, "UTC"), y=temperature,color=Name))+
+             labs(x="Time", y = "Temperature [C]") +
+             ylim(27.4,40)+
+             facet_wrap(~freq_tag)
          },
          'Time-TD-Station-Frequency'={
            ggplot(filtered_data_td())+
@@ -91,7 +92,8 @@ output$facet <- renderPlot({
              ylab("Time difference [s]")+
              xlab("Date and Time in UTC")+
              scale_x_datetime(labels = function(x) format(x, "%d-%m \n %H:%M:%S"))+
-             facet_wrap(~Name)
+             facet_wrap(~Name)+
+             ylim(0.4,3)
          }
          )
 })
