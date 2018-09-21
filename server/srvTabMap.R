@@ -159,7 +159,6 @@ sorted_data <- reactive({
 })
 
 # creates basic map
-
 map <- reactive({
   l<-leaflet() %>%
     addProviderTiles(providers[[input$map_choose]]) %>%

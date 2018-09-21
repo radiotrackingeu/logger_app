@@ -55,13 +55,6 @@ get_temp_coefficients <-function(freq_tag) {
   )
   return(l)
 }
-
-calculate_temperature <- function(td,a,b) {
-  if (is.na(a) | is.na(b) | (a==0 & b==0)) {
-    print(paste("Bad Temp curve values read: a=",a," b=",b,". Using defaults of a=20.307 b=0.0408"))
-    a<-20.307
-    b<-0.0408
-  }
 calculate_temperature <- function(td,a=19.449,b=0.0398) {
   return(log(60/as.numeric(td)/a)/b)
 }
@@ -122,4 +115,3 @@ output$facet <- renderPlot({
          }
          )
 })
-

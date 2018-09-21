@@ -96,7 +96,7 @@ doa_smoothed<-reactive({
 
 
 #smoothing in second intervals
-smoothed_curves <- reactive({
+smoothed_curves_test <- reactive({
   if(is.null(filtered_data())) return(NULL)
   data<-filtered_data()
   smoothed_data<-NULL
@@ -116,6 +116,41 @@ smoothed_curves <- reactive({
         receiver=i,
         freq_tag=l,stringsAsFactors = F)
       smoothed_data<-rbind(smoothed_data,smoothed)
+    }
+  }
+  return(smoothed_data)
+})
+
+#smoothing in second intervals
+smoothed_curves <- reactive({
+  if(is.null(filtered_data())) return(NULL)
+  data<-filtered_data()
+  data$station<-data$Name
+  signal_repeat<-1 # one second a signal
+  signal_time_error<-0.1 # error on one station 100ms
+  smoothed_data<-NULL
+  for(i in unique(data$station)){
+    tmp1<-subset(data,station==i)
+    for(l in unique(tmp1$freq_tag)){
+      tmp2<-subset(tmp1,freq_tag==l)
+      tmp2<-tmp2[order(tmp2$timestamp),]
+      tmp2$td<-c(NA,diff(tmp2$timestamp))
+      pre<-FALSE
+      for(k in 2:nrow(tmp2)){
+        if(tmp2$td[k]<signal_time_error&&pre==FALSE){
+          tmp2$timestamp[k]<-tmp2$timestamp[k-1]
+          time<-tmp2$timestamp[k-1]
+          pre<-TRUE
+          next
+        }
+        if(tmp2$td[k]<signal_time_error&&pre==TRUE){
+          tmp2$timestamp[k]<-time
+        }
+        if(tmp2$td[k]>=signal_time_error){
+          pre<-FALSE
+        }
+      }
+      smoothed_data<-rbind(smoothed_data,tmp2)
     }
   }
   return(smoothed_data)
