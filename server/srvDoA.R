@@ -96,7 +96,7 @@ doa_smoothed<-reactive({
 
 
 #smoothing in second intervals
-smoothed_curves_test <- reactive({
+smoothed_curves <- reactive({
   if(is.null(filtered_data())) return(NULL)
   data<-filtered_data()
   smoothed_data<-NULL
@@ -122,7 +122,7 @@ smoothed_curves_test <- reactive({
 })
 
 #smoothing in second intervals
-smoothed_curves <- reactive({
+smoothed_curves_2 <- reactive({
   if(is.null(filtered_data())) return(NULL)
   data<-filtered_data()
   data$station<-data$Name
