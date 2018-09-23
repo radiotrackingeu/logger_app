@@ -240,6 +240,18 @@ output$download_excel_receivers <- downloadHandler(
     }
 )
 
+output$download_tri_points <- downloadHandler(
+  filename = "Triangulations.xlsx",
+  content = function(file) {
+    if (!is.null(global$triangulation)) {
+      write_xlsx(global$triangulation, file)
+    }
+    else {
+      write_xlsx(data.frame(), file)
+    }
+  }
+)
+
 
 
 output$download_csv_temperature <- downloadHandler(

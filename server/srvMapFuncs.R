@@ -98,8 +98,8 @@ addTriangulations <- function(m, data, showBearings=T, error=0,  errorColor="blu
       m <- m %>% addPolylines(lng=c(t$st1.X,t$pos.X,t$st2.X),lat=c(t$st1.Y,t$pos.Y,t$st2.Y),group="Tri Bearing", dashArray='4,4', color="blue", weight = 1)
       }
   }
-  
-  m <- m %>% addCircles(lng=triangulations$pos.X, lat=triangulations$pos.Y,label=paste("time:",triangulations$timestamp),color=pal(triangulations$timestamp), ...) #as.POSIXct(triangulations$timestamp,tz="UTC",origin="1970-01-01"
+  global$triangulation <- triangulations
+  m <- m %>% addCircles(lng=triangulations$pos.X, lat=triangulations$pos.Y,label=paste("time:",triangulations$timestamp),color=pal(triangulations$timestamp), ...)#as.POSIXct(triangulations$timestamp,tz="UTC")
 }
 
 #' Draws a filled cone for every antenna, that has detected a bat
