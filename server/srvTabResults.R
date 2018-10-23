@@ -12,6 +12,7 @@ filtered_data_td <- reactive({
   if (input$filter_type=="all")
     return(NULL)
   data<-filtered_data()
+  data$td<-NULL
   #find for each receiver
   list_of_receivers<-unique(data$receiver)
   #and each frequency
