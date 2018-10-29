@@ -1,5 +1,10 @@
 ############ srvDoA.R ############
 
+#angle in between two angles
+angle_between <- function(angle_a,angle_b){
+  ((((angle_b - angle_a) %% 360) + 540) %% 360) - 180
+}
+
 #caclulates the angle between two antennas with given singal strengths
 calc_angle <- function(sig_a, sig_b, angle_a, angle_b, dbLoss, option){
   #options: linear, arcos, lookup, automatic, old_linear
@@ -155,58 +160,6 @@ doa <- function(signals,receivers){
   }
   return(tmp_angles)
 }
-
-'doa_smoothed<-eventReactive(input$start_doa,{
-  req(global$receivers)
-  req(filtered_data())
-  data<-merge(smoothed_curves(),global$receivers,by.x="receiver",by.y="Name")
-  tmp_angles<-NULL
-  #for each timestamp of the smoothed data
-  if(!global$live_mode){
-    time_to_look_for<-unique(data$timestamp)
-  }else{
-    if(length(unique(data$timestamp))<global$live_update_interval){
-      end_point<-length(unique(data$timestamp))-1
-    }else{
-      end_point<-global$live_update_interval-1
-    }
-    time_to_look_for<-unique(data$timestamp)[order(unique(data$timestamp),decreasing = TRUE)][1:end_point]
-  }
-  
-  for(t in time_to_look_for){
-    #build subset for the timestamp
-    data_t<-subset(data,timestamp==t)
-    for (f in unique(data_t$freq_tag)) {
-      #build subset for the frequency
-      data_tf<-subset(data_t,freq_tag==f)
-      for (s in unique(data_tf$Station)) {
-        #build subset for the Station
-        data_tfs<-subset(data_tf, Station==s)
-        #sort using signal_strength
-        data_tfs<-unique(data_tfs[order(data_tfs$max_signal, decreasing = TRUE, na.last=NA),])
-        if(nrow(data_tfs)>1){
-          #check angle between strongest and second strongest and if it is smaller then 90 degree, calc it linearly
-          if(abs(angle_between(data_tfs[1,"Orientation"],data_tfs[2,"Orientation"]))<=90){
-              angle<-calc_angle(data_tfs[1,"max_signal"],data_tfs[2,"max_signal"],data_tfs[1,"Orientation"],data_tfs[2,"Orientation"],input$dBLoss,input$doa_option_approximation)
-          }else{
-            #back antenna plays a big role here
-            if(nrow(data_tfs)>2){
-              angle_1<-data_tfs[1,"Orientation"]
-              angle_2<-calc_angle(data_tfs[1,"max_signal"],data_tfs[3,"max_signal"],data_tfs[1,"Orientation"],data_tfs[3,"Orientation"],input$dBLoss,input$doa_option_approximation)
-              angle<-angle_1+angle_between(angle_1,angle_2)/abs(angle_between(data_tfs[1,"Orientation"],data_tfs[2,"Orientation"]))*30
-            }
-            #if(nrow(data_tfs)<=2){
-            #  angle<-data_tfs[1,"Orientation"]
-            #}
-          }
-          tmp_angles<-rbind(cbind.data.frame(timestamp=as.POSIXct(t,origin="1970-01-01 00:00:00",tz="UTC"),angle=angle,antennas=nrow(data_tfs),Station=s,freq_tag=f,strength=max(data_tfs$max_signal),stringsAsFactors=F),tmp_angles)
-        }
-      }
-    }
-  }
-  tmp_angles
-})'
-
 
 #smoothing in second intervals
 smoothed_curves <- eventReactive(input$start_doa,{
