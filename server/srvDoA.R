@@ -17,12 +17,14 @@ calc_angle <- function(sig_a, sig_b, angle_a, angle_b, dbLoss, option){
     }
   }
   alpha<-angle_between(angle_a,angle_b)
+  #if the left antenna is the left one
   if(alpha>0){
     sig_l<-sig_a
     sig_r<-sig_b
     angle_l<-angle_a
     angle_r<-angle_b
   }
+  #if the left antenna is the right one
   if(alpha<0){
     sig_l<-sig_b
     sig_r<-sig_a
@@ -30,6 +32,7 @@ calc_angle <- function(sig_a, sig_b, angle_a, angle_b, dbLoss, option){
     angle_r<-angle_a
     alpha<-angle_between(angle_l,angle_r)
   }
+  #if the the angle ist the same
   if(alpha==0) return(NA)
   delta_m<-(sig_l-sig_r)/dbLoss
   if(abs(delta_m)>1){

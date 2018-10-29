@@ -22,16 +22,16 @@ correction_list<-reactive({
 
 #calcualte bearings
 
-doa_data<-eventReactive(input$start_doa,{
+observeEvent(input$start_doa,{
   switch(input$time_matching_method,
          spline = {
            data <- smooth_to_time_match(filtered_data(),global$receivers,spar_value=input$spar_in)
          },
          tm = {
-           data <- time_match_signals(filtered_data(),station_time_error=0.1)
+           data <- time_match_signals(filtered_data(),station_time_error=input$time_error_inter_station)
          }
          )
-  return(doa(data,global$receivers))
+  global$bearing<-doa(data,global$receivers)
 })
 
 
@@ -96,14 +96,14 @@ output$cal_factors <- renderDataTable({
 
 # calculate time match and DoA #1
 output$doa<- renderDataTable({
-  validate(need(doa_data(), "No data found"))
-  doa_data()[order(doa_data()$timestamp,decreasing=TRUE),]
+  validate(need(global$bearing, "No data found"))
+  global$bearing[order(global$bearing$timestamp,decreasing=TRUE),]
 })
 
 # output DoA plot
 output$doa_plot <- renderPlot({
-  validate(need(doa_data(), "No data found"))
-  ggplot(doa_data()) + geom_point(mapping=aes(x=timestamp,y=angle,col=Station)) + facet_wrap(~freq_tag)+
+  validate(need(global$bearing, "No data found - first do calculation"))
+  ggplot(global$bearing) + geom_point(mapping=aes(x=timestamp,y=angle,col=Station)) + facet_wrap(~freq_tag)+
     scale_x_datetime(labels = function(x) format(x, "%d-%m \n %H:%M:%S"))
 })
 

@@ -10,6 +10,7 @@
 #global$signals is a the dataframe to store all received signals
 #global$map_markers is a dataframe containing positions and labels of markers added to the map
 #global$calibrated is a boolean indicating whether or not the currently loaded data has already been calibrated
+#global$bearing is a data frame containing the calculted bearings
 #global$triangulation is a data frame containing the trinagulated points
 global$calibrated = FALSE
 

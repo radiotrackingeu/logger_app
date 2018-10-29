@@ -52,9 +52,9 @@ observeEvent(input$map_rm_markers,{
 })
 
 observe({
-  req(doa_data())
+  req(global$bearing)
   if(!input$app_live_mode){
-    updateSliderInput(session,"map_choose_single_data_set",min = 1,max = length(unique(doa_data()$timestamp)))
+    updateSliderInput(session,"map_choose_single_data_set",min = 1,max = length(unique(global$bearing$timestamp)))
   }else{
     updateSliderInput(session,"map_choose_single_data_set",min = 1,max = input$live_update_interval)
   }
@@ -79,7 +79,7 @@ output$map_signal_select_prop<-renderText(
 
 miniplot_base<-reactive({
   if(input$map_activate_single_data){
-    ggplot(doa_data())+geom_point(aes(timestamp,angle,color=Station))
+    ggplot(global$bearing)+geom_point(aes(timestamp,angle,color=Station))
   }
 })
 
@@ -125,14 +125,23 @@ selected_time <- reactive({
 })
 
 observe({
-  req(triangulations())
-  leafletProxy("map") %>% addCircles(lng = triangulations()$pos.X, lat=triangulations()$pos.Y, radius=5)
+  req(global$triangulation)
+  leafletProxy("map") %>% clearGroup("triangulations")
+  pal <- colorNumeric(
+    palette = "Spectral",
+    domain = global$triangulation$timestamp)
+  leafletProxy("map") %>% addCircles(lng = global$triangulation$pos.X, lat=global$triangulation$pos.Y, 
+                                     label = as.POSIXct(global$triangulation$timestamp, tz="UTC", origin="1970-01-01"),
+                                     radius=5, 
+                                     group = "triangulations",
+                                     color=pal(global$triangulation$timestamp)
+                                     )
 })
 
 observe({
   req(leafletProxy("map"))
   req(selected_time())
-  req(doa_data())
+  req(global$bearing)
   leafletProxy("map") %>% clearGroup("bats") %>% clearGroup("Bearings") %>% clearGroup("GPX")
   if(input$map_activate_single_data){
     data_cones<-subset(smoothed_curves(),timestamp %in% selected_time())
@@ -143,8 +152,8 @@ observe({
       }
     }
     leafletProxy("map") %>% addDetectionCones(data_cones)
-    if(nrow(doa_data())>0){
-      data<-subset(doa_data(),timestamp %in% selected_time())
+    if(nrow(global$bearing)>0){
+      data<-subset(global$bearing,timestamp %in% selected_time())
       if(nrow(data)>0){
         data<-merge(data,global$receivers[!duplicated(global$receivers$Station),c("Station","Longitude","Latitude")],by.x="Station",by.y="Station")
         data<-cbind(data,utm=wgstoutm(data[,"Longitude"],data[,"Latitude"]))
