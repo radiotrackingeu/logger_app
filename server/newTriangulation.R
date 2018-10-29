@@ -17,7 +17,7 @@ observeEvent(input$calc_triangulations,{
     for(j in unique(tmp_f$timestamp)){ #no error in timestamp allowed
       tmp_ft <- subset(tmp_f,timestamp>j-input$time_error_inter_station&timestamp<j+input$time_error_inter_station)
       #3) Calc Positions
-      if(nrow(tmp_ft)==2){
+      if(nrow(tmp_ft)>=2){
         tmp_fts<-merge(tmp_ft,stations_utm,by.x="Station",by.y="Station")
         #order using singal strength and take first two
         tmp_fts<-tmp_fts[order(tmp_fts$strength,decreasing = TRUE, na.last=NA),]
@@ -30,9 +30,6 @@ observeEvent(input$calc_triangulations,{
           next
         location_wgs<-utmtowgs(location[1],location[2],tmp_fts$utm.zone[1])#zone same as 1
         positions<-rbind(positions,cbind(timestamp=j,freq_tag=i,pos=location_wgs))
-      }
-      if(nrow(tmp_ft)>2){
-        print(tmp_ft)
       }
     }
   }
