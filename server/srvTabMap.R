@@ -52,10 +52,9 @@ observeEvent(input$map_rm_markers,{
 })
 
 observe({
-  if(is.null(smoothed_curves())) return(NULL)
+  req(doa_data())
   if(!input$app_live_mode){
-    print(str(length(unique(smoothed_curves()$timestamp))))
-    updateSliderInput(session,"map_choose_single_data_set",min = 1,max = length(unique(smoothed_curves()$timestamp)))
+    updateSliderInput(session,"map_choose_single_data_set",min = 1,max = length(unique(doa_data()$timestamp)))
   }else{
     updateSliderInput(session,"map_choose_single_data_set",min = 1,max = input$live_update_interval)
   }
@@ -80,7 +79,7 @@ output$map_signal_select_prop<-renderText(
 
 miniplot_base<-reactive({
   if(input$map_activate_single_data){
-    ggplot(doa_smoothed())+geom_point(aes(timestamp,angle,color=Station))
+    ggplot(doa_data())+geom_point(aes(timestamp,angle,color=Station))
   }
 })
 
@@ -113,8 +112,8 @@ color_palette <- reactive({
 })
 
 selected_time <- reactive({
-  if(is.null(smoothed_curves()$timestamp)) return(NULL)
-  if(is.null((input$map_choose_single_data_set))) return(NULL)
+  req((input$map_choose_single_data_set))
+  req(smoothed_curves())
   tmp<-unique(smoothed_curves()$timestamp)
   rv<-NULL
   if(!input$app_live_mode){
@@ -125,12 +124,16 @@ selected_time <- reactive({
   return(rv)
 })
 
+observe({
+  req(triangulations())
+  leafletProxy("map") %>% addCircles(lng = triangulations()$pos.X, lat=triangulations()$pos.Y, radius=5)
+})
 
 observe({
-  if(is.null((leafletProxy("map")))) return(NULL)
-  if(is.null((selected_time()))) return(NULL)
-  if(is.null(doa_smoothed())) return(NULL)
-  leafletProxy("map") %>% clearGroup("bats") %>% clearGroup("Bearings") %>% clearGroup("GPX") #clearPopups() %>% clearMarkers()
+  req(leafletProxy("map"))
+  req(selected_time())
+  req(doa_data())
+  leafletProxy("map") %>% clearGroup("bats") %>% clearGroup("Bearings") %>% clearGroup("GPX")
   if(input$map_activate_single_data){
     data_cones<-subset(smoothed_curves(),timestamp %in% selected_time())
     if(!is.null(gpx_data())){
@@ -140,8 +143,8 @@ observe({
       }
     }
     leafletProxy("map") %>% addDetectionCones(data_cones)
-    if(nrow(doa_smoothed())>0){
-      data<-subset(doa_smoothed(),timestamp %in% selected_time())
+    if(nrow(doa_data())>0){
+      data<-subset(doa_data(),timestamp %in% selected_time())
       if(nrow(data)>0){
         data<-merge(data,global$receivers[!duplicated(global$receivers$Station),c("Station","Longitude","Latitude")],by.x="Station",by.y="Station")
         data<-cbind(data,utm=wgstoutm(data[,"Longitude"],data[,"Latitude"]))

@@ -20,6 +20,22 @@ correction_list<-reactive({
   return(correction_tag_list)
 })
 
+#calcualte bearings
+
+doa_data<-eventReactive(input$start_doa,{
+  switch(input$time_matching_method,
+         spline = {
+           data <- smooth_to_time_match(filtered_data(),global$receivers,spar_value=input$spar_in)
+         },
+         tm = {
+           data <- time_match_signals(filtered_data(),station_time_error=0.1)
+         }
+         )
+  return(doa(data,global$receivers))
+})
+
+
+
 output$correction_list <- renderUI({
   correction_list()
 })
@@ -80,20 +96,15 @@ output$cal_factors <- renderDataTable({
 
 # calculate time match and DoA #1
 output$doa<- renderDataTable({
-  validate(need(doa_smoothed(), "No data found"))
-  doa_smoothed()[order(doa_smoothed()$timestamp,decreasing=TRUE),]
+  validate(need(doa_data(), "No data found"))
+  doa_data()[order(doa_data()$timestamp,decreasing=TRUE),]
 })
 
 # output DoA plot
 output$doa_plot <- renderPlot({
-  validate(need(doa_smoothed(), "No data found"))
-  ggplot(doa_smoothed()) + geom_point(mapping=aes(x=timestamp,y=angle,col=Station)) + facet_wrap(~freq_tag)+
+  validate(need(doa_data(), "No data found"))
+  ggplot(doa_data()) + geom_point(mapping=aes(x=timestamp,y=angle,col=Station)) + facet_wrap(~freq_tag)+
     scale_x_datetime(labels = function(x) format(x, "%d-%m \n %H:%M:%S"))
 })
 
-output$smoothed_curves <- renderPlot({
-  validate(need(smoothed_curves(), "No data found"))
-  ggplot()+geom_point(data=smoothed_curves(),aes(x=smoothed_curves()$timestamp,y=smoothed_curves()$max_signal,col=smoothed_curves()$receiver))+
-    scale_x_datetime(labels = function(x) format(x, "%d-%m \n %H:%M:%S"))
-})
 

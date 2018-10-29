@@ -2,6 +2,11 @@
 tabPanel("Bearings",
          tabsetPanel(
            tabPanel("Auto Calibration",
+                    actionButton("start_doa","Calcualte Bearings"),
+                    sliderInput("slider_angles_allowed","Angles allowed",0,180,c(10,170)),
+                    numericInput("time_error_inter_station","Time Error Inter Station",0.2,0,30, step = 0.05),
+                    selectInput("doa_option_approximation","Choose DoA Method",c("automatic","linear","arccos")),
+                    selectInput("time_matching_method","Choose Time Match Method", c("spline","tm")),
                     uiOutput("calibration_state_warning"),
                     actionButton("calibrate_signal_strength","Calibrate"),
                     checkboxInput("correct_signal_strength_auto","Correct Signal Strengths"),
