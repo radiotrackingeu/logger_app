@@ -40,7 +40,7 @@ calc_angle <- function(sig_a, sig_b, angle_a, angle_b, dbLoss, option){
   }
   switch(option,
          linear = {
-           angle <- 1/2*(alpha-alpha*delta_m/(sin(pi*a/180)^2))+angle_l
+           angle <- 1/2*(alpha-alpha*delta_m/(sin(pi*alpha/180)^2))+angle_l
          },
          arccos = {
            angle <- acos(delta_m)*90/pi+angle_l
@@ -145,18 +145,18 @@ doa <- function(signals,receivers){
           #check angle between strongest and second strongest and if it is smaller then 90 degree, calc it linearly
           if(abs(angle_between(data_tfs[1,"Orientation"],data_tfs[2,"Orientation"]))<=90){
             angle<-calc_angle(data_tfs[1,"max_signal"],data_tfs[2,"max_signal"],data_tfs[1,"Orientation"],data_tfs[2,"Orientation"],input$dBLoss,input$doa_option_approximation)
+            tmp_angles<-rbind(cbind.data.frame(timestamp=as.POSIXct(t,origin="1970-01-01 00:00:00",tz="UTC"),angle=angle,antennas=nrow(data_tfs),Station=s,freq_tag=f,strength=max(data_tfs$max_signal),stringsAsFactors=F),tmp_angles)
           }else{
             #back antenna plays a big role here
-            if(nrow(data_tfs)>2){
-              angle_1<-data_tfs[1,"Orientation"]
-              angle_2<-calc_angle(data_tfs[1,"max_signal"],data_tfs[3,"max_signal"],data_tfs[1,"Orientation"],data_tfs[3,"Orientation"],input$dBLoss,input$doa_option_approximation)
-              angle<-angle_1+angle_between(angle_1,angle_2)/abs(angle_between(data_tfs[1,"Orientation"],data_tfs[2,"Orientation"]))*30
-            }
+            #if(nrow(data_tfs)>2){
+            #  angle_1<-data_tfs[1,"Orientation"]
+            #  angle_2<-calc_angle(data_tfs[1,"max_signal"],data_tfs[3,"max_signal"],data_tfs[1,"Orientation"],data_tfs[3,"Orientation"],input$dBLoss,input$doa_option_approximation)
+            #  angle<-angle_1+angle_between(angle_1,angle_2)/abs(angle_between(data_tfs[1,"Orientation"],data_tfs[2,"Orientation"]))*30
+            #}
             #if(nrow(data_tfs)<=2){
             #  angle<-data_tfs[1,"Orientation"]
             #}
           }
-          tmp_angles<-rbind(cbind.data.frame(timestamp=as.POSIXct(t,origin="1970-01-01 00:00:00",tz="UTC"),angle=angle,antennas=nrow(data_tfs),Station=s,freq_tag=f,strength=max(data_tfs$max_signal),stringsAsFactors=F),tmp_angles)
         }
       }
     }
@@ -165,7 +165,7 @@ doa <- function(signals,receivers){
 }
 
 #smoothing in second intervals
-smoothed_curves <- eventReactive(input$start_doa,{
+smoothed_curves_old <- eventReactive(input$start_doa,{
   if(is.null(filtered_data())) return(NULL)
   data<-filtered_data()
   smoothed_data<-NULL

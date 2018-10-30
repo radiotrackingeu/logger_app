@@ -24,6 +24,7 @@ observeEvent(input$add_data,{
   global$frequencies<-unique.data.frame(rbind(frequencies_list(),global$frequencies))
   global$calibration <- unique.data.frame(rbind(calibration_list(), global$calibration))
   global$map_markers <- unique.data.frame(rbind(map_markers(), global$map_markers))
+  global$extra_points <- gpx_data()
   global$calibrated <- FALSE
 
   if(input$data_type_input == "Data folder" && !is.null(local_logger_data())) {
@@ -255,6 +256,10 @@ gpx_data <- reactive({
              file.remove(filename)
              #maybe variables need to be renamed
              mytrack<-data.frame(Lat=mytrack@coords[,1],Lon=mytrack@coords[,2],timestamp=mytrack$Name)
+           }
+           if(input$misc_type_input == "readOGR" && !is.null(input$coordinates_filepath)) {
+             spdf<-readOGR(input$coordinates_filepath$datapath)
+             mytrack<-spTransform(spdf,CRS("+init=epsg:4326"))
            }
          }
   )

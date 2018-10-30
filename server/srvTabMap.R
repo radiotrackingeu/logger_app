@@ -2,30 +2,41 @@
 
 # render map
 output$map <- renderLeaflet({
-  validate(
-    need(global$receivers, "Please provide receiver data.")
-  )
+  req(global$receivers)
   map()%>%addStations(global$receivers, color="black", radius=10, group="Stations")
 })
 
+
+# add features
 observe({
-  if(is.null(leafletProxy("map"))) return(NULL)
-  if(is.null((global$receivers$Longitude))) return(NULL)
-  if(is.null((sorted_data()))) return(NULL)
+  req(leafletProxy("map"))
+  req((global$receivers))
+  req((sorted_data()))
   leafletProxy("map") %>% 
     clearControls() %>%
     addAntennaeCones() %>% 
     addLegend(position="topleft",   
               pal=color_palette(),
-              values=sorted_data()$max_signal,
+              values=sorted_data()$strength,
               title="SNR"
     )
 })
 
+
+# add markers
 observe({
-  if(is.null(global$map_markers)) return(NULL)
-  if(is.null((nrow(global$map_markers)>0))) return(NULL)
+  req(global$map_markers)
   leafletProxy("map") %>% addMarkers(lat=global$map_markers$Latitude, lng=global$map_markers$Longitude, group="user_markers", layerId=paste0("marker_",seq_len(nrow(global$map_markers))), label = global$map_markers$comment)
+})
+
+# add extra spatial points
+observeEvent(input$add_data,{
+  req(gpx_data())
+  leafletProxy("map") %>% addMarkers(data=gpx_data(),label=~paste(time,session_start))
+  #mytrack<-subset(gpx_data(),timestamp>=(selected_time()-30)&timestamp<=(selected_time()+30))
+  #if(nrow(mytrack)>0){
+  #  leafletProxy("map") %>% addCircles(lng = mytrack$lon, lat=mytrack$lat, radius=5, label=mytrack$timestamp, group = "GPX")
+  #}
 })
 
 observeEvent(input$map_click,{
@@ -113,8 +124,8 @@ color_palette <- reactive({
 
 selected_time <- reactive({
   req((input$map_choose_single_data_set))
-  req(smoothed_curves())
-  tmp<-unique(smoothed_curves()$timestamp)
+  req(global$bearing)
+  tmp<-unique(global$bearing$timestamp)
   rv<-NULL
   if(!input$app_live_mode){
     rv<-tmp[order(tmp)][input$map_choose_single_data_set]
@@ -124,7 +135,8 @@ selected_time <- reactive({
   return(rv)
 })
 
-observe({
+#add triangulations
+observeEvent(input$calc_triangulations,{
   req(global$triangulation)
   leafletProxy("map") %>% clearGroup("triangulations")
   pal <- colorNumeric(
@@ -144,16 +156,10 @@ observe({
   req(global$bearing)
   leafletProxy("map") %>% clearGroup("bats") %>% clearGroup("Bearings") %>% clearGroup("GPX")
   if(input$map_activate_single_data){
-    data_cones<-subset(smoothed_curves(),timestamp %in% selected_time())
-    if(!is.null(gpx_data())){
-      mytrack<-subset(gpx_data(),timestamp>=(selected_time()-30)&timestamp<=(selected_time()+30))
-      if(nrow(mytrack)>0){
-        leafletProxy("map") %>% addCircles(lng = mytrack$lon, lat=mytrack$lat, radius=5, label=mytrack$timestamp, group = "GPX")
-      }
-    }
+    data_cones<-na.omit(subset(filtered_data(),timestamp > selected_time() - input$time_error_inter_station & timestamp < selected_time() + input$time_error_inter_station))
     leafletProxy("map") %>% addDetectionCones(data_cones)
     if(nrow(global$bearing)>0){
-      data<-subset(global$bearing,timestamp %in% selected_time())
+      data<-na.omit(subset(global$bearing,timestamp > selected_time() - input$time_error_inter_station & timestamp < selected_time() + input$time_error_inter_station))
       if(nrow(data)>0){
         data<-merge(data,global$receivers[!duplicated(global$receivers$Station),c("Station","Longitude","Latitude")],by.x="Station",by.y="Station")
         data<-cbind(data,utm=wgstoutm(data[,"Longitude"],data[,"Latitude"]))
@@ -166,8 +172,8 @@ observe({
 })
 
 sorted_data <- reactive({
-  if(is.null(smoothed_curves())) return(NULL)
-  smoothed_curves()[order(smoothed_curves()$timestamp),]
+  if(is.null(global$bearing)) return(NULL)
+  global$bearing[order(global$bearing$timestamp),]
 })
 
 # creates basic map

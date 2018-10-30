@@ -96,7 +96,7 @@ tabPanel("File Input",
                 condition = "input.data_type_input == 'Miscellaneous'",
                 radioButtons(
                   "misc_type_input",
-                  choices = c("GPX","KML","KMZ"),
+                  choices = c("GPX","KML","KMZ","readOGR"),
                   label = "File type:"
                 ),
                 h6("Coordinates for map"),
@@ -104,7 +104,7 @@ tabPanel("File Input",
                   "coordinates_filepath",
                   "",
                   multiple = FALSE,
-                  accept = c(".gpx",".kmz",".kml"),
+                  accept = c(".gpx",".kmz",".kml",".gpkg"),
                   width = NULL
                 )
             ),
