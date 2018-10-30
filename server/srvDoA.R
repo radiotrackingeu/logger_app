@@ -90,26 +90,34 @@ time_match_signals <- function(data,station_time_error=0.1){
 
 smooth_to_time_match <-function(data,receivers,spar_value=0.01){
   smoothed_data<-NULL
-  #for each receiver
-  for(i in unique(data$receiver)){
-    tmp_r<-subset(data,receiver==i)
-    #for each frequency tag
-    for(l in unique(tmp_r$freq_tag)){
-      tmp_rf<-subset(tmp_r,freq_tag==l)
-      if (nrow(tmp_rf)<5) {
-        print(paste0('skipping freq "',l,'" on receiver "',i,'": not enough signals (',nrow(tmp_rf),')'))
-        next
+  cnt_recs=0
+  withProgress(min=0, max=length(unique(data$receiver)), value=0, message="Calculating Bearings", detail = "This will take a while...", expr={
+    #for each receiver
+    for(i in unique(data$receiver)){
+      setProgress(value=cnt_recs, message = paste0("Working on Receiver ",i))
+      tmp_r<-subset(data,receiver==i)
+      numTags=length(unique(tmp_r$freq_tag))
+      #for each frequency tag
+      for(l in unique(tmp_r$freq_tag)){
+        incProgress(amount=0, message = paste0("Working on Receiver ",i), detail = paste0("Tag ",l))
+        tmp_rf<-subset(tmp_r,freq_tag==l)
+        if (nrow(tmp_rf)<5) {
+          print(paste0('skipping freq "',l,'" on receiver "',i,'": not enough signals (',nrow(tmp_rf),')'))
+          next
+        }
+        time_seq<-unique(c(round(tmp_rf$timestamp))) #,round(tmp_rf$timestamp)+1,round(tmp_rf$timestamp)-1)
+        smoothed<-data.frame(max_signal=predict(
+          smooth.spline(tmp_rf$timestamp,tmp_rf$max_signal,spar=spar_value),
+          as.numeric(time_seq))$y,
+          timestamp=time_seq,
+          receiver=i,
+          freq_tag=l,stringsAsFactors = F)
+        smoothed_data<-rbind(smoothed_data,smoothed)
+        incProgress(amount=1/numTags)
       }
-      time_seq<-unique(c(round(tmp_rf$timestamp))) #,round(tmp_rf$timestamp)+1,round(tmp_rf$timestamp)-1)
-      smoothed<-data.frame(max_signal=predict(
-        smooth.spline(tmp_rf$timestamp,tmp_rf$max_signal,spar=spar_value),
-        as.numeric(time_seq))$y,
-        timestamp=time_seq,
-        receiver=i,
-        freq_tag=l,stringsAsFactors = F)
-      smoothed_data<-rbind(smoothed_data,smoothed)
+      cnt_recs<-cnt_recs+1
     }
-  }
+  })
   return(smoothed_data)
 }
 
@@ -163,29 +171,3 @@ doa <- function(signals,receivers){
   }
   return(tmp_angles)
 }
-
-#smoothing in second intervals
-smoothed_curves_old <- eventReactive(input$start_doa,{
-  if(is.null(filtered_data())) return(NULL)
-  data<-filtered_data()
-  smoothed_data<-NULL
-  for(i in unique(data$receiver)){
-    tmp1<-subset(data,receiver==i)
-    for(l in unique(tmp1$freq_tag)){
-      tmp2<-subset(tmp1,freq_tag==l)
-      if (nrow(tmp2)<5) {
-        print(paste0('skipping freq "',l,'" on receiver "',i,'": not enough signals (',nrow(tmp2),')'))
-        next
-      }
-      time_seq<-unique(c(round(tmp2$timestamp))) #,round(tmp2$timestamp)+1,round(tmp2$timestamp)-1)
-      smoothed<-data.frame(max_signal=predict(
-        smooth.spline(tmp2$timestamp,tmp2$max_signal,spar=input$spar_in),
-        as.numeric(time_seq))$y,
-        timestamp=time_seq,
-        receiver=i,
-        freq_tag=l,stringsAsFactors = F)
-      smoothed_data<-rbind(smoothed_data,smoothed)
-    }
-  }
-  return(smoothed_data)
-})

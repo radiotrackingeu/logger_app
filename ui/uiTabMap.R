@@ -58,7 +58,7 @@ tabPanel("Map",
 
         plotOutput("map_miniplot", height = "150px")
       ),
-      actionButton("calc_triangulations","Calc Triangulations"),
+      
       htmlOutput("map_signal_select_prop"),
       splitLayout(
         textInput("map_lat", "Lat."),

@@ -11,10 +11,17 @@ observeEvent(input$calc_triangulations,{
     print("UTM Zone Problem")
   }
   #for each frequency tag
-  for(i in unique(global$frequencies$Name)){
+  freq_names=unique(global$frequencies$Name)
+  num_freq_names=length(freq_names)
+  cnt_freq_names=0
+  withProgress(value=0, min = 0, max = num_freq_names, message="Triangulating...", expr = {
+  for(i in freq_names){
+    setProgress(value=cnt_freq_names,detail=paste("Tag",i))
     tmp_f <- subset(global$bearing,freq_tag==i)
+    timestamps_unique<-unique(tmp_f$timestamp)
+    num_timestamps_unique<-length(timestamps_unique)
     #for each times interval
-    for(j in unique(tmp_f$timestamp)){ #no error in timestamp allowed
+    for(j in timestamps_unique){ #no error in timestamp allowed
       tmp_ft <- subset(tmp_f,timestamp>j-input$time_error_inter_station&timestamp<j+input$time_error_inter_station)
       #3) Calc Positions
       if(nrow(tmp_ft)>=2){
@@ -31,12 +38,13 @@ observeEvent(input$calc_triangulations,{
         location_wgs<-utmtowgs(location[1],location[2],tmp_fts$utm.zone[1])#zone same as 1
         positions<-rbind(positions,cbind(timestamp=j,freq_tag=i,pos=location_wgs))
       }
+      incProgress(amount=1/(num_timestamps_unique))
     }
+    cnt_freq_names<-cnt_freq_names+1
   }
+  })
   global$triangulation<-positions
 })
-
-
 
 triang <- function(x1,y1,alpha1,x2,y2,alpha2){
   # For Triangulation GK Coordinates are necesarry!
@@ -64,3 +72,8 @@ triang <- function(x1,y1,alpha1,x2,y2,alpha2){
     return(c(NA,NA))
   }
 }
+
+tri_map <- renderLeaflet({
+  req(global$receivers)
+  map()%>%addStations(global$receivers, color="black", radius=10, group="Stations")
+})
