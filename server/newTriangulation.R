@@ -14,9 +14,9 @@ observeEvent(input$calc_triangulations,{
   freq_names=unique(global$frequencies$Name)
   num_freq_names=length(freq_names)
   cnt_freq_names=0
-  withProgress(value=0, min = 0, max = num_freq_names, message="Triangulating...", expr = {
+  withProgress(value=0, min = 0, max = num_freq_names, message="Triangulating... ", expr = {
   for(i in freq_names){
-    setProgress(value=cnt_freq_names,detail=paste("Tag",i))
+    setProgress(value=cnt_freq_names,detail=paste("Frequency",i))
     tmp_f <- subset(global$bearing,freq_tag==i)
     timestamps_unique<-unique(tmp_f$timestamp)
     num_timestamps_unique<-length(timestamps_unique)
@@ -44,6 +44,7 @@ observeEvent(input$calc_triangulations,{
   }
   })
   global$triangulation<-positions
+  View(global$triangulation)
 })
 
 triang <- function(x1,y1,alpha1,x2,y2,alpha2){
