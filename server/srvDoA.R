@@ -62,12 +62,12 @@ time_match_signals <- function(data,station_time_error=0.1){
   withProgress(min=0, max=length(unique(data$station)), value=0, message="Matching timestamps...", expr={
     #for each station
     for(i in unique(data$station)){
-      setProgress(value=cnt_recs)
+      setProgress(value=cnt_stats)
+      incProgress(amount=0, detail = paste0("Station: ",i))
       tmp_s<-subset(data,station==i)
       num_tags=length(unique(tmp_s$freq_tag))
       #for each frequency tag
       for(l in unique(tmp_s$freq_tag)){
-        incProgress(amount=0, detail = paste0("Station ", i, "Frequency ", l))
         tmp_sf<-subset(tmp_s,freq_tag==l)
         tmp_sf<-tmp_sf[order(tmp_sf$timestamp),]
         #calculate timedifference between the loggings
@@ -88,7 +88,6 @@ time_match_signals <- function(data,station_time_error=0.1){
           }
         }
         matched_data<-rbind(matched_data,tmp_sf)
-        incProgress(amount=1/num_tags)
       }
       cnt_stats<-cnt_stats+1
     }
@@ -103,11 +102,11 @@ smooth_to_time_match <-function(data,receivers,spar_value=0.01){
     #for each receiver
     for(i in unique(data$receiver)){
       setProgress(value=cnt_recs)
+      incProgress(amount=0, detail = paste0("Receiver: ",i))
       tmp_r<-subset(data,receiver==i)
       num_tags=length(unique(tmp_r$freq_tag))
       #for each frequency tag
       for(l in unique(tmp_r$freq_tag)){
-        incProgress(amount=0, detail = paste0("Working on Receiver ",i,",Frequency ",l))
         tmp_rf<-subset(tmp_r,freq_tag==l)
         if (nrow(tmp_rf)<5) {
           print(paste0('skipping freq "',l,'" on receiver "',i,'": not enough signals (',nrow(tmp_rf),')'))
@@ -146,14 +145,12 @@ doa <- function(signals,receivers){
   cnt_timestamp=0
   withProgress(min=0, max=length(time_to_look_for), value=0, expr={  
     for(t in time_to_look_for){
-      #setProgress(value=cnt_timestamp, message = paste("Computing Bearings at", as.POSIXlt(t, format="%F %T", tz="GMT", origin="1970-01-01 00:00:00")))
       setProgress(value=cnt_timestamp, message = "Computing Bearings... ")
       #build subset for the timestamp
       data_t<-subset(data,timestamp==t)
       num_tags = length(data_t$freq_tag)
       for(f in unique(data_t$freq_tag)) {
         #build subset for the frequency
-        incProgress(amount=0, detail=paste("Frequency",f))
         data_tf<-subset(data_t,freq_tag==f)
         for(s in unique(data_tf$Station)) {
           #build subset for the Station
@@ -179,10 +176,9 @@ doa <- function(signals,receivers){
               #}
             }
           }
+          cnt_timestamp<-cnt_timestamp+1
         }
-        incProgress(amount=1/num_tags)
       }
-      cnt_timestamp<-cnt_timestamp+1
     }
   })
   return(tmp_angles)

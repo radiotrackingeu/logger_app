@@ -1,6 +1,8 @@
 #expected input is data frame containing DoA data for all frequencies at all stations
 # i.e. cols timestamp, station, angle, freq_tag
 
+#render speed plot
+
 #map
 # creates basic map
 tri_map <- reactive({
@@ -21,13 +23,6 @@ data_in<-reactive({
   # sample_size=500
   # data.frame(timestamp=sample(1530003973:1530004174,sample_size,replace = T),station=sample(isolate(global$receivers$receiver),sample_size,replace=T),angle=as.numeric(sample(0:359,sample_size,replace=T)),freq_tag=sample(isolate(global$frequencies$Name),sample_size,replace=T),stringsAsFactors = F)
   return(doa_smoothed())
-})
-
-# filter input data by frequency
-tri_filtered_data<-reactive({
-  data<-tri_position_data()
-  data<-data[data$freq_tag==input$tri_frequency,]
-  data<-data[data$timestamp>=input$tri_timeline[1] & data$timestamp<=input$tri_timeline[2],]
 })
 
 # add wgs and utm position data and names to freq-filtered input data
@@ -89,13 +84,6 @@ observe({
   leafletProxy("tri_map") %>% addBearings(tri_timeslots_lines_points()$lines, weight=1, color="red", group="Bearings")
   leafletProxy("tri_map") %>% addTriangulations(tri_timeslots_lines_points()$points, error=input$tri_error, radius=7, group="Triangulations")
 })
-
-#output$tri_positions_and_angles<-renderDataTable({tri_filtered_data()[,c("timestamp","station","angle","freq_tag")]},
-#  options=list(
-#    #filter="none", autoHideNavigation = T, selection= "multiple", rownames = F, options=list(paging=F,
-#    pagingType="simple", pageLength=10, lengthChange=F, searching=F,scrollY="400px"#),
-#  )
-#)
 
 observe({
   if(input$navbar!="Triangulation")

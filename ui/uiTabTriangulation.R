@@ -4,7 +4,11 @@ tabPanel("Triangulation",
 #     tabPanel("Settings",
       sliderInput("slider_angles_allowed","Angles allowed",0,180,c(10,170)),
       numericInput("time_error_inter_station","Time Error Inter Station",0.2,0,30, step = 0.05),
-      actionButton("calc_triangulations","Calc Triangulations")
+      actionButton("calc_triangulations","Calc Triangulations"),
+      sliderInput("tri_speed_slider","Speeds allowed [m/s]",0,400,150),
+      actionButton("filter_distance","Distance Filter"),
+      plotOutput("tri_speed"),
+      plotOutput("tri_distance")
     # ),
 #----
   #   tabPanel("Map",

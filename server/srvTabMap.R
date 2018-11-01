@@ -1,13 +1,5 @@
 ############ srvTabMap.R ############
 
-#render speed plot
-
-output$tri_speed <- renderPlot({
-  req(global$triangulation)
-  ggplot(speed_between_triangulations(global$triangulation$timestamp,global$triangulation$pos.X,global$triangulation$pos.Y)) + geom_point(aes(timestamp,speed))
-})
-
-
 # render map
 output$map <- renderLeaflet({
   req(global$receivers)

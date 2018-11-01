@@ -10,7 +10,8 @@ required_packages<-c("shiny",
                      "htmltools",
                      "shinycssloaders",
                      "RMySQL",
-                     "plotKML"
+                     "plotKML",
+                     "geosphere"
                      )
 
 # try to load packages and install missing ones

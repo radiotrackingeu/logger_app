@@ -16,12 +16,12 @@ observeEvent(input$calc_triangulations,{
   cnt_freq_names=0
   withProgress(value=0, min = 0, max = num_freq_names, message="Triangulating... ", expr = {
   for(i in freq_names){
-    setProgress(value=cnt_freq_names,detail=paste("Frequency",i))
     tmp_f <- subset(global$bearing,freq_tag==i)
     timestamps_unique<-unique(tmp_f$timestamp)
     num_timestamps_unique<-length(timestamps_unique)
     #for each times interval
     for(j in timestamps_unique){ #no error in timestamp allowed
+      setProgress(value=cnt_freq_names)
       tmp_ft <- subset(tmp_f,timestamp>j-input$time_error_inter_station&timestamp<j+input$time_error_inter_station)
       #3) Calc Positions
       if(nrow(tmp_ft)>=2){
@@ -38,13 +38,27 @@ observeEvent(input$calc_triangulations,{
         location_wgs<-utmtowgs(location[1],location[2],tmp_fts$utm.zone[1])#zone same as 1
         positions<-rbind(positions,cbind(timestamp=j,freq_tag=i,pos=location_wgs))
       }
-      incProgress(amount=1/(num_timestamps_unique))
     }
     cnt_freq_names<-cnt_freq_names+1
   }
   })
-  global$triangulation<-positions
-  View(global$triangulation)
+  tmp<-positions[order(positions$timestamp),]
+  global$triangulation<-cbind(tmp,speed_between_triangulations(tmp$timestamp,tmp$pos.X,tmp$pos.Y))
+})
+
+output$tri_speed <- renderPlot({
+  req(global$triangulation)
+  ggplot(global$triangulation) + geom_point(aes(x=timestamp,y=speed))
+})
+
+output$tri_distance <- renderPlot({
+  req(global$triangulation)
+  ggplot(global$triangulation) + geom_point(aes(x=timestamp,y=distance))
+})
+
+observeEvent(input$filter_distance,{
+  req(global$triangulation)
+  global$triangulation <- subset(global$triangulation,speed<=input$tri_speed_slider)
 })
 
 triang <- function(x1,y1,alpha1,x2,y2,alpha2){
@@ -75,14 +89,12 @@ triang <- function(x1,y1,alpha1,x2,y2,alpha2){
 }
 
 speed_between_triangulations <- function(timestamp,longitude,latitude){
-  tmp<-data.frame(timediff = as.numeric(diff(timestamp)), 
-                  distance = distm(data.frame(longitude,latitude))[-1,1]
+  tmp<-data.frame(timediff = c(0,as.numeric(diff(timestamp))), 
+                  distance = distm(data.frame(longitude,latitude))[,1]
                   )
   tmp$speed = tmp$distance/tmp$timediff
   return(tmp)
 }
-
-
 
 tri_map <- renderLeaflet({
   req(global$receivers)
