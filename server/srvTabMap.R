@@ -1,11 +1,18 @@
 ############ srvTabMap.R ############
 
+#render speed plot
+
+output$tri_speed <- renderPlot({
+  req(global$triangulation)
+  ggplot(speed_between_triangulations(global$triangulation$timestamp,global$triangulation$pos.X,global$triangulation$pos.Y)) + geom_point(aes(timestamp,speed))
+})
+
+
 # render map
 output$map <- renderLeaflet({
   req(global$receivers)
   map()%>%addStations(global$receivers, color="black", radius=10, group="Stations")
 })
-
 
 # add features
 observe({
@@ -136,7 +143,7 @@ selected_time <- reactive({
 })
 
 #add triangulations
-observeEvent(input$calc_triangulations,{
+observe({
   req(global$triangulation)
   leafletProxy("map") %>% clearGroup("triangulations")
   pal <- colorNumeric(

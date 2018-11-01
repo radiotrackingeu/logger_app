@@ -73,6 +73,16 @@ triang <- function(x1,y1,alpha1,x2,y2,alpha2){
   }
 }
 
+speed_between_triangulations <- function(timestamp,longitude,latitude){
+  tmp<-data.frame(timediff = as.numeric(diff(timestamp)), 
+                  distance = distm(data.frame(longitude,latitude))[-1,1]
+                  )
+  tmp$speed = tmp$distance/tmp$timediff
+  return(tmp)
+}
+
+
+
 tri_map <- renderLeaflet({
   req(global$receivers)
   map()%>%addStations(global$receivers, color="black", radius=10, group="Stations")
