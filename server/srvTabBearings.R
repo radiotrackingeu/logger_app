@@ -20,21 +20,30 @@ correction_list<-reactive({
   return(correction_tag_list)
 })
 
-#calcualte bearings
+# wrapper for calculating bearings via splines
+calculate_bearings_spline <- function (filtered_data, receivers, spar_value, live_mode, live_update_interval) {
+  d <- smooth_to_time_match(filtered_data,receivers,spar_value)
+  b <- doa(d, receivers, live_mode, live_update_interval)
+  return(b)
+}
+
+# wrapper for calculating bearings via time match
+calculate_bearings_time_match <- function(filtered_data, receivers, station_time_error, live_mode, live_update_interval) {
+  d <- time_match_signals(filtered_data, station_time_error)
+  b <- doa(d, receivers, live_mode, live_update_interval)
+  return(b)
+}
 
 observeEvent(input$start_doa,{
   switch(input$time_matching_method,
          spline = {
-           data <- smooth_to_time_match(filtered_data(),global$receivers,spar_value=input$spar_in)
+           global$bearing <- calculate_bearings_spline(filtered_data(),global$receivers,input$spar_in, global$live_mode, global$live_update_interval)
          },
          tm = {
-           data <- time_match_signals(filtered_data(),station_time_error=input$time_error_inter_station)
+           global$bearing <- calculate_bearings_time_match(filtered_data(), global$receivers, input$time_error_inter_station, global$live_mode, global$live_update_interval)
          }
          )
-  global$bearing <- doa(data, global$receivers, global$live_mode, global$live_update_interval)
 })
-
-
 
 output$correction_list <- renderUI({
   correction_list()
@@ -65,20 +74,24 @@ observeEvent(input$change_manu,{
     global$calibration<-cali
 })
 
-#calculate automatic calibration factors
 observeEvent(input$calibrate_signal_strength,{
+  global$calibration<-calibrate_auto(filtered_data())
+  global$calibrated = TRUE
+  })
+
+#calculate automatic calibration factors
+calibrate_auto <- function(filtered_data) {
   maxis<-NULL
 
-  for(i in unique(as.character(filtered_data()$receiver))){
-    tmp<-subset(filtered_data(),receiver == i)
+  for(i in unique(as.character(filtered_data$receiver))){
+    tmp<-subset(filtered_data,receiver == i)
     maxis<-rbind(maxis,tmp[which.max(tmp$max_signal),])
   }
 
   max_max<-maxis[which.max(maxis$max_signal),]
   maxis<-data.frame(correction = max_max$max_signal-maxis$max_signal, receiver=maxis$receiver, station = maxis$Name)
-  global$calibration<-maxis
-  global$calibrated = TRUE
-  })
+  return(maxis)
+}
 
 observeEvent(global$calibrated, {
   if (global$calibrated){
