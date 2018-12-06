@@ -31,7 +31,7 @@ observeEvent(input$start_doa,{
            data <- time_match_signals(filtered_data(),station_time_error=input$time_error_inter_station)
          }
          )
-  global$bearing<-doa(data,global$receivers)
+  global$bearing <- doa(data, global$receivers, global$live_mode, global$live_update_interval)
 })
 
 

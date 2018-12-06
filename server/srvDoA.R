@@ -39,12 +39,12 @@ calc_angle <- function(sig_a, sig_b, angle_a, angle_b, dbLoss, option){
     return(NA)
   }
   switch(option,
-         linear = {
-           angle <- 1/2*(alpha-alpha*delta_m/(sin(pi*alpha/180)^2))+angle_l
-         },
-         arccos = {
-           angle <- acos(delta_m)*90/pi+angle_l
-         }
+    linear = {
+      angle <- 1/2*(alpha-alpha*delta_m/(sin(pi*alpha/180)^2))+angle_l
+    },
+    arccos = {
+      angle <- acos(delta_m)*90/pi+angle_l
+    }
   )
   if(angle<0){
     angle<-angle+360
@@ -128,17 +128,17 @@ smooth_to_time_match <-function(data,receivers,spar_value=0.01){
   return(smoothed_data)
 }
 
-doa <- function(signals,receivers){
+doa <- function(signals, receivers, live_mode=FALSE, live_update_interval=15){
   data<-merge(signals,receivers,by.x="receiver",by.y="Name")
   tmp_angles<-NULL
   #for each timestamp of the smoothed data
-  if(!global$live_mode){
+  if(!live_mode){
     time_to_look_for<-unique(data$timestamp)
   }else{
-    if(length(unique(data$timestamp))<global$live_update_interval){
+    if(length(unique(data$timestamp))<live_update_interval){
       end_point<-length(unique(data$timestamp))-1
     }else{
-      end_point<-global$live_update_interval-1
+      end_point<-live_update_interval-1
     }
     time_to_look_for<-unique(data$timestamp)[order(unique(data$timestamp),decreasing = TRUE)][1:end_point]
   }
