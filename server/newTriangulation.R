@@ -48,7 +48,7 @@ triangulate <- function(receivers, bearings, frequencies) {
     }
   })
   tmp<-positions[order(positions$timestamp),]
-  return(cbind(tmp,speed=speed_between_triangulations(tmp$timestamp,tmp$pos.X,tmp$pos.Y), stringsAsFactors = F))
+  return(cbind(tmp,speed_between_triangulations(tmp$timestamp,tmp$pos.X,tmp$pos.Y), stringsAsFactors = F))
 }
 
 output$tri_speed <- renderPlot({
@@ -62,11 +62,11 @@ output$tri_distance <- renderPlot({
 })
 
 filter_distance <- function(triangulations, max_speed) {
-  return(subset(triangluations, speed<=max_speed))
+  return(subset(triangulations, speed<=max_speed))
 }
 observeEvent(input$filter_distance,{
   req(global$triangulation)
-  global$triangulation <- filter_distance(global$triangulation,speed<=input$tri_speed_slider)
+  global$triangulation <- filter_distance(global$triangulation,input$tri_speed_slider)
 })
 
 # does the actual triangulation
