@@ -43,13 +43,16 @@ calculate_bearings_time_match <- function(filtered_data, receivers, station_time
 observeEvent(input$start_doa,{
   switch(input$time_matching_method,
          spline = {
-           global$bearing <- calculate_bearings_spline(filtered_data(),global$receivers,input$spar_in, global$live_mode, global$live_update_interval, T)
+           tmp <- calculate_bearings_spline(filtered_data(),global$receivers,input$spar_in, global$live_mode, global$live_update_interval, T)
          },
          tm = {
-           global$bearing <- calculate_bearings_time_match(filtered_data(), global$receivers, input$time_error_inter_station, global$live_mode, global$live_update_interval, T)
+           tmp <- calculate_bearings_time_match(filtered_data(), global$receivers, input$time_error_inter_station, global$live_mode, global$live_update_interval, T)
          }
          )
+  global$bearing<-subset(tmp, antennas>=input$min_doa_antennas)
 })
+
+
 
 output$correction_list <- renderUI({
   correction_list()

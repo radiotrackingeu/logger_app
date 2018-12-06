@@ -1,16 +1,19 @@
 observeEvent(input$calc_triangulations,{
   req(global$bearing)
   withProgress(value=0, min = 0, max = length(unique(global$frequencies$Name)), message="Triangulating... ", expr = {
-    global$triangulation<-triangulate(global$receivers, global$bearing, global$frequencies,T)
+    global$triangulation<-triangulate(global$receivers,
+                                      global$bearing,
+                                      time_error_inter_station=input$time_error_inter_station,
+                                      angles_allowed=input$slider_angles_allowed,
+                                      progress=T)
   })
 })
 
 # calculates the intersection of bearings of the same frequency and time interval.
 # receivers: data frame of all receivers with station name and position
 # bearings: data frame produced by doa-function.
-# frequencies: data frame of all with tag names
 # progress: TRUE if function is wrapped in withProgress() call
-triangulate <- function(receivers, bearings, frequencies, progress) {
+triangulate <- function(receivers, bearings, time_error_inter_station=0.6,angles_allowed,progress) {
   positions<-NULL
   #Calc UTM of Stations and add them
   stations<-unique(receivers[,c("Station","Longitude","Latitude")])
@@ -19,18 +22,19 @@ triangulate <- function(receivers, bearings, frequencies, progress) {
     print("UTM Zone Problem")
   }
   #for each frequency tag
-  freq_names=unique(frequencies$Name)
+  freq_names=unique(bearings$freq_tag)
   num_freq_names=length(freq_names)
   cnt_freq_names=0
     for(i in freq_names){
       tmp_f <- subset(bearings,freq_tag==i)
+      tmp_f <- timematch_inter(tmp_f,time_error_inter_station)
       timestamps_unique<-unique(tmp_f$timestamp)
       num_timestamps_unique<-length(timestamps_unique)
       #for each times interval
       for(j in timestamps_unique){ #no error in timestamp allowed
         if(progress)
           setProgress(value=cnt_freq_names)
-        tmp_ft <- subset(tmp_f,timestamp>j-input$time_error_inter_station&timestamp<j+input$time_error_inter_station)
+        tmp_ft <- subset(tmp_f,timestamp==j)
         #calculate positions
         if(nrow(tmp_ft)>=2){
           tmp_fts<-merge(tmp_ft,stations_utm,by.x="Station",by.y="Station")
@@ -38,7 +42,7 @@ triangulate <- function(receivers, bearings, frequencies, progress) {
           tmp_fts<-tmp_fts[order(tmp_fts$strength,decreasing = TRUE, na.last=NA),]
           if(anyNA(tmp_ft))
             next
-          if(abs(angle_between(tmp_fts$angle[1],tmp_fts$angle[2]))<input$slider_angles_allowed[1]|abs(angle_between(tmp_fts$angle[1],tmp_fts$angle[2]))>input$slider_angles_allowed[2]) 
+          if(abs(angle_between(tmp_fts$angle[1],tmp_fts$angle[2]))<angles_allowed[1]|abs(angle_between(tmp_fts$angle[1],tmp_fts$angle[2]))>angles_allowed[2]) 
             next
           location<-triang(tmp_fts$utm.X[1],tmp_fts$utm.Y[1],tmp_fts$angle[1],tmp_fts$utm.X[2],tmp_fts$utm.Y[2],tmp_fts$angle[2])
           if(anyNA(location))
@@ -51,6 +55,28 @@ triangulate <- function(receivers, bearings, frequencies, progress) {
     }
   tmp<-positions[order(positions$timestamp),]
   return(cbind(tmp,speed_between_triangulations(tmp$timestamp,tmp$pos.X,tmp$pos.Y), stringsAsFactors = F))
+}
+
+timematch_inter <- function(data,intrer_error){
+  tmp_s<-data[order(data$timestamp),]
+  tmp_s$td <- c(0,diff(tmp_s$timestamp))
+  gc<-0
+  tmp_s$timestamp[1]<-tmp_s$timestamp[1]
+  for(i in 2:nrow(tmp_s)){
+    if(sum(tmp_s$td[(i-gc):i])<=intrer_error){
+      tmp_s$timestamp[i]<- tmp_s$timestamp[i-gc-1]
+      if(any(duplicated(tmp_s$Station[(i-gc-1):i]))){
+        tmp_s$timestamp[i]<- tmp_s$timestamp[i]
+        gc<--1
+      }
+      gc<-gc+1
+    }else{
+      tmp_s$timestamp[i]<- tmp_s$timestamp[i]
+      gc<-0
+    }
+  }
+  tmp_s$ti<-as.POSIXct(tmp_s$ti,origin="1970-01-01")
+  return(tmp_s)
 }
 
 output$tri_speed <- renderPlot({

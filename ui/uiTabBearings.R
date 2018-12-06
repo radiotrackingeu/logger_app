@@ -7,7 +7,8 @@ tabPanel("Bearings",
                     selectInput("time_matching_method","Choose Time Match Method", c("spline","tm")),
                     sliderInput("spar_in","Spar for smooth",0,1,value=0.1),
                     numericInput("dBLoss","dB between two neighbouring antennas",value=14),
-                    numericInput("angle_sep","angle between two neighbouring antennas",value=90)
+                    numericInput("angle_sep","angle between two neighbouring antennas",value=90),
+                    sliderInput("min_doa_antennas","Choose minimum number of antennas",1,12,1)
            ),
            tabPanel("Auto Calibration",
                     uiOutput("calibration_state_warning"),

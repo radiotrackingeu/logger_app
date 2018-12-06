@@ -55,7 +55,7 @@ calc_angle <- function(sig_a, sig_b, angle_a, angle_b, dbLoss, option){
   return(angle)
 }
 
-time_match_signals <- function(data,station_time_error=0.1, progress=F){
+time_match_signals <- function(data,station_time_error=0.3, progress=F){
   data$station<-data$Name
   matched_data<-NULL
   cnt_stats=0
@@ -72,20 +72,20 @@ time_match_signals <- function(data,station_time_error=0.1, progress=F){
         tmp_sf<-subset(tmp_s,freq_tag==l)
         tmp_sf<-tmp_sf[order(tmp_sf$timestamp),]
         #calculate timedifference between the loggings
-        tmp_sf$td<-c(NA,diff(tmp_sf$timestamp))
-        pre<-FALSE
-        for(k in 2:nrow(tmp_sf)){
-          if(tmp_sf$td[k]<station_time_error&&pre==FALSE){
-            tmp_sf$timestamp[k]<-tmp_sf$timestamp[k-1]
-            time<-tmp_sf$timestamp[k-1]
-            pre<-TRUE
-            next
-          }
-          if(tmp_sf$td[k]<station_time_error&&pre==TRUE){
-            tmp_sf$timestamp[k]<-time
-          }
-          if(tmp_sf$td[k]>=station_time_error){
-            pre<-FALSE
+        tmp_sf$td<-c(0,diff(tmp_sf$timestamp))
+        gc<-0
+        tmp_sf$ti[1]<-tmp_sf$timestamp[1]
+        for(i in 2:nrow(tmp_sf)){
+          if(sum(tmp_sf$td[(i-gc):i])<=station_time_error){
+            tmp_sf$timestamp[i]<- tmp_sf$timestamp[i-gc-1]
+            if(any(duplicated(tmp_sf$receiver[(i-gc-1):i]))){
+              tmp_sf$timestamp[i]<- tmp_sf$timestamp[i]
+              gc<--1
+            }
+            gc<-gc+1
+          }else{
+            tmp_sf$timestamp[i]<- tmp_sf$timestamp[i]
+            gc<-0
           }
         }
         matched_data<-rbind(matched_data,tmp_sf)
@@ -145,13 +145,13 @@ doa <- function(signals, receivers, live_mode=FALSE, live_update_interval=15, pr
   }
   if (progress)
     withProgress(min=0, max=length(time_to_look_for), value=0, expr={ 
-      doa_internal(data, time_to_look_for, progress)
+      doa_internal(data, time_to_look_for, progress,dBLoss=input$dBLoss,doa_approx=input$doa_option_approximation)
     })
   else
     doa_internal(data, time_to_look_for, progress)
 }
 
-doa_internal <- function(data, time_to_look_for, progress=F) {
+doa_internal <- function(data, time_to_look_for, dBLoss=14,doa_approx="automatic",progress=F) {
   tmp_angles<-NULL
   cnt_timestamp=0
   for(t in time_to_look_for){
@@ -173,7 +173,7 @@ doa_internal <- function(data, time_to_look_for, progress=F) {
         if(nrow(data_tfs)>1){
           #check angle between strongest and second strongest and if it is smaller then 90 degree, calc it linearly
           if(abs(angle_between(data_tfs[1,"Orientation"],data_tfs[2,"Orientation"]))<=90){
-            angle<-calc_angle(data_tfs[1,"max_signal"],data_tfs[2,"max_signal"],data_tfs[1,"Orientation"],data_tfs[2,"Orientation"],input$dBLoss,input$doa_option_approximation)
+            angle<-calc_angle(data_tfs[1,"max_signal"],data_tfs[2,"max_signal"],data_tfs[1,"Orientation"],data_tfs[2,"Orientation"],dBLoss,doa_approx)
             tmp_angles<-rbind(cbind.data.frame(timestamp=as.POSIXct(t,origin="1970-01-01 00:00:00",tz="UTC"),angle=angle,antennas=nrow(data_tfs),Station=s,freq_tag=f,strength=max(data_tfs$max_signal),stringsAsFactors=F),tmp_angles)
           }else{
             #back antenna plays a big role here
