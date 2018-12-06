@@ -66,23 +66,20 @@ calc_time_distance <- function(data){
 }
 
 output$timediffs <- renderDataTable({
-  tmp<-calc_time_distance(filtered_data())
-  #y=20,307*exp(0,0408*x)<=>ln(y)=ln(20,307)+0,0408*x<=>ln(y/20,307)/0,0408=x 
-  a<-20.307
-  b<-0.0408
-  tmp$temperature<-log(60/as.numeric(tmp$td)/a)/b
-  tmp
+  get_timediffs(filtered_data(), 20.307, 0.0408)
 })
 
 output$timediffs_plot <- renderPlot({
-  tmp<-calc_time_distance(filtered_data())
-  #y=20,307*exp(0,0408*x)<=>ln(y)=ln(20,307)+0,0408*x<=>ln(y/20,307)/0,0408=x 
-  a<-input$temp_cal_a
-  b<-input$temp_cal_b
-  tmp$temperature<-log(60/as.numeric(tmp$td)/a)/b
+  tmp<-get_timediffs(filtered_data(),input$temp_cal_a,input$temp_cal_b)
   ggplot()+geom_point(aes(x=tmp$timestamp,y=tmp$temperature))+ylim(10,45)
 })
 
+get_timediffs <- function(data, a, b) {
+  tmp<-calc_time_distance(data)
+  #y=20,307*exp(0,0408*x)<=>ln(y)=ln(20,307)+0,0408*x<=>ln(y/20,307)/0,0408=x 
+  tmp$temperature<-log(60/as.numeric(tmp$td)/a)/b
+  return(tmp)
+}
 
 filter_signal_bandwidth <- function(data,pulse_bandwidth){
   return(subset(data, (data$signal_bw>(pulse_bandwidth[1])) & (data$signal_bw<(pulse_bandwidth[2]))))
