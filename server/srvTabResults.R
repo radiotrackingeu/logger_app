@@ -3,15 +3,13 @@ observeEvent(input$slider_datetime, {
 })
 
 global$invalidate_filtered_data <- 0
+
 redraw_results_plot <- function() {
     global$invalidate_filtered_data <- global$invalidate_filtered_data + 1
 }
 
 #calculate time difference between two consecutive signals
-filtered_data_td <- reactive({
-  if (input$filter_type=="all")
-    return(NULL)
-  data<-filtered_data()
+calculate_delta_T <- function(data) {
   data$td<-NULL
   #find for each receiver
   list_of_receivers<-unique(data$receiver)
@@ -37,6 +35,13 @@ filtered_data_td <- reactive({
     }
   }
   return(return_td)
+}
+
+filtered_data_td <- reactive({
+  if (input$filter_type=="all")
+    return(NULL)
+  else
+    return(calculate_delta_T(filtered_data()))
 })
 
 get_temp_coefficients <-function(freq_tag) {
@@ -56,6 +61,7 @@ get_temp_coefficients <-function(freq_tag) {
   )
   return(l)
 }
+
 calculate_temperature <- function(td,a=19.449,b=0.0398) {
   return(log(60/as.numeric(td)/a)/b)
 }
