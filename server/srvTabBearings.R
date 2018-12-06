@@ -21,26 +21,32 @@ correction_list<-reactive({
 })
 
 # wrapper for calculating bearings via splines
-calculate_bearings_spline <- function (filtered_data, receivers, spar_value, live_mode, live_update_interval) {
-  d <- smooth_to_time_match(filtered_data,receivers,spar_value)
-  b <- doa(d, receivers, live_mode, live_update_interval)
+calculate_bearings_spline <- function (filtered_data, receivers, spar_value, live_mode, live_update_interval, progress=F) {
+  d<-NULL
+  withProgress(min=0, max=length(unique(filtered_data$receiver)), value=0, message="Matching timestamps...", expr={
+    d <- smooth_to_time_match(filtered_data,receivers,spar_value, progress)
+  })
+  b <- doa(d, receivers, live_mode, live_update_interval, progress)
   return(b)
 }
 
 # wrapper for calculating bearings via time match
-calculate_bearings_time_match <- function(filtered_data, receivers, station_time_error, live_mode, live_update_interval) {
-  d <- time_match_signals(filtered_data, station_time_error)
-  b <- doa(d, receivers, live_mode, live_update_interval)
+calculate_bearings_time_match <- function(filtered_data, receivers, station_time_error, live_mode, live_update_interval, progress=F) {
+  d<-NULL
+  withProgress(min=0, max=length(unique(filtered_data$station)), value=0, message="Matching timestamps...", expr={
+    d <- time_match_signals(filtered_data, station_time_error, progress)
+  })
+  b <- doa(d, receivers, live_mode, live_update_interval, progress)
   return(b)
 }
 
 observeEvent(input$start_doa,{
   switch(input$time_matching_method,
          spline = {
-           global$bearing <- calculate_bearings_spline(filtered_data(),global$receivers,input$spar_in, global$live_mode, global$live_update_interval)
+           global$bearing <- calculate_bearings_spline(filtered_data(),global$receivers,input$spar_in, global$live_mode, global$live_update_interval, T)
          },
          tm = {
-           global$bearing <- calculate_bearings_time_match(filtered_data(), global$receivers, input$time_error_inter_station, global$live_mode, global$live_update_interval)
+           global$bearing <- calculate_bearings_time_match(filtered_data(), global$receivers, input$time_error_inter_station, global$live_mode, global$live_update_interval, T)
          }
          )
 })

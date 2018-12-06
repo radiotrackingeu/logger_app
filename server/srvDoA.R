@@ -55,15 +55,16 @@ calc_angle <- function(sig_a, sig_b, angle_a, angle_b, dbLoss, option){
   return(angle)
 }
 
-time_match_signals <- function(data,station_time_error=0.1){
+time_match_signals <- function(data,station_time_error=0.1, progress=F){
   data$station<-data$Name
   matched_data<-NULL
   cnt_stats=0
-  withProgress(min=0, max=length(unique(data$station)), value=0, message="Matching timestamps...", expr={
     #for each station
     for(i in unique(data$station)){
-      setProgress(value=cnt_stats)
-      incProgress(amount=0, detail = paste0("Station: ",i))
+      if (progress) {
+        setProgress(value=cnt_stats)
+        incProgress(amount=0, detail = paste0("Station: ",i))
+      }
       tmp_s<-subset(data,station==i)
       num_tags=length(unique(tmp_s$freq_tag))
       #for each frequency tag
@@ -91,18 +92,18 @@ time_match_signals <- function(data,station_time_error=0.1){
       }
       cnt_stats<-cnt_stats+1
     }
-  })
   return(matched_data)
 }
 
-smooth_to_time_match <-function(data,receivers,spar_value=0.01){
+smooth_to_time_match <-function(data,receivers,spar_value=0.01, progress=F){
   smoothed_data<-NULL
   cnt_recs=0
-  withProgress(min=0, max=length(unique(data$receiver)), value=0, message="Matching timestamps...", expr={
     #for each receiver
     for(i in unique(data$receiver)){
-      setProgress(value=cnt_recs)
-      incProgress(amount=0, detail = paste0("Receiver: ",i))
+      if (progress) {
+        setProgress(value=cnt_recs)
+        incProgress(amount=0, detail = paste0("Receiver: ",i))
+      }
       tmp_r<-subset(data,receiver==i)
       num_tags=length(unique(tmp_r$freq_tag))
       #for each frequency tag
@@ -120,17 +121,17 @@ smooth_to_time_match <-function(data,receivers,spar_value=0.01){
           receiver=i,
           freq_tag=l,stringsAsFactors = F)
         smoothed_data<-rbind(smoothed_data,smoothed)
-        incProgress(amount=1/num_tags)
+        if(progress)
+          incProgress(amount=1/num_tags)
       }
       cnt_recs<-cnt_recs+1
     }
-  })
   return(smoothed_data)
 }
 
-doa <- function(signals, receivers, live_mode=FALSE, live_update_interval=15){
+doa <- function(signals, receivers, live_mode=FALSE, live_update_interval=15, progress = F){
   data<-merge(signals,receivers,by.x="receiver",by.y="Name")
-  tmp_angles<-NULL
+  # time_to_look_for<-NULL
   #for each timestamp of the smoothed data
   if(!live_mode){
     time_to_look_for<-unique(data$timestamp)
@@ -142,44 +143,53 @@ doa <- function(signals, receivers, live_mode=FALSE, live_update_interval=15){
     }
     time_to_look_for<-unique(data$timestamp)[order(unique(data$timestamp),decreasing = TRUE)][1:end_point]
   }
+  if (progress)
+    withProgress(min=0, max=length(time_to_look_for), value=0, expr={ 
+      doa_internal(data, time_to_look_for, progress)
+    })
+  else
+    doa_internal(data, time_to_look_for, progress)
+}
+
+doa_internal <- function(data, time_to_look_for, progress=F) {
+  tmp_angles<-NULL
   cnt_timestamp=0
-  withProgress(min=0, max=length(time_to_look_for), value=0, expr={  
-    for(t in time_to_look_for){
+  for(t in time_to_look_for){
+    if (progress)
       setProgress(value=cnt_timestamp, message = "Computing Bearings... ")
-      #build subset for the timestamp
-      data_t<-subset(data,timestamp==t)
-      num_tags = length(data_t$freq_tag)
-      for(f in unique(data_t$freq_tag)) {
-        #build subset for the frequency
-        data_tf<-subset(data_t,freq_tag==f)
-        for(s in unique(data_tf$Station)) {
-          #build subset for the Station
-          data_tfs<-subset(data_tf, Station==s)
-          #sort using signal_strength
-          data_tfs<-unique(data_tfs[order(data_tfs$max_signal, decreasing = TRUE, na.last=NA),])
-          if(anyNA(data_tfs[1:2,]))
-            next
-          if(nrow(data_tfs)>1){
-            #check angle between strongest and second strongest and if it is smaller then 90 degree, calc it linearly
-            if(abs(angle_between(data_tfs[1,"Orientation"],data_tfs[2,"Orientation"]))<=90){
-              angle<-calc_angle(data_tfs[1,"max_signal"],data_tfs[2,"max_signal"],data_tfs[1,"Orientation"],data_tfs[2,"Orientation"],input$dBLoss,input$doa_option_approximation)
-              tmp_angles<-rbind(cbind.data.frame(timestamp=as.POSIXct(t,origin="1970-01-01 00:00:00",tz="UTC"),angle=angle,antennas=nrow(data_tfs),Station=s,freq_tag=f,strength=max(data_tfs$max_signal),stringsAsFactors=F),tmp_angles)
-            }else{
-              #back antenna plays a big role here
-              #if(nrow(data_tfs)>2){
-              #  angle_1<-data_tfs[1,"Orientation"]
-              #  angle_2<-calc_angle(data_tfs[1,"max_signal"],data_tfs[3,"max_signal"],data_tfs[1,"Orientation"],data_tfs[3,"Orientation"],input$dBLoss,input$doa_option_approximation)
-              #  angle<-angle_1+angle_between(angle_1,angle_2)/abs(angle_between(data_tfs[1,"Orientation"],data_tfs[2,"Orientation"]))*30
-              #}
-              #if(nrow(data_tfs)<=2){
-              #  angle<-data_tfs[1,"Orientation"]
-              #}
-            }
+    #build subset for the timestamp
+    data_t<-subset(data,timestamp==t)
+    num_tags = length(data_t$freq_tag)
+    for(f in unique(data_t$freq_tag)) {
+      #build subset for the frequency
+      data_tf<-subset(data_t,freq_tag==f)
+      for(s in unique(data_tf$Station)) {
+        #build subset for the Station
+        data_tfs<-subset(data_tf, Station==s)
+        #sort using signal_strength
+        data_tfs<-unique(data_tfs[order(data_tfs$max_signal, decreasing = TRUE, na.last=NA),])
+        if(anyNA(data_tfs[1:2,]))
+          next
+        if(nrow(data_tfs)>1){
+          #check angle between strongest and second strongest and if it is smaller then 90 degree, calc it linearly
+          if(abs(angle_between(data_tfs[1,"Orientation"],data_tfs[2,"Orientation"]))<=90){
+            angle<-calc_angle(data_tfs[1,"max_signal"],data_tfs[2,"max_signal"],data_tfs[1,"Orientation"],data_tfs[2,"Orientation"],input$dBLoss,input$doa_option_approximation)
+            tmp_angles<-rbind(cbind.data.frame(timestamp=as.POSIXct(t,origin="1970-01-01 00:00:00",tz="UTC"),angle=angle,antennas=nrow(data_tfs),Station=s,freq_tag=f,strength=max(data_tfs$max_signal),stringsAsFactors=F),tmp_angles)
+          }else{
+            #back antenna plays a big role here
+            #if(nrow(data_tfs)>2){
+            #  angle_1<-data_tfs[1,"Orientation"]
+            #  angle_2<-calc_angle(data_tfs[1,"max_signal"],data_tfs[3,"max_signal"],data_tfs[1,"Orientation"],data_tfs[3,"Orientation"],input$dBLoss,input$doa_option_approximation)
+            #  angle<-angle_1+angle_between(angle_1,angle_2)/abs(angle_between(data_tfs[1,"Orientation"],data_tfs[2,"Orientation"]))*30
+            #}
+            #if(nrow(data_tfs)<=2){
+            #  angle<-data_tfs[1,"Orientation"]
+            #}
           }
-          cnt_timestamp<-cnt_timestamp+1
         }
+        cnt_timestamp<-cnt_timestamp+1
       }
     }
-  })
+  }
   return(tmp_angles)
 }

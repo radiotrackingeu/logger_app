@@ -1,13 +1,16 @@
 observeEvent(input$calc_triangulations,{
   req(global$bearing)
-  global$triangulation<-triangulate(global$receivers, global$bearing, global$frequencies)
+  withProgress(value=0, min = 0, max = length(unique(global$frequencies$Name)), message="Triangulating... ", expr = {
+    global$triangulation<-triangulate(global$receivers, global$bearing, global$frequencies,T)
+  })
 })
 
 # calculates the intersection of bearings of the same frequency and time interval.
 # receivers: data frame of all receivers with station name and position
 # bearings: data frame produced by doa-function.
 # frequencies: data frame of all with tag names
-triangulate <- function(receivers, bearings, frequencies) {
+# progress: TRUE if function is wrapped in withProgress() call
+triangulate <- function(receivers, bearings, frequencies, progress) {
   positions<-NULL
   #Calc UTM of Stations and add them
   stations<-unique(receivers[,c("Station","Longitude","Latitude")])
@@ -19,14 +22,14 @@ triangulate <- function(receivers, bearings, frequencies) {
   freq_names=unique(frequencies$Name)
   num_freq_names=length(freq_names)
   cnt_freq_names=0
-  withProgress(value=0, min = 0, max = num_freq_names, message="Triangulating... ", expr = {
     for(i in freq_names){
       tmp_f <- subset(bearings,freq_tag==i)
       timestamps_unique<-unique(tmp_f$timestamp)
       num_timestamps_unique<-length(timestamps_unique)
       #for each times interval
       for(j in timestamps_unique){ #no error in timestamp allowed
-        setProgress(value=cnt_freq_names)
+        if(progress)
+          setProgress(value=cnt_freq_names)
         tmp_ft <- subset(tmp_f,timestamp>j-input$time_error_inter_station&timestamp<j+input$time_error_inter_station)
         #calculate positions
         if(nrow(tmp_ft)>=2){
@@ -46,7 +49,6 @@ triangulate <- function(receivers, bearings, frequencies) {
       }
       cnt_freq_names<-cnt_freq_names+1
     }
-  })
   tmp<-positions[order(positions$timestamp),]
   return(cbind(tmp,speed_between_triangulations(tmp$timestamp,tmp$pos.X,tmp$pos.Y), stringsAsFactors = F))
 }
