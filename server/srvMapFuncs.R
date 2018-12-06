@@ -134,25 +134,28 @@ addDetectionCones<-function(m,data) {
 }
 
 # calculates cone shapes
-antennae_cones<-reactive({
+calculate_antennae_cones <- function(receivers) {
   cones=list()
-  if (!is.null(global$receivers)) {
-    r<-global$receivers
-    for (a in seq_len(nrow(r))) {
-      x<-r[a,]$Longitude
-      y<-r[a,]$Latitude
-      direction<-r[a,]$Orientation
-      bw<-45
-      len<-100
-      wgs<-kegelcreation(x,y,direction,len,bw) # Many warnings...
-      cones[[r[a,]$Name]]<-list(x=c(wgs$X,x), y=c(wgs$Y,y))
-    }
+  if (is.null(receivers)) 
+    return (cones)
+  for (a in seq_len(nrow(receivers))) {
+    x<-receivers[a,]$Longitude
+    y<-receivers[a,]$Latitude
+    direction<-receivers[a,]$Orientation
+    bw<-45
+    len<-100
+    wgs<-calculate_cone_corners(x,y,direction,len,bw) # Many warnings...
+    cones[[receivers[a,]$Name]]<-list(x=c(wgs$X,x), y=c(wgs$Y,y))
   }
   return(cones)
+}
+
+antennae_cones<-reactive({
+  calculate_antennae_cones(global$receivers)
 })
 
 # calculates corner coordinates of antenna reception area
-kegelcreation<-function(x,y,dir,length,deg){
+calculate_cone_corners<-function(x,y,dir,length,deg){
   # first convert to utm
   utm<-wgstoutm(x,y)
   
