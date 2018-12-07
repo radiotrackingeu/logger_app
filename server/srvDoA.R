@@ -73,18 +73,19 @@ time_match_signals <- function(data,station_time_error=0.3, progress=F){
         tmp_sf<-tmp_sf[order(tmp_sf$timestamp),]
         #calculate timedifference between the loggings
         tmp_sf$td<-c(0,diff(tmp_sf$timestamp))
+        tmp_s$ti <- NA
         gc<-0
         tmp_sf$ti[1]<-tmp_sf$timestamp[1]
         for(i in 2:nrow(tmp_sf)){
           if(sum(tmp_sf$td[(i-gc):i])<=station_time_error){
-            tmp_sf$timestamp[i]<- tmp_sf$timestamp[i-gc-1]
+            tmp_sf$ti[i]<- tmp_sf$timestamp[i-gc-1]
             if(any(duplicated(tmp_sf$receiver[(i-gc-1):i]))){
-              tmp_sf$timestamp[i]<- tmp_sf$timestamp[i]
+              tmp_sf$ti[i]<- tmp_sf$timestamp[i]
               gc<--1
             }
             gc<-gc+1
           }else{
-            tmp_sf$timestamp[i]<- tmp_sf$timestamp[i]
+            tmp_sf$ti[i]<- tmp_sf$timestamp[i]
             gc<-0
           }
         }
@@ -92,6 +93,7 @@ time_match_signals <- function(data,station_time_error=0.3, progress=F){
       }
       cnt_stats<-cnt_stats+1
     }
+  matched_data$timestamp<-matched_data$ti
   return(matched_data)
 }
 
@@ -177,14 +179,16 @@ doa_internal <- function(data, time_to_look_for, dBLoss=14,doa_approx="automatic
             tmp_angles<-rbind(cbind.data.frame(timestamp=as.POSIXct(t,origin="1970-01-01 00:00:00",tz="UTC"),angle=angle,antennas=nrow(data_tfs),Station=s,freq_tag=f,strength=max(data_tfs$max_signal),stringsAsFactors=F),tmp_angles)
           }else{
             #back antenna plays a big role here
-            #if(nrow(data_tfs)>2){
-            #  angle_1<-data_tfs[1,"Orientation"]
-            #  angle_2<-calc_angle(data_tfs[1,"max_signal"],data_tfs[3,"max_signal"],data_tfs[1,"Orientation"],data_tfs[3,"Orientation"],input$dBLoss,input$doa_option_approximation)
-            #  angle<-angle_1+angle_between(angle_1,angle_2)/abs(angle_between(data_tfs[1,"Orientation"],data_tfs[2,"Orientation"]))*30
-            #}
-            #if(nrow(data_tfs)<=2){
-            #  angle<-data_tfs[1,"Orientation"]
-            #}
+            if(nrow(data_tfs)>2){
+              angle_1<-data_tfs[1,"Orientation"]
+              angle_2<-calc_angle(data_tfs[1,"max_signal"],data_tfs[3,"max_signal"],data_tfs[1,"Orientation"],data_tfs[3,"Orientation"],2*dBLoss,"linear")
+              angle<-angle_1+angle_between(angle_1,angle_2)/abs(angle_between(data_tfs[1,"Orientation"],data_tfs[2,"Orientation"]))*60
+              tmp_angles<-rbind(cbind.data.frame(timestamp=as.POSIXct(t,origin="1970-01-01 00:00:00",tz="UTC"),angle=angle,antennas=nrow(data_tfs),Station=s,freq_tag=f,strength=max(data_tfs$max_signal),stringsAsFactors=F),tmp_angles)
+            }
+            if(nrow(data_tfs)<=2){
+              angle<-data_tfs[1,"Orientation"]
+              tmp_angles<-rbind(cbind.data.frame(timestamp=as.POSIXct(t,origin="1970-01-01 00:00:00",tz="UTC"),angle=angle,antennas=nrow(data_tfs),Station=s,freq_tag=f,strength=max(data_tfs$max_signal),stringsAsFactors=F),tmp_angles)
+            }
           }
         }
         cnt_timestamp<-cnt_timestamp+1

@@ -7,6 +7,7 @@ tabPanel("Triangulation",
       actionButton("calc_triangulations","Calc Triangulations"),
       sliderInput("tri_speed_slider","Speeds allowed [m/s]",0,400,150),
       actionButton("filter_distance","Distance Filter"),
+      actionButton("form_centroids","Centroid Filter"),
       plotOutput("tri_speed"),
       plotOutput("tri_distance")
     # ),

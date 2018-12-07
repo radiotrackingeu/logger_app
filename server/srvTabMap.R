@@ -124,7 +124,7 @@ color_palette <- reactive({
 selected_time <- reactive({
   req((input$map_choose_single_data_set))
   req(global$bearing)
-  tmp<-unique(global$bearing$timestamp)
+  tmp<-unique(tm_signal_data()$timestamp)
   rv<-NULL
   if(!input$app_live_mode){
     rv<-tmp[order(tmp)][input$map_choose_single_data_set]
@@ -149,16 +149,29 @@ observe({
                                      )
 })
 
+tm_signal_data<- reactive({
+  req(filtered_data())
+  tmp<-time_match_signals(filtered_data(),input$intra_station_time_error, T)
+  #no frequency tag included!!!
+  return(timematch_inter(tmp,input$time_error_inter_station))
+})
+
+tm_bearing_data<- reactive({
+  req(global$bearing)
+  #no frequency tag included!!!
+  return(timematch_inter(global$bearing,input$time_error_inter_station))
+})
+
 observe({
   req(leafletProxy("map"))
   req(selected_time())
   req(global$bearing)
   leafletProxy("map") %>% clearGroup("bats") %>% clearGroup("Bearings") %>% clearGroup("GPX")
   if(input$map_activate_single_data){
-    data_cones<-na.omit(subset(filtered_data(),timestamp > selected_time() - input$time_error_inter_station & timestamp < selected_time() + input$time_error_inter_station))
+    data_cones<-na.omit(subset(tm_signal_data(),timestamp == selected_time()))
     leafletProxy("map") %>% addDetectionCones(data_cones)
     if(nrow(global$bearing)>0){
-      data<-na.omit(subset(global$bearing,timestamp > selected_time() - input$time_error_inter_station & timestamp < selected_time() + input$time_error_inter_station))
+      data<-na.omit(subset(tm_bearing_data(),timestamp == selected_time()))
       if(nrow(data)>0){
         data<-merge(data,global$receivers[!duplicated(global$receivers$Station),c("Station","Longitude","Latitude")],by.x="Station",by.y="Station")
         data<-cbind(data,utm=wgstoutm(data[,"Longitude"],data[,"Latitude"]))

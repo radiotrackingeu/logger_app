@@ -56,11 +56,10 @@ server <- function(input, output, session) {
   source("server/srvTabResults.R", local = TRUE)$value
   source("server/srvDoA.R", local = TRUE)$value
   source("server/srvTabBearings.R", local = TRUE)$value
-  #source("server/srvTabTriangulation.R",local = TRUE)$value
+  source("server/srvTabTriangulation.R",local = TRUE)$value
   source("server/srvMapFuncs.R",local=TRUE)$value
-  #source("server/srvTriangulation.R",local=TRUE)$value
+  source("server/srvTriangulation.R",local=TRUE)$value
   source("server/srvTabMap.R", local = TRUE)$value
-  source("server/newTriangulation.R", local = TRUE)$value
 
   onStop(function() {
     close_all_dbs()
