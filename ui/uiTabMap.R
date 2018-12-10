@@ -51,25 +51,11 @@ tabPanel("Map",
       checkboxInput("map_activate_single_data","Show Timeline",value = FALSE),
       conditionalPanel(condition="input.map_activate_single_data==true",
         sliderInput("map_choose_single_data_set","Data Steps", min=1, max =15,value = 1, animate = list(interval=400)),
-        splitLayout(
-          actionButton("minus", "Minus"),
-          actionButton("plus", "Plus")
-        ),
-
         plotOutput("map_miniplot", height = "150px")
       ),
+      actionButton("update_map","Update map"),
       
-      htmlOutput("map_signal_select_prop"),
-      splitLayout(
-        textInput("map_lat", "Lat."),
-        textInput("map_lng", "Lng.")
-      ),
-      textInput("map_comment", "Comment"),
-      splitLayout(
-        actionButton("map_add_marker","Set Marker"),
-        actionButton("map_rm_markers", "Clear Markers")
-      )
-      
+      htmlOutput("map_signal_select_prop")
     )
   )
 )

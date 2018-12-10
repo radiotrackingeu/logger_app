@@ -4,46 +4,52 @@
 # upon button starts triangulations with a progress Bar
 observeEvent(input$calc_triangulations,{
   req(global$bearing)
-  withProgress(value=0, min = 0, max = length(unique(global$frequencies$Name)), message="Triangulating... ", expr = {
+  withProgress(value=0, min = 0, max = length(unique(global$bearing$freq_tag)), message="Triangulating... ", expr = {
     global$triangulation<-triangulate(global$receivers,
                                       global$bearing,
                                       time_error_inter_station=input$time_error_inter_station,
                                       angles_allowed=input$slider_angles_allowed,
+                                      tri_option=input$tri_option_dd,
                                       progress=T)
   })
+  global$triangulation <- cbind(global$triangulation,speed_between_triangulations(global$triangulation$timestamp,global$triangulation$pos.X,global$triangulation$pos.Y))
 })
-
-observeEvent(input$form_centroids,{
-  req(global$triangulation)
-  u_time<-unique(global$triangulation$timestamp)
-  new_triang<-data.frame()
-  for(i in u_time){
-    tmp_tri<-subset(global$triangulation,timestamp==i)
-    x<-mean(tmp_tri$utm.x)
-    y<-mean(tmp_tri$utm.y)
-    zone<-tmp_tri$utm.zone[1]
-    location_wgs<-utmtowgs(x,y,zone)
-    new_triang<-rbind(new_triang,cbind(timestamp=i,
-                                       freq_tag=tmp_tri$freq_tag[1],
-                                       pos=location_wgs))
-  }
-  global$triangulation<-new_triang
-})
-
-
 
 # filters the data using the distance filter
-observeEvent(input$filter_distance,{
+observeEvent(input$filter_speed,{
   req(global$triangulation)
-  global$triangulation <- filter_distance(global$triangulation,input$tri_speed_slider)
+  global$triangulation <- subset(global$triangulation,speed<=input$tri_speed_slider)
 })
 
-output$tri_speed <- renderPlot({
+output$distance_btw_points <- renderPlot({
   req(global$triangulation)
-  ggplot(global$triangulation) + geom_point(aes(x=timestamp,y=speed,col=freq_tag))
+  ggplot()+geom_point(aes(x=global$triangulation$timestamp,y=global$triangulation$speed))
+})
+
+output$triangulation_points <- renderDataTable({
+  req(global$triangulation)
+  return(global$triangulation)
 })
 
 output$tri_distance <- renderPlot({
   req(global$triangulation)
-  ggplot(global$triangulation) + geom_point(aes(x=timestamp,y=distance,col=freq_tag))
+  distances<-distm(data.frame(global$triangulation$pos.X,global$triangulation$pos.Y))[,1]
+  ggplot()+geom_histogram(aes(x=distances))
+})
+
+output$one_distance <- renderPlot({
+  req(global$triangulation)
+  global$triangulation$speed<-speed_between_triangulations(global$triangulation$timestamp,global$triangulation$pos.X,global$triangulation$pos.Y)
+  distances<-distm(data.frame(global$triangulation$pos.X,global$triangulation$pos.Y),data.frame(pos.X=input$compare_single_x,pos.Y=input$compare_single_y))[,1]
+  ggplot()+geom_histogram(aes(x=distances))
+})
+
+output$single_distance <- renderText({
+  req(global$triangulation)
+  distances<-distm(data.frame(global$triangulation$pos.X,global$triangulation$pos.Y),data.frame(pos.X=input$compare_single_x,pos.Y=input$compare_single_y))[,1]
+  x<-mean(global$triangulation$pos.utm.X,na.rm=T)
+  y<-mean(global$triangulation$pos.utm.Y,na.rm=T)
+  location_wgs<-utmtowgs(x,y,32)
+  distances_centroid<-distm(data.frame(pos=location_wgs),data.frame(pos.X=input$compare_single_x,pos.Y=input$compare_single_y))[,1]
+  return(paste("Arithmetic Mean:", mean(distances,na.rm=T),"Median:", median(distances,na.rm=T),"Distance to centroid:",distances_centroid))
 })

@@ -1,31 +1,9 @@
 ############ srvTabMap.R ############
 
-# render map
+# render map and add stations
 output$map <- renderLeaflet({
   req(global$receivers)
   map()%>%addStations(global$receivers, color="black", radius=10, group="Stations")
-})
-
-# add features
-observe({
-  req(leafletProxy("map"))
-  req((global$receivers))
-  req((sorted_data()))
-  leafletProxy("map") %>% 
-    clearControls() %>%
-    addAntennaeCones() %>% 
-    addLegend(position="topleft",   
-              pal=color_palette(),
-              values=sorted_data()$strength,
-              title="SNR"
-    )
-})
-
-
-# add markers
-observe({
-  req(global$map_markers)
-  leafletProxy("map") %>% addMarkers(lat=global$map_markers$Latitude, lng=global$map_markers$Longitude, group="user_markers", layerId=paste0("marker_",seq_len(nrow(global$map_markers))), label = global$map_markers$comment)
 })
 
 # add extra spatial points
@@ -37,47 +15,6 @@ observeEvent(input$add_data,{
   #  leafletProxy("map") %>% addCircles(lng = mytrack$lon, lat=mytrack$lat, radius=5, label=mytrack$timestamp, group = "GPX")
   #}
 })
-
-observeEvent(input$map_click,{
-  updateTextInput(session,"map_lat",value = round(input$map_click$lat,digits=5))
-  updateTextInput(session,"map_lng",value = round(input$map_click$lng,digits=5))
-  updateTextInput(session,"map_comment", value = format(Sys.time(),"%F %T"))
-})
-
-observeEvent(input$map_add_marker,{
-  # leafletProxy("map") %>% addMarkers(lat=as.numeric(input$map_lat), lng=as.numeric(input$map_lng), group="user_markers", label=input$map_comment, layerId = paste0("marker_",nrow(global$map_markers)+1))
-  global$map_markers<-unique.data.frame(rbind(global$map_markers,data.frame("Latitude"=as.numeric(input$map_lat), "Longitude"=as.numeric(input$map_lng), "comment"=input$map_comment, timestamp=format(Sys.time(),"%F %T"))))
-})
-
-observeEvent(input$map_marker_click,{
-  leafletProxy("map") %>% removeMarker(input$map_marker_click$id)
-  id<-strsplit(x = input$map_marker_click$id, split="_")
-  id<-as.numeric(unlist(id)[2])
-  global$map_markers <- global$map_markers[-c(id),]
-})
-
-observeEvent(input$map_rm_markers,{
-  leafletProxy("map") %>% clearGroup("user_markers")
-  global$map_markers <- NULL
-})
-
-observe({
-  req(global$bearing)
-  if(!input$app_live_mode){
-    updateSliderInput(session,"map_choose_single_data_set",min = 1,max = length(unique(global$bearing$timestamp)))
-  }else{
-    updateSliderInput(session,"map_choose_single_data_set",min = 1,max = input$live_update_interval)
-  }
-})
-
-observeEvent(input$minus, {
-  updateSliderInput(session,"map_choose_single_data_set", value = input$map_choose_single_data_set - 1)
-})
-
-observeEvent(input$plus, {
-  updateSliderInput(session,"map_choose_single_data_set", value = input$map_choose_single_data_set + 1)
-})  
-
 
 
 # render data info text 
@@ -135,7 +72,7 @@ selected_time <- reactive({
 })
 
 #add triangulations
-observe({
+observeEvent(input$update_map,{
   req(global$triangulation)
   leafletProxy("map") %>% clearGroup("triangulations")
   pal <- colorNumeric(
@@ -166,11 +103,11 @@ observe({
   req(leafletProxy("map"))
   req(selected_time())
   req(global$bearing)
-  leafletProxy("map") %>% clearGroup("bats") %>% clearGroup("Bearings") %>% clearGroup("GPX")
+  leafletProxy("map") %>% clearGroup("bats") %>% clearGroup("Bearings")%>% clearGroup("triangulations") %>% clearGroup("GPX")
   if(input$map_activate_single_data){
     data_cones<-na.omit(subset(tm_signal_data(),timestamp == selected_time()))
     leafletProxy("map") %>% addDetectionCones(data_cones)
-    if(nrow(global$bearing)>0){
+    if(nrow(tm_bearing_data())>0){
       data<-na.omit(subset(tm_bearing_data(),timestamp == selected_time()))
       if(nrow(data)>0){
         data<-merge(data,global$receivers[!duplicated(global$receivers$Station),c("Station","Longitude","Latitude")],by.x="Station",by.y="Station")
@@ -179,6 +116,16 @@ observe({
         colnames(data)[which(colnames(data)=='Latitude')]<-"pos_y"
         leafletProxy("map") %>% addBearings(data)
       }
+    }
+    tmp_pos<-na.omit(subset(global$triangulation,timestamp==selected_time()))
+    if(nrow(tmp_pos)>0){
+      leafletProxy("map") %>% addCircles(lng = tmp_pos$pos.X, 
+                                         lat = tmp_pos$pos.Y, 
+                                         label = as.POSIXct(tmp_pos$timestamp, tz="UTC", origin="1970-01-01"),
+                                         radius=5, 
+                                         group = "triangulations",
+                                         color="blue"
+      ) 
     }
   }
 })
@@ -205,4 +152,19 @@ map <- reactive({
     return(l)
   l<-l %>%
     addMarkers(lat=isolate(global$map_markers$Latitude), lng=isolate(global$map_markers$Longitude), group="user_markers", layerId=paste0("marker_",seq_len(nrow(isolate(global$map_markers)))), label = isolate(global$map_markers$comment))
+})
+
+# add features to the basic map
+observe({
+  req(leafletProxy("map"))
+  req((global$receivers))
+  req((sorted_data()))
+  leafletProxy("map") %>% 
+    clearControls() %>%
+    addAntennaeCones() %>% 
+    addLegend(position="topleft",   
+              pal=color_palette(),
+              values=sorted_data()$strength,
+              title="SNR"
+    )
 })

@@ -2,8 +2,8 @@
 # receivers: data frame of all receivers with station name and position
 # bearings: data frame produced by doa-function.
 # progress: TRUE if function is wrapped in withProgress() call
-triangulate <- function(receivers, bearings, time_error_inter_station=0.6,angles_allowed,progress) {
-  positions<-NULL
+triangulate <- function(receivers, bearings, time_error_inter_station=0.6,angles_allowed,tri_option, progress) {
+  positions<-data.frame()
   #Calc UTM of Stations and add them
   stations<-unique(receivers[,c("Station","Longitude","Latitude")])
   stations_utm<-cbind(stations,utm=wgstoutm(stations[,"Longitude"],stations[,"Latitude"]))
@@ -21,38 +21,32 @@ triangulate <- function(receivers, bearings, time_error_inter_station=0.6,angles
     num_timestamps_unique<-length(timestamps_unique)
     print(num_timestamps_unique)
     #for each times interval
-    for(j in timestamps_unique){ #no error in timestamp allowed
+    for(j in timestamps_unique){
       if(progress)
         setProgress(value=cnt_freq_names)
       tmp_ft <- subset(tmp_f,ti==j)
-      #calculate positions
-      if(nrow(tmp_ft)>=2){
-        for(c in 1:dim(combn(nrow(tmp_ft),2))[2]){
-          e<-combn(nrow(tmp_ft),2)[1,c]
-          z<-combn(nrow(tmp_ft),2)[2,c]
-          tmp_fts<-merge(tmp_ft,stations_utm,by.x="Station",by.y="Station")
-          #order using singal strength and take first two
-          tmp_fts<-tmp_fts[order(tmp_fts$strength,decreasing = TRUE, na.last=NA),]
-          if(anyNA(tmp_ft))
-            next
-          if(abs(angle_between(tmp_fts$angle[e],tmp_fts$angle[z]))<angles_allowed[1]|abs(angle_between(tmp_fts$angle[z],tmp_fts$angle[e]))>angles_allowed[2]) 
-            next
-          location<-triang(tmp_fts$utm.X[e],tmp_fts$utm.Y[e],tmp_fts$angle[e],tmp_fts$utm.X[z],tmp_fts$utm.Y[z],tmp_fts$angle[z])
-          
-          if(anyNA(location))
-            next
-          location_wgs<-utmtowgs(location[1],location[2],tmp_fts$utm.zone[1])#zone same as 1
-          positions<-rbind(positions,cbind(timestamp=j,freq_tag=i,pos=location_wgs,utm.x=location[1],utm.y=location[2],utm.zone=tmp_fts$utm.zone[1]))
-        }
+      tmp_fts <- merge(tmp_ft,stations_utm,by.x="Station",by.y="Station")
+      #calculate positions for two or more bearings in one slot
+      if(nrow(tmp_fts)>=2){
+        positions<-rbind(positions,
+                         cbind(
+                           timestamp=j,
+                           freq_tag=i,
+                           pos=switch(tri_option,
+                                    centroid =  tri_centroid(tmp_fts,angles_allowed),
+                                    two_strongest = tri_two(tmp_fts,angles_allowed)
+                                    )
+                           ))
       }
     }
     cnt_freq_names<-cnt_freq_names+1
   }
-  tmp<-positions[order(positions$timestamp),]
-  return(cbind(tmp,speed_between_triangulations(tmp$timestamp,tmp$pos.X,tmp$pos.Y), stringsAsFactors = F))
+  return(positions[order(positions$timestamp),])
 }
 
+#function to match times between two or more station
 timematch_inter <- function(data,inter_error=0.6){
+  data[complete.cases(data), ]
   tmp_s<-data[order(data$timestamp),]
   tmp_s$td <- c(0,diff(tmp_s$timestamp))
   tmp_s$ti <- NA
@@ -73,10 +67,6 @@ timematch_inter <- function(data,inter_error=0.6){
   }
   tmp_s$timestamp<-as.POSIXct(tmp_s$ti,origin="1970-01-01")
   return(tmp_s)
-}
-
-filter_distance <- function(triangulations, max_speed) {
-  return(subset(triangulations, speed<=max_speed))
 }
 
 # does the actual triangulation
@@ -102,7 +92,6 @@ triang <- function(x1,y1,alpha1,x2,y2,alpha2){
     return(c(px,py))
   }
   else{
-    # print("No triangulation possible: lines don't intersect")
     return(c(NA,NA))
   }
 }
@@ -115,4 +104,55 @@ speed_between_triangulations <- function(timestamp,longitude,latitude){
   )
   tmp$speed = tmp$distance/tmp$timediff
   return(tmp)
+}
+
+#requires one time and one frequency
+# angle 
+# utm.X
+# utm.Y
+tri_centroid <- function(tmp_fts,angles_allowed){
+  tmp_positions<-data.frame()
+  for(c in 1:dim(combn(nrow(tmp_fts),2))[2]){
+    e<-combn(nrow(tmp_fts),2)[1,c]
+    z<-combn(nrow(tmp_fts),2)[2,c]
+    #order using singal strength and take first two
+    tmp_fts<-tmp_fts[order(tmp_fts$strength,decreasing = TRUE, na.last=NA),]
+    if(anyNA(tmp_fts[c(e,z),]))
+      next
+    if(abs(angle_between(tmp_fts$angle[e],tmp_fts$angle[z]))<angles_allowed[1]|abs(angle_between(tmp_fts$angle[z],tmp_fts$angle[e]))>angles_allowed[2]) 
+      next
+    location<-triang(tmp_fts$utm.X[e],tmp_fts$utm.Y[e],tmp_fts$angle[e],tmp_fts$utm.X[z],tmp_fts$utm.Y[z],tmp_fts$angle[z])
+    if(anyNA(location))
+      next
+    tmp_positions<-rbind(tmp_positions,cbind(utm.x=location[1],utm.y=location[2],utm.zone=tmp_fts$utm.zone[1]))
+  }
+  if(nrow(tmp_positions)>0){
+    x<-mean(tmp_positions$utm.x)
+    y<-mean(tmp_positions$utm.y)
+    zone<-tmp_positions$utm.zone[1]
+    location_wgs<-utmtowgs(x,y,zone)
+    return(data.frame(location_wgs,utm.X=x,utm.Y=y))
+  }else{
+    return(data.frame(X=NA,Y=NA,utm.X=NA,utm.Y=NA))
+  }
+}
+
+
+tri_two <- function(tmp_fts,angles_allowed){
+  tmp_positions<-data.frame()
+  #order using singal strength and take first two
+  tmp_fts<-tmp_fts[order(tmp_fts$strength,decreasing = TRUE, na.last=NA),]
+  if(anyNA(tmp_fts))
+    return(data.frame(X=NA,Y=NA,utm.X=NA,utm.Y=NA))
+  if(abs(angle_between(tmp_fts$angle[1],tmp_fts$angle[2]))<angles_allowed[1]|abs(angle_between(tmp_fts$angle[2],tmp_fts$angle[1]))>angles_allowed[2]) 
+    return(data.frame(X=NA,Y=NA,utm.X=NA,utm.Y=NA))
+  location<-triang(tmp_fts$utm.X[1],tmp_fts$utm.Y[1],tmp_fts$angle[1],tmp_fts$utm.X[2],tmp_fts$utm.Y[2],tmp_fts$angle[2])
+  if(anyNA(location))
+    return(data.frame(X=NA,Y=NA,utm.X=NA,utm.Y=NA))
+  location_wgs<-utmtowgs(location[1],location[2],tmp_fts$utm.zone[1])
+  if(nrow(location_wgs)>0){
+    return(data.frame(location_wgs,utm.X=location[1],utm.Y=location[2]))
+  }else{
+    return(data.frame(X=NA,Y=NA,utm.X=NA,utm.Y=NA))
+  }
 }
