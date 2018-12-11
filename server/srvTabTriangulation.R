@@ -10,7 +10,10 @@ observeEvent(input$calc_triangulations,{
                                       time_error_inter_station=input$time_error_inter_station,
                                       angles_allowed=input$slider_angles_allowed,
                                       tri_option=input$tri_option_dd,
-                                      progress=T)
+                                      tm_method=input$tri_tm_method,
+                                      spar=input$spar_in_tri,
+                                      progress=T
+                                      )
   })
   global$triangulation <- cbind(global$triangulation,speed_between_triangulations(global$triangulation$timestamp,global$triangulation$pos.X,global$triangulation$pos.Y))
 })

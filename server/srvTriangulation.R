@@ -2,11 +2,12 @@
 # receivers: data frame of all receivers with station name and position
 # bearings: data frame produced by doa-function.
 # progress: TRUE if function is wrapped in withProgress() call
-triangulate <- function(receivers, bearings, time_error_inter_station=0.6,angles_allowed,tri_option, progress) {
+triangulate <- function(receivers, bearings, time_error_inter_station=0.6,angles_allowed,tri_option,tm_method = "spline",spar, progress) {
   positions<-data.frame()
   #Calc UTM of Stations and add them
   stations<-unique(receivers[,c("Station","Longitude","Latitude")])
   stations_utm<-cbind(stations,utm=wgstoutm(stations[,"Longitude"],stations[,"Latitude"]))
+  
   if(length(unique(stations_utm$utm.zone))>1){
     print("UTM Zone Problem")
   }
@@ -16,15 +17,16 @@ triangulate <- function(receivers, bearings, time_error_inter_station=0.6,angles
   cnt_freq_names=0
   for(i in freq_names){
     tmp_f <- subset(bearings,freq_tag==i)
-    tmp_f <- timematch_inter(tmp_f,time_error_inter_station)
-    timestamps_unique<-unique(tmp_f$ti)
+    tmp_f <- switch(tm_method,
+      tm = timematch_inter(tmp_f,time_error_inter_station),
+      spline = smooth_to_time_match_bearings(tmp_f,receivers,spar))
+    timestamps_unique<-unique(tmp_f$timestamp)
     num_timestamps_unique<-length(timestamps_unique)
-    print(num_timestamps_unique)
     #for each times interval
     for(j in timestamps_unique){
       if(progress)
         setProgress(value=cnt_freq_names)
-      tmp_ft <- subset(tmp_f,ti==j)
+      tmp_ft <- subset(tmp_f,timestamp==j)
       tmp_fts <- merge(tmp_ft,stations_utm,by.x="Station",by.y="Station")
       #calculate positions for two or more bearings in one slot
       if(nrow(tmp_fts)>=2){
@@ -116,7 +118,7 @@ tri_centroid <- function(tmp_fts,angles_allowed){
     e<-combn(nrow(tmp_fts),2)[1,c]
     z<-combn(nrow(tmp_fts),2)[2,c]
     #order using singal strength and take first two
-    tmp_fts<-tmp_fts[order(tmp_fts$strength,decreasing = TRUE, na.last=NA),]
+    #tmp_fts<-tmp_fts[order(tmp_fts$strength,decreasing = TRUE, na.last=NA),]
     if(anyNA(tmp_fts[c(e,z),]))
       next
     if(abs(angle_between(tmp_fts$angle[e],tmp_fts$angle[z]))<angles_allowed[1]|abs(angle_between(tmp_fts$angle[z],tmp_fts$angle[e]))>angles_allowed[2]) 
@@ -155,4 +157,38 @@ tri_two <- function(tmp_fts,angles_allowed){
   }else{
     return(data.frame(X=NA,Y=NA,utm.X=NA,utm.Y=NA))
   }
+}
+
+smooth_to_time_match_bearings <-function(data,receivers,spar_value=0.01, progress=F){
+  smoothed_data<-NULL
+  cnt_recs=0
+  #for each receiver
+  for(i in unique(data$Station)){
+    if (progress) {
+      setProgress(value=cnt_recs)
+      incProgress(amount=0, detail = paste0("Station: ",i))
+    }
+    tmp_r<-subset(data,Station==i)
+    num_tags=length(unique(tmp_r$freq_tag))
+    #for each frequency tag
+    for(l in unique(tmp_r$freq_tag)){
+      tmp_rf<-na.omit(subset(tmp_r,freq_tag==l))
+      if (nrow(tmp_rf)<5) {
+        print(paste0('skipping freq "',l,'" on receiver "',i,'": not enough signals (',nrow(tmp_rf),')'))
+        next
+      }
+      time_seq<-unique(c(round(tmp_rf$timestamp))) #,round(tmp_rf$timestamp)+1,round(tmp_rf$timestamp)-1)
+      smoothed<-data.frame(angle=predict(
+        smooth.spline(tmp_rf$timestamp,tmp_rf$angle,spar=spar_value),
+        as.numeric(time_seq))$y,
+        timestamp=time_seq,
+        Station=i,
+        freq_tag=l,stringsAsFactors = F)
+      smoothed_data<-rbind(smoothed_data,smoothed)
+      if(progress)
+        incProgress(amount=1/num_tags)
+    }
+    cnt_recs<-cnt_recs+1
+  }
+  return(smoothed_data)
 }

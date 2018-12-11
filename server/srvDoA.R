@@ -151,10 +151,10 @@ doa <- function(signals, receivers, live_mode=FALSE, live_update_interval=15, pr
       doa_internal(data, time_to_look_for, progress,dBLoss=input$dBLoss,doa_approx=input$doa_option_approximation)
     })
   else
-    doa_internal(data, time_to_look_for, progress)
+    doa_internal(data, time_to_look_for, doa_approx="automatic", progress=F)
 }
 
-doa_internal <- function(data, time_to_look_for, dBLoss=14,doa_approx="automatic",progress=F) {
+doa_internal <- function(data, time_to_look_for, dBLoss=14, doa_approx="automatic", progress=F) {
   tmp_angles<-NULL
   cnt_timestamp=0
   for(t in time_to_look_for){

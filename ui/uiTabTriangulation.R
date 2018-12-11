@@ -5,7 +5,9 @@ tabPanel("Triangulation",
            tabPanel("Settings",
                     sliderInput("slider_angles_allowed","Angles allowed",0,180,c(10,170)),
                     numericInput("time_error_inter_station","Time Error Inter Station",0.6,0,30, step = 0.05),
-                    selectInput("tri_option_dd","Choose Triangulation Method", choices = c("centroid","two_strongest"))
+                    selectInput("tri_option_dd","Choose Triangulation Method", choices = c("centroid","two_strongest")),
+                    selectInput("tri_tm_method","Choose Time Match Methold", choices = c("tm","spline")),
+                    sliderInput("spar_in_tri","Spar for smooth",0,1,value=0.1)
            ),
            tabPanel("Filters",
                     actionButton("filter_speed","Distance Filter"),

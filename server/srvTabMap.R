@@ -1,5 +1,16 @@
 ############ srvTabMap.R ############
 
+antennae_cones<-reactive({
+  calculate_antennae_cones(global$receivers)
+})
+
+#
+observe({
+  req(global$bearing)
+  updateSliderInput(session,"map_choose_single_data_set",min = 1,max = nrow(global$bearing))
+})
+
+
 # render map and add stations
 output$map <- renderLeaflet({
   req(global$receivers)
@@ -23,6 +34,7 @@ output$map_signal_select_prop<-renderText(
     paste0("Date and Time: ", selected_time())
   }
 )
+
 
 miniplot_base<-reactive({
   if(input$map_activate_single_data){
@@ -53,14 +65,14 @@ observe({
 color_palette <- reactive({
   pal <- colorNumeric(
     palette = "Reds",
-    domain = sorted_data()$max_signal,
+    domain = filtered_data()$max_signal,
     reverse = FALSE)
   pal
 })
 
 selected_time <- reactive({
   req((input$map_choose_single_data_set))
-  req(global$bearing)
+  req(tm_signal_data())
   tmp<-unique(tm_signal_data()$timestamp)
   rv<-NULL
   if(!input$app_live_mode){
@@ -84,19 +96,6 @@ observeEvent(input$update_map,{
                                      group = "triangulations",
                                      color=pal(global$triangulation$timestamp)
                                      )
-})
-
-tm_signal_data<- reactive({
-  req(filtered_data())
-  tmp<-time_match_signals(filtered_data(),input$intra_station_time_error, T)
-  #no frequency tag included!!!
-  return(timematch_inter(tmp,input$time_error_inter_station))
-})
-
-tm_bearing_data<- reactive({
-  req(global$bearing)
-  #no frequency tag included!!!
-  return(timematch_inter(global$bearing,input$time_error_inter_station))
 })
 
 observe({
@@ -130,11 +129,6 @@ observe({
   }
 })
 
-sorted_data <- reactive({
-  if(is.null(global$bearing)) return(NULL)
-  global$bearing[order(global$bearing$timestamp),]
-})
-
 # creates basic map
 map <- reactive({
   l<-leaflet() %>%
@@ -158,13 +152,21 @@ map <- reactive({
 observe({
   req(leafletProxy("map"))
   req((global$receivers))
-  req((sorted_data()))
+  req((filtered_data()))
   leafletProxy("map") %>% 
     clearControls() %>%
-    addAntennaeCones() %>% 
-    addLegend(position="topleft",   
-              pal=color_palette(),
-              values=sorted_data()$strength,
-              title="SNR"
-    )
+    addAntennaeCones()
+})
+
+tm_signal_data<- eventReactive(input$map_activate_single_data,{
+  req(filtered_data())
+  tmp<-time_match_signals(filtered_data(),input$intra_station_time_error, T)
+  #no frequency tag included!!!
+  return(timematch_inter(tmp,input$time_error_inter_station))
+})
+
+tm_bearing_data<- eventReactive(input$map_activate_single_data,{
+  req(global$bearing)
+  #no frequency tag included!!!
+  return(timematch_inter(global$bearing,input$time_error_inter_station))
 })

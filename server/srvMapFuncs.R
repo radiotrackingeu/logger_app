@@ -150,10 +150,6 @@ calculate_antennae_cones <- function(receivers) {
   return(cones)
 }
 
-antennae_cones<-reactive({
-  calculate_antennae_cones(global$receivers)
-})
-
 # calculates corner coordinates of antenna reception area
 calculate_cone_corners<-function(x,y,dir,length,deg){
   # first convert to utm
