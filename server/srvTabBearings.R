@@ -24,7 +24,7 @@ correction_list<-reactive({
 calculate_bearings_spline <- function (filtered_data, receivers, spar_value, live_mode, live_update_interval, progress=F) {
   d<-NULL
   withProgress(min=0, max=length(unique(filtered_data$receiver)), value=0, message="Matching timestamps...", expr={
-    d <- smooth_to_time_match(filtered_data,receivers,spar_value, progress)
+    d <- smooth_to_time_match(filtered_data,spar_value, progress)
   })
   b <- doa(d, receivers, live_mode, live_update_interval, progress)
   return(b)
