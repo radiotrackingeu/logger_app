@@ -98,7 +98,7 @@ time_match_signals <- function(data,station_time_error=0.3, progress=F){
   return(matched_data)
 }
 
-smooth_to_time_match <-function(data,receivers,spar_value=0.01, progress=F){
+smooth_to_time_match <-function(data,spar_value=0.01, progress=F){
   smoothed_data<-NULL
   cnt_recs=0
     #for each receiver

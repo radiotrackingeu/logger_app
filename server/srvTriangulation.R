@@ -2,7 +2,7 @@
 # receivers: data frame of all receivers with station name and position
 # bearings: data frame produced by doa-function.
 # progress: TRUE if function is wrapped in withProgress() call
-triangulate <- function(receivers, bearings, time_error_inter_station=0.6,angles_allowed,tri_option,tm_method = "spline",spar, progress) {
+triangulate <- function(receivers, bearings, time_error_inter_station=0.6,angles_allowed,tri_option,tm_method = "spline",spar=0.01, progress) {
   positions<-data.frame()
   #Calc UTM of Stations and add them
   stations<-unique(receivers[,c("Station","Longitude","Latitude")])
