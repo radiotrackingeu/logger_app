@@ -1,6 +1,7 @@
 ############ srvTabMap.R ############
 
 antennae_cones<-reactive({
+  req(global$receivers)
   calculate_antennae_cones(global$receivers)
 })
 
@@ -49,7 +50,8 @@ output$map_miniplot<-renderPlot({
 })
 
 
-observe({
+observeEvent(input$update_map,{
+  leafletProxy("map") %>% addAntennaeCones(antennae_cones())
   if(!input$select_offline_map){
     print("Use offline Maps")
     leafletProxy("map") %>% addTiles(
@@ -153,6 +155,7 @@ observe({
   req(leafletProxy("map"))
   req((global$receivers))
   req((filtered_data()))
+  req(antennae_cones())
   leafletProxy("map") %>% 
     clearControls() %>%
     addAntennaeCones(antennae_cones())
