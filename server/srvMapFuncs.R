@@ -1,7 +1,11 @@
 # adds the cone outline to antennae on given map.
 addAntennaeCones<- function(m, cones) {
   for(name in names(cones)) {
-    m<-m %>% addPolygons(group="antennae_cones", lng=cones[[name]]$x, lat=cones[[name]]$y, fill=FALSE, opacity=0.5, stroke=TRUE, weight=1)
+    if(length(cones[[name]])>1){#group="antennae_cones",
+      m<-m %>% addPolygons(lng=cones[[name]]$x, lat=cones[[name]]$y, fill=FALSE, opacity=0.5, stroke=TRUE, weight=1)
+    }else{
+      m<-m %>% addCircles(lng=cones[[name]]$x, lat=cones[[name]]$y, fill=FALSE, opacity=0.5, stroke=TRUE, weight=1, radius =10)
+    }
   }
   return(m)
 }
@@ -139,13 +143,17 @@ calculate_antennae_cones <- function(receivers) {
   if (is.null(receivers)) 
     return (cones)
   for (a in seq_len(nrow(receivers))) {
-    x<-receivers[a,]$Longitude
-    y<-receivers[a,]$Latitude
-    direction<-receivers[a,]$Orientation
-    bw<-45
-    len<-100
-    wgs<-calculate_cone_corners(x,y,direction,len,bw) # Many warnings...
-    cones[[receivers[a,]$Name]]<-list(x=c(wgs$X,x), y=c(wgs$Y,y))
+    if(!any(is.na(receivers[a,]))){
+      x<-receivers[a,]$Longitude
+      y<-receivers[a,]$Latitude
+      direction<-receivers[a,]$Orientation
+      bw<-45
+      len<-100
+      wgs<-calculate_cone_corners(x,y,direction,len,bw) # Many warnings...
+      cones[[receivers[a,]$Name]]<-list(x=c(wgs$X,x), y=c(wgs$Y,y))
+    }else{
+      cones[[receivers[a,]$Name]]<-list(x=receivers[a,]$Longitude, y=receivers[a,]$Latitude)
+    }
   }
   return(cones)
 }

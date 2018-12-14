@@ -5,7 +5,7 @@
 triangulate <- function(receivers, bearings, time_error_inter_station=0.6,angles_allowed,tri_option,tm_method = "spline",spar=0.01, progress) {
   positions<-data.frame()
   #Calc UTM of Stations and add them
-  stations<-unique(receivers[,c("Station","Longitude","Latitude")])
+  stations<-na.omit(unique(receivers[,c("Station","Longitude","Latitude")]))
   stations_utm<-cbind(stations,utm=wgstoutm(stations[,"Longitude"],stations[,"Latitude"]))
   
   if(length(unique(stations_utm$utm.zone))>1){
@@ -43,7 +43,9 @@ triangulate <- function(receivers, bearings, time_error_inter_station=0.6,angles
     }
     cnt_freq_names<-cnt_freq_names+1
   }
-  return(positions[order(positions$timestamp),])
+  if(nrow(positions)>0){
+    return(positions[order(positions$timestamp),])
+  }
 }
 
 #function to match times between two or more station
