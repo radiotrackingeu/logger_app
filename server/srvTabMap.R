@@ -155,7 +155,7 @@ observe({
   req((filtered_data()))
   leafletProxy("map") %>% 
     clearControls() %>%
-    addAntennaeCones()
+    addAntennaeCones(antennae_cones())
 })
 
 tm_signal_data<- eventReactive(input$map_activate_single_data,{
