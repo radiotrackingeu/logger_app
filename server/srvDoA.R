@@ -73,7 +73,7 @@ time_match_signals <- function(data,station_time_error=0.3, progress=F){
         tmp_sf<-tmp_sf[order(tmp_sf$timestamp),]
         #calculate timedifference between the loggings
         tmp_sf$td<-c(0,diff(tmp_sf$timestamp))
-        tmp_s$ti <- NA
+        tmp_s$ti <- as.POSIXct(NA, origin = "1970-01-01")
         gc<-0
         tmp_sf$ti[1]<-tmp_sf$timestamp[1]
         for(i in 2:nrow(tmp_sf)){
