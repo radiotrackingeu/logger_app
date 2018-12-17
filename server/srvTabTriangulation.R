@@ -7,6 +7,7 @@ observeEvent(input$calc_triangulations,{
   withProgress(value=0, min = 0, max = length(unique(global$bearing$freq_tag)), message="Triangulating... ", expr = {
     global$triangulation<-triangulate(global$receivers,
                                       global$bearing,
+                                      only_one=F,
                                       time_error_inter_station=input$time_error_inter_station,
                                       angles_allowed=input$slider_angles_allowed,
                                       tri_option=input$tri_option_dd,

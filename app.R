@@ -33,7 +33,7 @@ ui <- tagList(
   useShinyjs(),
   includeCSS("style.css"),
   extendShinyjs("script.js"),
-  navbarPage(id = "navbar", "rteu-logger-app v1.2",
+  navbarPage(id = "navbar", "rteu-logger-app v1.3",
     source("ui/uiTabData.R")$value,
     source("ui/uiTabLive.R")$value,
     source("ui/uiTabFilter.R")$value,
