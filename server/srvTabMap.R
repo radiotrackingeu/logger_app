@@ -38,12 +38,14 @@ output$map_signal_select_prop<-renderText(
 
 
 miniplot_base<-reactive({
+  req(global$bearing)
   if(input$map_activate_single_data){
     ggplot(global$bearing)+geom_point(aes(timestamp,angle,color=Station))
   }
 })
 
 output$map_miniplot<-renderPlot({
+  req(selected_time())
   if(input$map_activate_single_data){
     miniplot_base() + geom_vline(xintercept=as.numeric(selected_time()))
   }
@@ -65,6 +67,7 @@ observeEvent(input$update_map,{
 })
 
 color_palette <- reactive({
+  req(filtered_data())
   pal <- colorNumeric(
     palette = "Reds",
     domain = filtered_data()$max_signal,
@@ -163,7 +166,7 @@ observe({
 
 tm_signal_data<- eventReactive(input$map_activate_single_data,{
   req(filtered_data())
-  tmp<-time_match_signals(filtered_data(),input$intra_station_time_error, T)
+  tmp<-time_match_signals(filtered_data(),input$intra_station_time_error, F)
   #no frequency tag included!!!
   return(timematch_inter(tmp,input$time_error_inter_station))
 })

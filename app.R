@@ -11,7 +11,9 @@ required_packages<-c("shiny",
                      "shinycssloaders",
                      "RMySQL",
                      "plotKML",
-                     "geosphere"
+                     "geosphere",
+                     "foreach",
+                     "doParallel"
                      )
 
 # try to load packages and install missing ones

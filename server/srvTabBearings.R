@@ -34,7 +34,7 @@ calculate_bearings_spline <- function (filtered_data, receivers, spar_value, liv
 calculate_bearings_time_match <- function(filtered_data, receivers, station_time_error, live_mode, live_update_interval, progress=F) {
   d<-NULL
   withProgress(min=0, max=length(unique(filtered_data$station)), value=0, message="Matching timestamps...", expr={
-    d <- time_match_signals(filtered_data, station_time_error, progress)
+    d <- time_match_signals(filtered_data, station_time_error, progress=F)
   })
   b <- doa(d, receivers, live_mode, live_update_interval, progress)
   return(b)
@@ -49,7 +49,7 @@ observeEvent(input$start_doa,{
            tmp <- calculate_bearings_time_match(filtered_data(), global$receivers, input$intra_station_time_error, global$live_mode, global$live_update_interval, T)
          }
          )
-  global$bearing<-subset(tmp, antennas>=input$min_doa_antennas)
+  global$bearing<-tmp#subset(tmp, antennas>=input$min_doa_antennas)
 })
 
 

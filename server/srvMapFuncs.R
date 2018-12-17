@@ -185,22 +185,29 @@ calculate_cone_corners<-function(x,y,dir,length,deg){
 # in 2 numeric
 # out data.frame
 wgstoutm<-function(x,y){
-  zone<-(floor((x + 180)/6) %% 60) + 1
-  #xy <- data.frame(ID = 1:length(x), X = x, Y = y)
-  xy <- data.frame(cbind("X"=x,"Y"=y))
-  coordinates(xy) <- c("X", "Y")
-  proj4string(xy) <- CRS("+proj=longlat +datum=WGS84")  ## for example
-  res <- spTransform(xy, CRS(paste("+proj=utm +zone=",zone," ellps=WGS84",sep='')))
-  return(cbind.data.frame(X=res$X,Y=res$Y,zone))
+  tmp<-data.frame()
+  for(i in 1:length(x)){
+    zone<-(floor((x[i] + 180)/6) %% 60) + 1
+    xy <- data.frame(cbind("X"=x[i],"Y"=y[i]))
+    coordinates(xy) <- c("X", "Y")
+    proj4string(xy) <- CRS("+proj=longlat +datum=WGS84")  ## for example
+    res <- spTransform(xy, CRS(paste("+proj=utm +zone=",zone," ellps=WGS84",sep='')))
+    tmp<-rbind(tmp,cbind.data.frame(X=res$X,Y=res$Y,zone))
+  }
+  return(tmp)
 }
 
 # UTM to WGS conversion
 
 utmtowgs<-function(x,y,zone){
-  #xy <- data.frame(ID = 1:length(x), X = x, Y = y)
-  xy <- data.frame(cbind("X"=x,"Y"=y))
-  coordinates(xy) <- c("X", "Y")
-  proj4string(xy) <- CRS(paste0("+proj=utm +zone=",zone," +datum=WGS84"))  ## for example
-  res <- spTransform(xy, CRS("+proj=longlat +datum=WGS84"))
-  return(as.data.frame(res))
+  tmp<-data.frame()
+  for(i in 1:length(x)){
+    xy <- data.frame(cbind("X"=x[i],"Y"=y[i]))
+    coordinates(xy) <- c("X", "Y")
+    proj4string(xy) <- CRS(paste0("+proj=utm +zone=",zone[i]," +datum=WGS84"))  ## for example
+    res <- spTransform(xy, CRS("+proj=longlat +datum=WGS84"))
+    tmp<-rbind(tmp,as.data.frame(res))
+  }
+  
+  return(tmp)
 }

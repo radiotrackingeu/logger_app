@@ -2,10 +2,13 @@
 # receivers: data frame of all receivers with station name and position
 # bearings: data frame produced by doa-function.
 # progress: TRUE if function is wrapped in withProgress() call
-triangulate <- function(receivers, bearings, time_error_inter_station=0.6,angles_allowed,tri_option,tm_method = "spline",spar=0.01, progress) {
+triangulate <- function(receivers, bearings, only_one=F,time_error_inter_station=0.6,angles_allowed,tri_option,tm_method = "spline",spar=0.01, progress=F) {
+  numCores <- detectCores()
+  registerDoParallel(numCores)
   positions<-data.frame()
   #Calc UTM of Stations and add them
   stations<-na.omit(unique(receivers[,c("Station","Longitude","Latitude")]))
+  stations<-stations[!duplicated(stations$Station),]
   stations_utm<-cbind(stations,utm=wgstoutm(stations[,"Longitude"],stations[,"Latitude"]))
   
   if(length(unique(stations_utm$utm.zone))>1){
@@ -15,36 +18,45 @@ triangulate <- function(receivers, bearings, time_error_inter_station=0.6,angles
   freq_names=unique(bearings$freq_tag)
   num_freq_names=length(freq_names)
   cnt_freq_names=0
+  result<-NULL
   for(i in freq_names){
     tmp_f <- subset(bearings,freq_tag==i)
     tmp_f <- switch(tm_method,
-      tm = timematch_inter(tmp_f,time_error_inter_station),
-      spline = smooth_to_time_match_bearings(tmp_f,receivers,spar))
+                    tm = timematch_inter(tmp_f,time_error_inter_station),
+                    spline = smooth_to_time_match_bearings(tmp_f,receivers,spar))
     timestamps_unique<-unique(tmp_f$timestamp)
     num_timestamps_unique<-length(timestamps_unique)
     #for each times interval
-    for(j in timestamps_unique){
-      if(progress)
-        setProgress(value=cnt_freq_names)
-      tmp_ft <- subset(tmp_f,timestamp==j)
-      tmp_fts <- merge(tmp_ft,stations_utm,by.x="Station",by.y="Station")
-      #calculate positions for two or more bearings in one slot
-      if(nrow(tmp_fts)>=2){
-        positions<-rbind(positions,
-                         cbind(
-                           timestamp=j,
-                           freq_tag=i,
-                           pos=switch(tri_option,
+    split<-foreach(j=timestamps_unique,
+                   .export=c("tri_one","tri_two","tri_centroid","utmtowgs","coordinates","angle_between","triang"),
+                   .packages=c("sp"),
+                   .combine=rbind,
+                   .inorder=F) %dopar% {
+                     if(progress)
+                       setProgress(value=cnt_freq_names)
+                     tmp_ft <- subset(tmp_f,timestamp==j)
+                     tmp_fts <- merge(tmp_ft,stations_utm,by.x="Station",by.y="Station")
+                     #calculate positions for two or more bearings in one slot
+                     if(nrow(tmp_fts)==1&only_one){
+                       positions<-cbind(timestamp=j,freq_tag=i,pos=tri_one(tmp_fts))
+                     }
+                     if(nrow(tmp_fts)>=2){
+                       positions<-cbind(
+                         timestamp=j,
+                         freq_tag=i,
+                         pos=switch(tri_option,
                                     centroid =  tri_centroid(tmp_fts,angles_allowed),
                                     two_strongest = tri_two(tmp_fts,angles_allowed)
-                                    )
-                           ))
-      }
-    }
+                         )
+                       )
+                     }
+                     positions
+                   }
+    result<-rbind(split,result)
     cnt_freq_names<-cnt_freq_names+1
   }
-  if(nrow(positions)>0){
-    return(positions[order(positions$timestamp),])
+  if(nrow(result)>0){
+    return(result[order(result$timestamp),])
   }
 }
 
@@ -131,8 +143,8 @@ tri_centroid <- function(tmp_fts,angles_allowed){
     tmp_positions<-rbind(tmp_positions,cbind(utm.x=location[1],utm.y=location[2],utm.zone=tmp_fts$utm.zone[1]))
   }
   if(nrow(tmp_positions)>0){
-    x<-mean(tmp_positions$utm.x)
-    y<-mean(tmp_positions$utm.y)
+    x<-mean(tmp_positions$utm.x,na.rm = T)
+    y<-mean(tmp_positions$utm.y,na.rm = T)
     zone<-tmp_positions$utm.zone[1]
     location_wgs<-utmtowgs(x,y,zone)
     return(data.frame(location_wgs,utm.X=x,utm.Y=y))
@@ -140,7 +152,12 @@ tri_centroid <- function(tmp_fts,angles_allowed){
     return(data.frame(X=NA,Y=NA,utm.X=NA,utm.Y=NA))
   }
 }
-
+tri_one <- function(tmp_fts){
+  str_mod<-50000
+  location<-data.frame(utm.X=tmp_fts$utm.X+cospi((90-tmp_fts$angle)/180)/tmp_fts$strength*str_mod, utm.Y=tmp_fts$utm.Y+sinpi((90-tmp_fts$angle)/180)/tmp_fts$strength*str_mod)
+  location_wgs<-utmtowgs(location$utm.X,location$utm.Y,tmp_fts$utm.zone)
+  return(data.frame(location_wgs,location))
+}
 
 tri_two <- function(tmp_fts,angles_allowed){
   tmp_positions<-data.frame()
@@ -185,6 +202,10 @@ smooth_to_time_match_bearings <-function(data,receivers,spar_value=0.01, progres
         as.numeric(time_seq))$y,
         timestamp=time_seq,
         Station=i,
+        strength=predict(
+          smooth.spline(tmp_rf$timestamp,tmp_rf$strength,spar=spar_value),
+          as.numeric(time_seq))$y,
+        antennas=0,
         freq_tag=l,stringsAsFactors = F)
       smoothed_data<-rbind(smoothed_data,smoothed)
       if(progress)
