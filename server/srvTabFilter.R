@@ -3,6 +3,7 @@
 # update UIs
 
 observe({
+  req(pre_filtered_data())
   validate(
    need(pre_filtered_data(), "Please provide logger data.")
   )
