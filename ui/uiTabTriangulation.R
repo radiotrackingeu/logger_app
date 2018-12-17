@@ -7,7 +7,8 @@ tabPanel("Triangulation",
                     numericInput("time_error_inter_station","Time Error Inter Station",0.6,0,30, step = 0.05),
                     selectInput("tri_option_dd","Choose Triangulation Method", choices = c("centroid","two_strongest")),
                     selectInput("tri_tm_method","Choose Time Match Methold", choices = c("tm","spline")),
-                    sliderInput("spar_in_tri","Spar for smooth",0,1,value=0.1)
+                    sliderInput("spar_in_tri","Spar for smooth",0,1,value=0.1),
+                    checkboxInput("one_antenna_triang","One antenna gives a rough point using signal strength")
            ),
            tabPanel("Filters",
                     actionButton("filter_speed","Distance Filter"),
@@ -19,6 +20,11 @@ tabPanel("Triangulation",
                     numericInput("compare_single_y", "X to compare to",50.841835),
                     textOutput("single_distance"),
                     plotOutput("one_distance")
+           ),
+           tabPanel("Compare to serveral points",
+                    selectInput("lng_to_compare","Choose Longitude Collumn",choices = NULL),
+                    selectInput("lat_to_compare","Choose Latitude Collumn",choices = NULL),
+                    selectInput("time_to_compare","Choose Time Collumn",choices = NULL)
            ),
            tabPanel("Distance and Speed",
                     plotOutput("distance_btw_points")

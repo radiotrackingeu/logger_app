@@ -7,9 +7,9 @@ observeEvent(input$calc_triangulations,{
   cl <- parallel::makeCluster(detectCores())
   registerDoSNOW(cl)
   withProgress(value=0, min = 0, max = length(unique(global$bearing$freq_tag)), message="Triangulating... ", expr = {
-    global$triangulation<-triangulate(global$receivers,
-                                      global$bearing,
-                                      only_one=F,
+    global$triangulation<-triangulate(na.omit(global$receivers),
+                                      na.omit(global$bearing),
+                                      only_one=input$one_antenna_triang,
                                       time_error_inter_station=input$time_error_inter_station,
                                       angles_allowed=input$slider_angles_allowed,
                                       tri_option=input$tri_option_dd,
