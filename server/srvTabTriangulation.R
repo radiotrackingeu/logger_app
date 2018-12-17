@@ -1,5 +1,12 @@
 ### srvTabTriangulations.R
 
+#observe 
+observe({
+  req(gpx_data())
+  updateSelectInput(session,"lng_to_compare",choices = names(gpx_data()))
+  updateSelectInput(session,"lat_to_compare",choices = names(gpx_data()))
+  updateSelectInput(session,"time_to_compare",choices = names(gpx_data()))
+})
 
 # upon button starts triangulations with a progress Bar
 observeEvent(input$calc_triangulations,{

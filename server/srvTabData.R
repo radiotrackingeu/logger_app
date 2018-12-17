@@ -261,6 +261,10 @@ gpx_data <- reactive({
              spdf<-readOGR(input$coordinates_filepath$datapath)
              mytrack<-spTransform(spdf,CRS("+init=epsg:4326"))
            }
+           if(input$misc_type_input == "readcsv" && !is.null(input$coordinates_filepath)) {
+             spdf<-read.csv(input$coordinates_filepath$datapath)
+             mytrack<-spdf
+           }
          }
   )
   mytrack
