@@ -3,9 +3,6 @@
 # bearings: data frame produced by doa-function.
 # progress: TRUE if function is wrapped in withProgress() call
 triangulate <- function(receivers, bearings, only_one=F,time_error_inter_station=0.6,angles_allowed,tri_option,tm_method = "spline",spar=0.01, progress=F) {
-  progress=F
-  numCores <- detectCores()
-  registerDoParallel(numCores)
   positions<-data.frame()
   #Calc UTM of Stations and add them
   stations<-na.omit(unique(receivers[,c("Station","Longitude","Latitude")]))

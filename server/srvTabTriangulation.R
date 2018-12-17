@@ -4,6 +4,8 @@
 # upon button starts triangulations with a progress Bar
 observeEvent(input$calc_triangulations,{
   req(global$bearing)
+  cl <- parallel::makeCluster(detectCores())
+  registerDoSNOW(cl)
   withProgress(value=0, min = 0, max = length(unique(global$bearing$freq_tag)), message="Triangulating... ", expr = {
     global$triangulation<-triangulate(global$receivers,
                                       global$bearing,
@@ -17,6 +19,7 @@ observeEvent(input$calc_triangulations,{
                                       )
   })
   global$triangulation <- cbind(global$triangulation,speed_between_triangulations(global$triangulation$timestamp,global$triangulation$pos.X,global$triangulation$pos.Y))
+  stopCluster(cl)
 })
 
 # filters the data using the distance filter

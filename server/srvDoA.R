@@ -155,16 +155,11 @@ doa <- function(signals, receivers,dBLoss=14, live_mode=FALSE, live_update_inter
 }
 
 doa_internal <- function(data, time_to_look_for, dBLoss=14, doa_approx="automatic", progress=F) {
-  numCores <- detectCores()
-  registerDoParallel(numCores)
-  progress=F
-  tmp_angles<-NULL
   cnt_timestamp=0
   split<-foreach(t=time_to_look_for,
           .export=c("angle_between","calc_angle"),
           .combine=rbind,
           .inorder=F) %dopar% {
-            tmp_angles<-NULL
     if (progress)
       setProgress(value=cnt_timestamp, message = "Computing Bearings... ")
     #build subset for the timestamp

@@ -13,7 +13,8 @@ required_packages<-c("shiny",
                      "plotKML",
                      "geosphere",
                      "foreach",
-                     "doParallel"
+                     "doParallel",
+                     "doSNOW"
                      )
 
 # try to load packages and install missing ones
@@ -66,6 +67,7 @@ server <- function(input, output, session) {
 
   onStop(function() {
     close_all_dbs()
+    stopCluster(cl)
   })
 }
 

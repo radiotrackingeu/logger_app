@@ -41,6 +41,8 @@ calculate_bearings_time_match <- function(filtered_data, receivers, station_time
 }
 
 observeEvent(input$start_doa,{
+  cl <- parallel::makeCluster(detectCores())
+  registerDoSNOW(cl)
   switch(input$time_matching_method,
          spline = {
            tmp <- calculate_bearings_spline(filtered_data(),global$receivers,input$spar_in, global$live_mode, global$live_update_interval, T)
@@ -50,6 +52,7 @@ observeEvent(input$start_doa,{
          }
          )
   global$bearing<-tmp#subset(tmp, antennas>=input$min_doa_antennas)
+  stopCluster(cl)
 })
 
 
