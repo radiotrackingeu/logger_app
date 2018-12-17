@@ -135,6 +135,7 @@ doa <- function(signals, receivers,dBLoss=14, live_mode=FALSE, live_update_inter
   data<-merge(signals,receivers,by.x="receiver",by.y="Name")
   # time_to_look_for<-NULL
   #for each timestamp of the smoothed data
+  progress = F
   if(!live_mode){
     time_to_look_for<-unique(data$timestamp)
   }else{
