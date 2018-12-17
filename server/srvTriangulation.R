@@ -3,6 +3,7 @@
 # bearings: data frame produced by doa-function.
 # progress: TRUE if function is wrapped in withProgress() call
 triangulate <- function(receivers, bearings, only_one=F,time_error_inter_station=0.6,angles_allowed,tri_option,tm_method = "spline",spar=0.01, progress=F) {
+  progress=F
   positions<-data.frame()
   #Calc UTM of Stations and add them
   stations<-na.omit(unique(receivers[,c("Station","Longitude","Latitude")]))
@@ -212,4 +213,37 @@ smooth_to_time_match_bearings <-function(data,receivers,spar_value=0.01, progres
     cnt_recs<-cnt_recs+1
   }
   return(smoothed_data)
+}
+
+
+centroid_fun <- function(tri_data,time,s_time){
+  zone<-(floor((tri_data$pos.X[1] + 180)/6) %% 60) + 1
+  min_time<-min(tri_data$timestamp)
+  max_time<-max(tri_data$timestamp)
+  time_seq<-seq(round(min_time,"mins")-60,round(max_time,"mins")+60,by=60*time)
+  utm<-foreach(i=time_seq,
+               .combine=rbind,
+               .inorder=F) %dopar% {
+                 tmp<-subset(tri_data,timestamp>=i&timestamp<i+60*s_time)
+                 if(nrow(tmp)>0){
+                   data.frame(timestamp=i,
+                              freq_tag=tmp$freq_tag[1],
+                              pos.utm.X=mean(tmp$pos.utm.X),
+                              pos.utm.Y=mean(tmp$pos.utm.Y))
+                 }
+                 
+               }
+  utm$utm.zone<-zone
+  location_wgs<-utmtowgs(utm$pos.utm.X,utm$pos.utm.Y,utm$utm.zone)
+  return(cbind(utm,pos=location_wgs))
+}
+
+get_closest_line_in_history <- function(x, history){
+  time_diffs <- abs(difftime(x, history))
+  res <- which.min(time_diffs)
+  if (length(res) != 1){
+    return(res[1])
+  }else{
+    return(res)
+  }
 }
