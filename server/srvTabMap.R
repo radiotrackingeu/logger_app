@@ -146,10 +146,10 @@ map <- reactive({
   l<-leaflet() %>%
     addProviderTiles(providers[[input$map_choose]]) %>%
     addMeasure(position = "bottomleft", 
-    primaryLengthUnit = "meters",  
-    primaryAreaUnit = "sqmeters",
-    activeColor = "blue",
-    completedColor = "red") %>% 
+      primaryLengthUnit = "meters",  
+      primaryAreaUnit = "sqmeters",
+      activeColor = "blue",
+      completedColor = "red") %>% 
     addEasyButton(easyButton(
       icon="fa-crosshairs", title="Locate Me",
       onClick=JS("function(btn, map){ map.locate({setView: true}); }"))) %>% 

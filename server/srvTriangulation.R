@@ -61,7 +61,8 @@ triangulate <- function(receivers, bearings, only_one=F,time_error_inter_station
 
 #function to match times between two or more station
 timematch_inter <- function(data,inter_error=0.6){
-  data[complete.cases(data), ]
+  if(nrow(data)==1) return(data)
+  data<-data[complete.cases(data), ]
   tmp_s<-data[order(data$timestamp),]
   tmp_s$td <- c(0,diff(tmp_s$timestamp))
   tmp_s$ti <- NA
@@ -81,6 +82,8 @@ timematch_inter <- function(data,inter_error=0.6){
     }
   }
   tmp_s$timestamp<-as.POSIXct(tmp_s$ti,origin="1970-01-01")
+  tmp_s$ti<-NULL
+  tmp_s$td<-NULL
   return(tmp_s)
 }
 
@@ -216,8 +219,7 @@ smooth_to_time_match_bearings <-function(data,receivers,spar_value=0.01, progres
 }
 
 
-centroid_fun <- function(tri_data,time,s_time){
-  zone<-(floor((tri_data$pos.X[1] + 180)/6) %% 60) + 1
+centroid_fun <- function(tri_data,time,s_time,method="mean"){
   min_time<-min(tri_data$timestamp)
   max_time<-max(tri_data$timestamp)
   time_seq<-seq(round(min_time,"mins")-60,round(max_time,"mins")+60,by=60*time)
@@ -225,15 +227,63 @@ centroid_fun <- function(tri_data,time,s_time){
                .combine=rbind,
                .inorder=F) %dopar% {
                  tmp<-subset(tri_data,timestamp>=i&timestamp<i+60*s_time)
+                 zone<-(floor((tmp$pos.X[1] + 180)/6) %% 60) + 1
                  if(nrow(tmp)>0){
                    data.frame(timestamp=i,
                               freq_tag=tmp$freq_tag[1],
-                              pos.utm.X=mean(tmp$pos.utm.X),
-                              pos.utm.Y=mean(tmp$pos.utm.Y))
+                              pos.utm.X=switch(method,
+                                mean=mean(tmp$pos.utm.X),
+                                median=median(tmp$pos.utm.X)),
+                              pos.utm.Y=switch(method,
+                                               mean=mean(tmp$pos.utm.Y),
+                                               median=median(tmp$pos.utm.Y)),
+                              utm.zone=zone)
                  }
                  
                }
-  utm$utm.zone<-zone
+  location_wgs<-utmtowgs(utm$pos.utm.X,utm$pos.utm.Y,utm$utm.zone)
+  return(cbind(utm,pos=location_wgs))
+}
+
+nigth_day <- function(tri_data){
+  min_time<-as.Date(min(tri_data$timestamp))
+  max_time<-as.Date(max(tri_data$timestamp))
+  time_seq<-seq(min_time,max_time,by="days")
+  utm<-foreach(i=time_seq,
+               .combine=rbind,
+               .inorder=F) %dopar% {
+                 sunrise<-getSunlightTimes(i,lat=tri_data$pos.Y[2],lon=tri_data$pos.X[2])$sunrise
+                 sunset<-getSunlightTimes(i,lat=tri_data$pos.Y[2],lon=tri_data$pos.X[2])$sunset
+                 tmp<-subset(tri_data,timestamp>=sunrise-60*t_error&timestamp<=sunset+60*t_error)
+                 tmp$day_night<-"day"
+               }
+}
+
+
+centroid_roost <- function(tri_data,time="day",t_error=30,method="mean"){
+  min_time<-as.Date(min(tri_data$timestamp))
+  max_time<-as.Date(max(tri_data$timestamp))
+  time_seq<-seq(min_time,max_time,by="days")
+  utm<-foreach(i=time_seq,
+               .combine=rbind,
+               .inorder=F) %dopar% {
+                 sunrise<-getSunlightTimes(i,lat=tri_data$pos.Y[2],lon=tri_data$pos.X[2])$sunrise
+                 sunset<-getSunlightTimes(i,lat=tri_data$pos.Y[2],lon=tri_data$pos.X[2])$sunset
+                 tmp<-subset(tri_data,timestamp>=sunrise-60*t_error&timestamp<=sunset+60*t_error)
+                 zone<-(floor((tmp$pos.X[1] + 180)/6) %% 60) + 1
+                 if(nrow(tmp)>0){
+                   data.frame(timestamp=i,
+                              freq_tag=tmp$freq_tag[1],
+                              pos.utm.X=switch(method,
+                                               mean=mean(tmp$pos.utm.X),
+                                               median=median(tmp$pos.utm.X)),
+                              pos.utm.Y=switch(method,
+                                               mean=mean(tmp$pos.utm.Y),
+                                               median=median(tmp$pos.utm.Y)),
+                              utm.zone=zone)
+                 }
+                 
+               }
   location_wgs<-utmtowgs(utm$pos.utm.X,utm$pos.utm.Y,utm$utm.zone)
   return(cbind(utm,pos=location_wgs))
 }

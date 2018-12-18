@@ -25,7 +25,7 @@ observeEvent(input$calc_triangulations,{
                                       progress=T
                                       )
   })
-  global$triangulation <- cbind(global$triangulation,speed_between_triangulations(global$triangulation$timestamp,global$triangulation$pos.X,global$triangulation$pos.Y))
+  #global$triangulation <- cbind(global$triangulation,speed_between_triangulations(global$triangulation$timestamp,global$triangulation$pos.X,global$triangulation$pos.Y))
   stopCluster(cl)
 })
 
@@ -66,4 +66,15 @@ output$single_distance <- renderText({
   location_wgs<-utmtowgs(x,y,32)
   distances_centroid<-distm(data.frame(pos=location_wgs),data.frame(pos.X=input$compare_single_x,pos.Y=input$compare_single_y))[,1]
   return(paste("Arithmetic Mean:", mean(distances,na.rm=T),"Median:", median(distances,na.rm=T),"Distance to centroid:",distances_centroid))
+})
+
+
+output$tri_filter_map<-renderLeaflet({
+  cl <- parallel::makeCluster(detectCores())
+  registerDoSNOW(cl)
+  req(global$triangulation)
+  tmp<-centroid_fun(na.omit(global$triangulation),input$time_slot,input$time_to_smooth)
+  l<-leaflet()%>%addTiles()%>%addCircles(lng=tmp$pos.X,lat=tmp$pos.Y,col="blue")
+  stopCluster(cl)
+  return(l)
 })
