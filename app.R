@@ -28,7 +28,7 @@ for (package in required_packages) {
 
 #timestamps to be shown with 3 digits
 options(digits.secs = 3)
-options(shiny.maxRequestSize=3000*1024^2)
+options(shiny.maxRequestSize=400000*1024^2)
 
 ui <- tagList(
   useShinyjs(),

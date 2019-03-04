@@ -6,10 +6,10 @@ triangulate <- function(receivers, bearings, only_one=F,time_error_inter_station
   progress=F
   positions<-data.frame()
   #Calc UTM of Stations and add them
-  stations<-na.omit(unique(receivers[,c("Station","Longitude","Latitude")]))
+  stations<-as.data.frame(na.omit(unique(receivers[,c("Station","Longitude","Latitude")])))
   stations<-stations[!duplicated(stations$Station),]
   stations_utm<-cbind(stations,utm=wgstoutm(stations[,"Longitude"],stations[,"Latitude"]))
-  
+
   if(length(unique(stations_utm$utm.zone))>1){
     print("UTM Zone Problem")
   }
@@ -95,7 +95,7 @@ triang <- function(x1,y1,alpha1,x2,y2,alpha2){
   ta2 <- (alpha2%%360)/180*pi
   if(((alpha1-alpha2)%%180)==0){#print("No triangulation possible: all three points are on one line")
     return(c(NA,NA))}
-  
+
   # Findinf Intersection Using solver
   b<-c(x2-x1,y2-y1)
   a1<-c(sin(ta1),cos(ta1))
@@ -104,7 +104,7 @@ triang <- function(x1,y1,alpha1,x2,y2,alpha2){
   l<-solve(a,b)
   px<-x1+l[1]*sin(ta1)
   py<-y1+l[1]*cos(ta1)
-  
+
   if(l[2]>0&l[1]>0)
   {
     return(c(px,py))
@@ -117,7 +117,7 @@ triang <- function(x1,y1,alpha1,x2,y2,alpha2){
 # calculates theoretical bat speed between two triangulations
 # vectorized
 speed_between_triangulations <- function(timestamp,longitude,latitude){
-  tmp<-data.frame(timediff = c(0,as.numeric(diff(timestamp))), 
+  tmp<-data.frame(timediff = c(0,as.numeric(diff(timestamp))),
                   distance = distm(data.frame(longitude,latitude))[,1]
   )
   tmp$speed = tmp$distance/tmp$timediff
@@ -125,7 +125,7 @@ speed_between_triangulations <- function(timestamp,longitude,latitude){
 }
 
 #requires one time and one frequency
-# angle 
+# angle
 # utm.X
 # utm.Y
 tri_centroid <- function(tmp_fts,angles_allowed){
@@ -137,7 +137,7 @@ tri_centroid <- function(tmp_fts,angles_allowed){
     #tmp_fts<-tmp_fts[order(tmp_fts$strength,decreasing = TRUE, na.last=NA),]
     if(anyNA(tmp_fts[c(e,z),]))
       next
-    if(abs(angle_between(tmp_fts$angle[e],tmp_fts$angle[z]))<angles_allowed[1]|abs(angle_between(tmp_fts$angle[z],tmp_fts$angle[e]))>angles_allowed[2]) 
+    if(abs(angle_between(tmp_fts$angle[e],tmp_fts$angle[z]))<angles_allowed[1]|abs(angle_between(tmp_fts$angle[z],tmp_fts$angle[e]))>angles_allowed[2])
       next
     location<-triang(tmp_fts$utm.X[e],tmp_fts$utm.Y[e],tmp_fts$angle[e],tmp_fts$utm.X[z],tmp_fts$utm.Y[z],tmp_fts$angle[z])
     if(anyNA(location))
@@ -167,7 +167,7 @@ tri_two <- function(tmp_fts,angles_allowed){
   tmp_fts<-tmp_fts[order(tmp_fts$strength,decreasing = TRUE, na.last=NA),]
   if(anyNA(tmp_fts))
     return(data.frame(X=NA,Y=NA,utm.X=NA,utm.Y=NA))
-  if(abs(angle_between(tmp_fts$angle[1],tmp_fts$angle[2]))<angles_allowed[1]|abs(angle_between(tmp_fts$angle[2],tmp_fts$angle[1]))>angles_allowed[2]) 
+  if(abs(angle_between(tmp_fts$angle[1],tmp_fts$angle[2]))<angles_allowed[1]|abs(angle_between(tmp_fts$angle[2],tmp_fts$angle[1]))>angles_allowed[2])
     return(data.frame(X=NA,Y=NA,utm.X=NA,utm.Y=NA))
   location<-triang(tmp_fts$utm.X[1],tmp_fts$utm.Y[1],tmp_fts$angle[1],tmp_fts$utm.X[2],tmp_fts$utm.Y[2],tmp_fts$angle[2])
   if(anyNA(location))
@@ -239,7 +239,7 @@ centroid_fun <- function(tri_data,time,s_time,method="mean"){
                                                median=median(tmp$pos.utm.Y)),
                               utm.zone=zone)
                  }
-                 
+
                }
   location_wgs<-utmtowgs(utm$pos.utm.X,utm$pos.utm.Y,utm$utm.zone)
   return(cbind(utm,pos=location_wgs))
@@ -282,7 +282,7 @@ centroid_roost <- function(tri_data,time="day",t_error=30,method="mean"){
                                                median=median(tmp$pos.utm.Y)),
                               utm.zone=zone)
                  }
-                 
+
                }
   location_wgs<-utmtowgs(utm$pos.utm.X,utm$pos.utm.Y,utm$utm.zone)
   return(cbind(utm,pos=location_wgs))
