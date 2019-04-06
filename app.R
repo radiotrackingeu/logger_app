@@ -67,7 +67,8 @@ server <- function(input, output, session) {
 
   onStop(function() {
     close_all_dbs()
-    stopCluster(cl)
+    if (exists("cl"))
+      stopCluster(cl)
   })
 }
 
