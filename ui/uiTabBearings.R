@@ -8,6 +8,8 @@ tabPanel("Bearings",
                     sliderInput("spar_in","Spar for smooth",0,1,value=0.1),
                     numericInput("intra_station_time_error","Time Difference between the antennas",value=0.5),
                     numericInput("dBLoss","dB between two neighbouring antennas",value=14),
+                    checkboxInput("only_one_for_doa","If only one antenna receive - take the antennas direction"),
+                    checkboxInput("use_back_antenna","If two antennas receive and they are 180° apart"),
                     numericInput("angle_sep","angle between two neighbouring antennas",value=90),
                     sliderInput("min_doa_antennas","Choose minimum number of antennas",1,12,1)
            ),

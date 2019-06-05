@@ -138,7 +138,7 @@ observeEvent(input$load_mysql_data, {
   else {
     global$mysql_data_invalidator = !global$mysql_data_invalidator
     signal_data()
-        keepalive_data()
+    #    keepalive_data()
   }
   }
 })
@@ -152,7 +152,7 @@ live_invalidator <- observe({
     if (global$live_mode) {
         global$mysql_data_invalidator = !isolate(global$mysql_data_invalidator)
         signal_data()
-        keepalive_data()
+        #keepalive_data()
         invalidateLater(isolate(global$live_update_interval) * 1000)
     }
 })
@@ -172,13 +172,18 @@ get_mysql_data <- eventReactive(global$mysql_data_invalidator, {
             else {
               if(dbIsValid(open_connections()[[i]])) {
                 signals<-suppressWarnings(dbGetQuery(open_connections()[[i]], build_signals_query()))
-                mysql_query_runs<-paste("SELECT id, device, pos_x, pos_y, orientation, beam_width, center_freq FROM `runs`") #ORDER BY id DESC LIMIT",input$live_last_points,";
+                mysql_query_runs<-paste("SELECT id, device, pos_x, pos_y, orientation, beam_width, center_freq, hostname FROM `runs`") #ORDER BY id DESC LIMIT",input$live_last_points,";
                 runs<-suppressWarnings(dbGetQuery(open_connections()[[i]],mysql_query_runs))
                 if(nrow(signals)>0){
                   results<-merge(signals,runs,by.x="run",by.y="id")
                   results$run <- NULL
                   results$id <- NULL
-                  results$Name<-i
+                  if(input$global_db_hostname){
+                    results$Name<-results$hostname
+                  }else{
+                    results$Name<-i
+                  }
+                  
                   tmp<-rbind(tmp,results)
                 }
               }
@@ -202,7 +207,7 @@ get_mysql_data <- eventReactive(global$mysql_data_invalidator, {
   }
 })
 
-keepalive_data <- eventReactive(global$mysql_data_invalidator, {
+keepalive_data <- reactive({
   if(!is.null(get_info_of_entries())){
     tmp<-data.frame()
 

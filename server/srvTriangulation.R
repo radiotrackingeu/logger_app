@@ -37,7 +37,7 @@ triangulate <- function(receivers, bearings, only_one=F,time_error_inter_station
                      tmp_fts <- merge(tmp_ft,stations_utm,by.x="Station",by.y="Station")
                      #calculate positions for two or more bearings in one slot
                      if(nrow(tmp_fts)==1&only_one){
-                       positions<-cbind(timestamp=j,freq_tag=i,pos=tri_one(tmp_fts))
+                       positions<-cbind(timestamp=j,freq_tag=i,pos=tri_one(tmp_fts),bearings=nrow(tmp_fts))
                      }
                      if(nrow(tmp_fts)>=2){
                        positions<-cbind(
@@ -46,7 +46,8 @@ triangulate <- function(receivers, bearings, only_one=F,time_error_inter_station
                          pos=switch(tri_option,
                                     centroid =  tri_centroid(tmp_fts,angles_allowed),
                                     two_strongest = tri_two(tmp_fts,angles_allowed)
-                         )
+                         ),
+                         bearings=nrow(tmp_fts)
                        )
                      }
                      positions

@@ -75,17 +75,19 @@ time_match_signals <- function(data,station_time_error=0.3, progress=F){
         tmp_s$ti <- as.POSIXct(NA, origin = "1970-01-01")
         gc<-0
         tmp_sf$ti[1]<-tmp_sf$timestamp[1]
-        for(i in 2:nrow(tmp_sf)){
-          if(sum(tmp_sf$td[(i-gc):i])<=station_time_error){
-            tmp_sf$ti[i]<- tmp_sf$timestamp[i-gc-1]
-            if(any(duplicated(tmp_sf$receiver[(i-gc-1):i]))){
+        if (nrow(tmp_sf)>=2){
+          for(i in 2:nrow(tmp_sf)){
+            if(sum(tmp_sf$td[(i-gc):i])<=station_time_error){
+              tmp_sf$ti[i]<- tmp_sf$timestamp[i-gc-1]
+              if(any(duplicated(tmp_sf$receiver[(i-gc-1):i]))){
+                tmp_sf$ti[i]<- tmp_sf$timestamp[i]
+                gc<--1
+              }
+              gc<-gc+1
+            }else{
               tmp_sf$ti[i]<- tmp_sf$timestamp[i]
-              gc<--1
+              gc<-0
             }
-            gc<-gc+1
-          }else{
-            tmp_sf$ti[i]<- tmp_sf$timestamp[i]
-            gc<-0
           }
         }
         matched_data<-rbind(matched_data,tmp_sf)
@@ -148,13 +150,13 @@ doa <- function(signals, receivers,dBLoss=14, live_mode=FALSE, live_update_inter
   }
   if(progress)
     withProgress(min=0, max=length(time_to_look_for), value=0, expr={ 
-      doa_internal(data, time_to_look_for, progress,dBLoss=input$dBLoss,doa_approx=input$doa_option_approximation)
+      doa_internal(data, time_to_look_for, progress,dBLoss=input$dBLoss,doa_approx=input$doa_option_approximation,use_back_antenna=input$use_back_antenna,only_one_for_doa=input$only_one_for_doa)
     })
   else
-    doa_internal(data, time_to_look_for,dBLoss=dBLoss, doa_approx="automatic", progress=F)
+    doa_internal(data, time_to_look_for,dBLoss=dBLoss, doa_approx="automatic", progress=F,use_back_antenna=F,only_one_for_doa=F)
 }
 
-doa_internal <- function(data, time_to_look_for, dBLoss=14, doa_approx="automatic", progress=F) {
+doa_internal <- function(data, time_to_look_for, dBLoss=14, doa_approx="automatic", progress=F,use_back_antenna=FALSE,only_one_for_doa=FALSE) {
   cnt_timestamp=0
   split<-foreach(t=time_to_look_for,
           .export=c("angle_between","calc_angle"),
@@ -190,13 +192,13 @@ doa_internal <- function(data, time_to_look_for, dBLoss=14, doa_approx="automati
               angle<-angle_1+angle_between(angle_1,angle_2)/abs(angle_between(data_tfs[1,"Orientation"],data_tfs[2,"Orientation"]))*60
               result<-cbind.data.frame(timestamp=as.POSIXct(t,origin="1970-01-01",tz="UTC"),angle=angle,antennas=nrow(data_tfs),Station=s,freq_tag=f,strength=max(data_tfs$max_signal),stringsAsFactors=F)
             }
-            if(nrow(data_tfs)==2){
+            if(nrow(data_tfs)==2&use_back_antenna){
               angle<-data_tfs[1,"Orientation"]
               result<-cbind.data.frame(timestamp=as.POSIXct(t,origin="1970-01-01",tz="UTC"),angle=angle,antennas=nrow(data_tfs),Station=s,freq_tag=f,strength=max(data_tfs$max_signal),stringsAsFactors=F)
             }
           }
         }
-        if(nrow(data_tfs)==1){
+        if(nrow(data_tfs)==1&only_one_for_doa){
           if(anyNA(data_tfs[1,]))
             next
           angle<-data_tfs[1,"Orientation"]

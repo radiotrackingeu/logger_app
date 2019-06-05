@@ -39,6 +39,9 @@ tabPanel("Live Data",
                "show_add_connection_panel", "Show manual connection input panel"
              ),
              conditionalPanel("input.show_add_connection_panel",
+                  checkboxInput(
+                    "global_db_hostname", "If a single global DB is used"
+                  ),
                   textInput(
                     "MySQL_name",
                     "Connection name",
