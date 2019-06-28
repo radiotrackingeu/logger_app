@@ -72,7 +72,7 @@ time_match_signals <- function(data,station_time_error=0.3, progress=F){
         tmp_sf<-tmp_sf[order(tmp_sf$timestamp),]
         #calculate timedifference between the loggings
         tmp_sf$td<-c(0,diff(tmp_sf$timestamp))
-        tmp_s$ti <- as.POSIXct(NA, origin = "1970-01-01")
+        tmp_s$ti <- as.POSIXct(NA, origin = "1970-01-01", tz="UTC")
         gc<-0
         tmp_sf$ti[1]<-tmp_sf$timestamp[1]
         if (nrow(tmp_sf)>=2){
@@ -89,13 +89,15 @@ time_match_signals <- function(data,station_time_error=0.3, progress=F){
               gc<-0
             }
           }
+        }else{
+          message("Error:  not enough points?")
         }
         matched_data<-rbind(matched_data,tmp_sf)
       }
       cnt_stats<-cnt_stats+1
     }
   
-  matched_data$timestamp<-as.POSIXct(matched_data$ti, origin = "1970-01-01")
+  matched_data$timestamp<-as.POSIXct(matched_data$ti, origin = "1970-01-01", tz="UTC")
   return(matched_data)
 }
 

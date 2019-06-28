@@ -92,14 +92,15 @@ selected_time <- reactive({
 observeEvent(input$update_map,{
   req(global$triangulation)
   leafletProxy("map") %>% clearGroup("triangulations")
-  pal <- colorNumeric(
-    palette = "Spectral",
-    domain = global$triangulation$timestamp)
+  #pal <- colorNumeric(
+  #  palette = "Spectral",
+  #  domain = global$triangulation$timestamp)
+  pal<-colorFactor("Dark2",domain=global$triangulation$freq_tag)
   leafletProxy("map") %>% addCircles(lng = global$triangulation$pos.X, lat=global$triangulation$pos.Y, 
                                      label = as.POSIXct(global$triangulation$timestamp, tz="UTC", origin="1970-01-01"),
                                      radius=5, 
                                      group = "triangulations",
-                                     color="black"#pal(global$triangulation$timestamp)
+                                     color=pal(global$triangulation$freq_tag)
                                      )
   if(!is.null(gpx_data())){
     leafletProxy("map") %>% addCircles(lng = gpx_data()[[input$lng_to_compare]], lat=gpx_data()[[input$lat_to_compare]], 

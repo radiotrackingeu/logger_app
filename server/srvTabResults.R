@@ -118,7 +118,7 @@ output$facet <- renderPlot({
              xlab("Date and Time in UTC")+
              scale_x_datetime(labels = function(x) format(x, "%d-%m \n %H:%M:%S"))+
              facet_wrap(~Name)+
-             ylim(0.4,3)
+             ylim(0.4,4.5)
          }
          )
 })
