@@ -42,7 +42,6 @@ open_connections <- eventReactive(input$connect_mysql,{
       value = 0
     )
   }
-  View(tmp_list)
   return(tmp_list)
 })
 
