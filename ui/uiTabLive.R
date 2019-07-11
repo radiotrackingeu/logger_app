@@ -52,6 +52,11 @@ tabPanel("Live Data",
                     "Enter Host Name",
                     "192.168.1.1"
                   ),
+                  textInput(
+                   "MySQL_table",
+                   "Enter Table Name",
+                   "signals"
+                  ),
                   numericInput(
                     "MySQL_port",
                     "Enter Port",
