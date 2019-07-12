@@ -7,7 +7,7 @@ observeEvent(input$add_manual_connection, {
     }
     else {
     global$connections <- rbind(global$connections,
-      data.frame("Name"=input$MySQL_name, "Host"=input$MySQL_host, "Port"=input$MySQL_port,"User"=input$MySQL_user,"Password"=input$MySQL_pw,stringsAsFactors=F)
+      data.frame("Name"=input$MySQL_name, "Host"=input$MySQL_host, "Table"=input$MySQL_table, "Port"=input$MySQL_port,"User"=input$MySQL_user,"Password"=input$MySQL_pw,stringsAsFactors=F)
     )
     }
 })
@@ -33,7 +33,7 @@ open_connections <- eventReactive(input$connect_mysql,{
       expr = {
         for(i in 1:nrow(connect_to)){
           setProgress(detail=connect_to$Name[i])
-          tmp_list[[connect_to$Name[i]]] <- open_connection(connect_to[i, ])
+          tmp_list[[connect_to$Name[i]]] <- list("conn"=open_connection(connect_to[i, ]), "table"=connect_to$Table[i])
               incProgress(amount=1)
             }
       },
@@ -61,6 +61,13 @@ open_connection <- function(connection_info) {
   )
 }
 
+table_name <- reactive({
+  if(is.character(input$MySQL_table) & input$MySQL_table!="")
+    input$MySQL_table
+  else
+    "signals"
+})
+
 get_info_of_entries <- reactive({
   tmp<-data.frame()
   if(!is.null(global$connections)){
@@ -69,19 +76,19 @@ get_info_of_entries <- reactive({
       expr = {
         for(i in connect_to$Name){
         setProgress(detail=i)
-            if (input$connect_mysql == 0 || is.null(open_connections()[[i]])) {
+            if (input$connect_mysql == 0 || is.null(open_connections()[[i]]$conn)) {
           results<-data.frame(Name=i,id=NA,timestamp="unknown",size="unknown",running="unknown",time="unknown",stringsAsFactors = FALSE)
           tmp<-rbind(tmp,results)
         }
             else {
-          if(dbIsValid(open_connections()[[i]])) {
-            results<-suppressWarnings(dbGetQuery(open_connections()[[i]],"SELECT id,timestamp FROM `signals` ORDER BY id DESC LIMIT 1;"))
+          if(dbIsValid(open_connections()[[i]]$conn)) {
+            results<-suppressWarnings(dbGetQuery(open_connections()[[i]]$conn,paste0("SELECT id,timestamp FROM `",open_connections()[[i]]$table,"` ORDER BY id DESC LIMIT 1;")))
             if(nrow(results)>0){
-              results$size <- suppressWarnings(dbGetQuery(open_connections()[[i]], '
+              results$size <- suppressWarnings(dbGetQuery(open_connections()[[i]]$conn, paste0('
                                        SELECT ROUND(SUM(data_length + index_length) / 1024 / 1024, 1) "size"
-                                       FROM information_schema.tables;
-                                       ')$size)
-              results$time <- suppressWarnings(dbGetQuery(open_connections()[[i]], 'SELECT NOW();')$'NOW()')
+                                       FROM information_schema.tables WHERE table_schema = "rteu" AND table_name = "', open_connections()[[i]]$table, '";')
+                                       )$size)
+              results$time <- suppressWarnings(dbGetQuery(open_connections()[[i]]$conn, 'SELECT NOW();')$'NOW()')
               if(abs(difftime(as.POSIXct(Sys.time(), tz="UTC"),as.POSIXct(results$timestamp, tz="UTC"),units="mins"))<6){
                 results$running<-"Recording"
               }else{
@@ -166,18 +173,18 @@ get_mysql_data <- eventReactive(global$mysql_data_invalidator, {
         expr = {
           for(i in get_info_of_entries()[get_info_of_entries()$timestamp!="offline",]$Name) {
             setProgress(detail=i)
-            if(is.null(open_connections()[[i]])) {
+            if(is.null(open_connections()[[i]]$conn)) {
               next
             }
             else {
-              if(dbIsValid(open_connections()[[i]])) {
-                signals<-suppressWarnings(dbGetQuery(open_connections()[[i]], build_signals_query()))
+              if(dbIsValid(open_connections()[[i]]$conn)) {
+                signals<-suppressWarnings(dbGetQuery(open_connections()[[i]]$conn, build_signals_query(open_connections()[[i]]$table)))
                 if(input$global_db_hostname){
                   mysql_query_runs<-paste("SELECT id, device, pos_x, pos_y, orientation, beam_width, center_freq, hostname FROM `runs`")
                 }else{
                   mysql_query_runs<-paste("SELECT id, device, pos_x, pos_y, orientation, beam_width, center_freq FROM `runs`")
                 }
-                runs<-suppressWarnings(dbGetQuery(open_connections()[[i]],mysql_query_runs))
+                runs<-suppressWarnings(dbGetQuery(open_connections()[[i]]$conn,mysql_query_runs))
                 if(nrow(signals)>0){
                   results<-merge(signals,runs,by.x="run",by.y="id")
                   results$run <- NULL
@@ -219,13 +226,13 @@ keepalive_data <- reactive({
         expr = {
           for(i in get_info_of_entries()[get_info_of_entries()$timestamp!="offline",]$Name) {
             setProgress(detail=i)
-            if(is.null(open_connections()[[i]])) {
+            if(is.null(open_connections()[[i]]$conn)) {
               next
             }
             else {
-              if(dbIsValid(open_connections()[[i]])) {
-                query <- paste("SELECT timestamp, device FROM `signals` s INNER JOIN runs r ON r.id = s.run WHERE max_signal = 0 LIMIT ", input$live_last_points, ";")
-                results<-suppressWarnings(dbGetQuery(open_connections()[[i]], query))
+              if(dbIsValid(open_connections()[[i]]$conn)) {
+                query <- paste0("SELECT timestamp, device FROM `",open_connections()[[i]]$table,"` s INNER JOIN runs r ON r.id = s.run WHERE max_signal = 0 LIMIT ", input$live_last_points, ";")
+                results<-suppressWarnings(dbGetQuery(open_connections()[[i]]$conn, query))
 
                 if(nrow(results)>0){
                   results$Name <- i
@@ -255,15 +262,15 @@ keepalive_data <- reactive({
   }
 })
 
-build_signals_query <- reactive({
+build_signals_query <- function(table) {
     query_duration_filter<-""
     query_max_signal_filter<-""
     if(input$check_sql_duration){
-      query_duration_filter<-paste("duration >",input$query_filter_duration[1],"AND duration <",input$query_filter_duration[2])
+      query_duration_filter<-paste(" duration >",input$query_filter_duration[1],"AND duration <",input$query_filter_duration[2])
     }
     if(input$check_sql_strength){
       if(any(input$check_sql_duration)){
-        and<-"AND"
+        and<-" AND"
       }else{
         and<-""
       }
@@ -275,7 +282,7 @@ build_signals_query <- reactive({
     if (input$query_filter_freq){
       error <- input$freq_error * 1000
       and<-""
-      inner_join <- "INNER JOIN `runs` r ON s.run = r.id"
+      inner_join <- " INNER JOIN `runs` r ON s.run = r.id"
       if (input$query_filter_frequency_type == "Multiple") {
           for(k in global$frequencies$Frequency){
             if(any(input$check_sql_duration,input$check_sql_strength)) {
@@ -287,7 +294,7 @@ build_signals_query <- reactive({
             query_freq_filter<-paste(query_freq_filter, and, "((signal_freq + center_freq + ",error,") >", k*1000, "  AND (signal_freq + center_freq - ",error,")  <", k*1000, ")")
           }
           if(any(input$check_sql_duration,input$check_sql_strength)){
-            query_freq_filter<-paste(query_freq_filter,")")
+            query_freq_filter<-paste("",query_freq_filter,")")
           }
       }
       else if (input$query_filter_frequency_type == "Single") {
@@ -297,7 +304,7 @@ build_signals_query <- reactive({
             }
             query_freq_filter<-paste(query_freq_filter, and, "((signal_freq + center_freq + ",error,") >", k*1000, "  AND (signal_freq + center_freq - ",error,")  <", k*1000, ")")
             if(any(input$check_sql_duration,input$check_sql_strength)){
-              query_freq_filter<-paste(query_freq_filter,")")
+              query_freq_filter<-paste("",query_freq_filter,")")
             }
       }
     }
@@ -307,12 +314,12 @@ build_signals_query <- reactive({
         and <- "AND"
     }
     if(any(input$check_sql_duration,input$check_sql_strength,input$query_filter_freq)){
-      where<-"WHERE"
+      where<-" WHERE"
     }
     #keepalive_filter <- paste(and, "max_signal != 0")
 
-    paste("SELECT timestamp, duration, signal_freq, run, max_signal, signal_bw FROM `signals` s", inner_join, where,query_duration_filter,query_max_signal_filter,query_freq_filter, "ORDER BY s.id DESC LIMIT",input$live_last_points,";")
-})
+    print(paste0("SELECT timestamp, duration, signal_freq, run, max_signal, signal_bw FROM `",table,"` s", inner_join, where,query_duration_filter,query_max_signal_filter,query_freq_filter, " ORDER BY s.id DESC LIMIT ",input$live_last_points,";"))
+}
 
 signal_data<-function(){
   req(get_mysql_data())
