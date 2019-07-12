@@ -150,9 +150,9 @@ calculate_antennae_cones <- function(receivers) {
       bw<-45
       len<-100
       wgs<-calculate_cone_corners(x,y,direction,len,bw) # Many warnings...
-      cones[[receivers[a,]$Name]]<-list(x=c(wgs$X,x), y=c(wgs$Y,y))
+      cones[[receivers[a,]$Station]]<-list(x=c(wgs$X,x), y=c(wgs$Y,y))
     }else{
-      cones[[receivers[a,]$Name]]<-list(x=receivers[a,]$Longitude, y=receivers[a,]$Latitude)
+      cones[[receivers[a,]$Station]]<-list(x=receivers[a,]$Longitude, y=receivers[a,]$Latitude)
     }
   }
   return(cones)

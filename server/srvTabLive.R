@@ -187,7 +187,6 @@ get_mysql_data <- eventReactive(global$mysql_data_invalidator, {
                   }else{
                     results$Name<-i
                   }
-                  
                   tmp<-rbind(tmp,results)
                 }
               }
