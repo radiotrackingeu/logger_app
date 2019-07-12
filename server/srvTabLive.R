@@ -28,12 +28,13 @@ open_connections <- eventReactive(input$connect_mysql,{
         show_error("Please select at least one connection")
         return (NULL)
     }
-
     withProgress(
       expr = {
         for(i in 1:nrow(connect_to)){
           setProgress(detail=connect_to$Name[i])
-          tmp_list[[connect_to$Name[i]]] <- list("conn"=open_connection(connect_to[i, ]), "table"=connect_to$Table[i])
+          table = connect_to$Table[i]
+          table = ifelse(!is.character(table),"signals",table)
+          tmp_list[[connect_to$Name[i]]] <- list("conn"=open_connection(connect_to[i, ]), "table"=table)
               incProgress(amount=1)
             }
       },

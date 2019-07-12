@@ -125,7 +125,12 @@ remote_connections <- reactive({
   tmp<-NULL
     switch(input$data_type_input,
            "Data folder" = {
-                tmp<-safe_read_excel_silent("data/RemoteConnections.xlsx")[,c("Name","Host","Port","User","Password")]
+                tmp<-safe_read_excel_silent("data/RemoteConnections.xlsx")
+                if ("Table" %in% names(tmp))
+                  tmp<-tmp[,c("Name","Host","Table","Port","User","Password")]
+                else
+                  tmp<-tmp[,c("Name","Host","Port","User","Password")]
+                  
            },
            "SQLite File" = {
               tmp <- NULL
