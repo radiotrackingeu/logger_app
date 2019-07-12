@@ -143,7 +143,11 @@ remote_connections <- reactive({
                if(is.null(input$excel_filepath_remote)) {
                  return(NULL)
                }
-               tmp<-safe_read_excel(input$excel_filepath_remote$datapath)[,c("Name","Host","Port","User","Password")]
+               tmp<-safe_read_excel(input$excel_filepath_remote$datapath)
+               if(is.null(tmp$Table)){
+                 tmp$Table<-"signals"
+               }
+               tmp<-tmp[,c("Name","Host","Port","User","Password","Table")]
              }
            }
     )
