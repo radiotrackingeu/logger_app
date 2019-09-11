@@ -129,8 +129,8 @@ observeEvent(input$load_mysql_data, {
   else if (!is.numeric(input$live_last_points)) {
     show_error("Malformed number of entries request")
   }
-  else if (input$live_last_points <= 0) {
-    show_error("Can't request less than one entry")
+  else if (input$live_last_points < 0) {
+    show_error("Can't request less than zero entries")
   }
   else if (input$app_live_mode && !is.numeric(input$live_update_interval)) {
     show_error("Malformed update interval input")
@@ -319,7 +319,7 @@ build_signals_query <- function(table) {
     }
     #keepalive_filter <- paste(and, "max_signal != 0")
 
-    print(paste0("SELECT timestamp, duration, signal_freq, run, max_signal, signal_bw FROM `",table,"` s", inner_join, where,query_duration_filter,query_max_signal_filter,query_freq_filter, " ORDER BY s.id DESC LIMIT ",input$live_last_points,";"))
+    print(paste0("SELECT timestamp, duration, signal_freq, run, max_signal, signal_bw FROM `",table,"` s", inner_join, where,query_duration_filter,query_max_signal_filter,query_freq_filter, " ORDER BY s.id DESC", ifelse(input$live_last_points == 0,"", paste0(" LIMIT ",input$live_last_points)),";"))
 }
 
 signal_data<-function(){
