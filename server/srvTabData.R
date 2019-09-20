@@ -338,6 +338,9 @@ get_signals <- reactive({
                 if (!is.null(data)) {
                     data <- unique(data)
                     data$timestamp <- as.POSIXct(data$timestamp, tz = "UTC", origin="1970-01-01 00:00:00 UTC")
+                    if (!is.null(data$station)){
+                      data$Name <- data$station
+                    }
                 }
                 data
             }
