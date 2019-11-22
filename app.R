@@ -14,7 +14,8 @@ required_packages<-c("shiny",
                      "geosphere",
                      "foreach",
                      "doParallel",
-                     "doSNOW"
+                     "doSNOW",
+                     "fasttime"
                      )
 
 # try to load packages and install missing ones

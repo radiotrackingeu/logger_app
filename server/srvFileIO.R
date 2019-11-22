@@ -84,7 +84,7 @@ read_logger_data <- function(filepath){
     )
   data$max_signal[is.na(data$max_signal)]<-0
   data<-data[countCharOccurrences("[:-]",data$timestamp)==4,]
-  data$timestamp <- as.POSIXct(data$timestamp, tz = "UTC")
+  data$timestamp <- fastPOSIXct(data$timestamp, tz = "UTC")
   data$signal_freq <- (data$signal_freq + mid_freq) / 1000
   data$freq_tag<-NA
   return(data)
