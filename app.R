@@ -36,7 +36,7 @@ ui <- tagList(
   useShinyjs(),
   includeCSS("style.css"),
   extendShinyjs("script.js"),
-  add_busy_bar(color = "#0a8043", height = "5px", centered=T),
+  add_busy_spinner(spin="circle"),
   navbarPage(id = "navbar", "rteu-logger-app v1.3",
     source("ui/uiTabData.R")$value,
     source("ui/uiTabLive.R")$value,
