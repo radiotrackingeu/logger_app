@@ -155,7 +155,7 @@ doa <- function(signals, receivers,dBLoss=14, live_mode=FALSE, live_update_inter
       doa_internal(data, time_to_look_for, progress,dBLoss=input$dBLoss,doa_approx=input$doa_option_approximation,use_back_antenna=input$use_back_antenna,only_one_for_doa=input$only_one_for_doa)
     })
   else
-    doa_internal(data, time_to_look_for,dBLoss=dBLoss, doa_approx="automatic", progress=F,use_back_antenna=F,only_one_for_doa=F)
+    doa_internal(data, time_to_look_for,dBLoss=dBLoss, doa_approx="automatic", progress=F,use_back_antenna=input$use_back_antenna,only_one_for_doa=input$only_one_for_doa)
 }
 
 doa_internal <- function(data, time_to_look_for, dBLoss=14, doa_approx="automatic", progress=F,use_back_antenna=FALSE,only_one_for_doa=FALSE) {
@@ -216,7 +216,7 @@ doa_internal <- function(data, time_to_look_for, dBLoss=14, doa_approx="automati
 }
 
 # adapted version of doa_internal used by fast_doa method
-calc_doa <- function(data_tfs, dBLoss, doa_approx) {
+calc_doa <- function(data_tfs, dBLoss, doa_approx,use_back_antenna=FALSE,only_one_for_doa=FALSE) {
   #sort using signal_strength
   data_tfs<-unique(data_tfs[order(data_tfs$max_signal, decreasing = TRUE, na.last=NA),])
   t<-data_tfs$time_matched[[1]]
@@ -237,13 +237,13 @@ calc_doa <- function(data_tfs, dBLoss, doa_approx) {
         angle<-angle_1+angle_between(angle_1,angle_2)/abs(angle_between(data_tfs[1,"Orientation"],data_tfs[2,"Orientation"]))*60
         return(data.frame(timestamp=as.POSIXct(t,origin="1970-01-01",tz="UTC"),angle=angle,antennas=nrow(data_tfs),Station=s,freq_tag=f,strength=max(data_tfs$max_signal), method="guess", recs=paste(data_tfs$Name[[1]],data_tfs$Name[[2]], data_tfs$Name[[3]], sep = ","),stringsAsFactors=F))
       }
-      if(nrow(data_tfs)==2){
+      if(nrow(data_tfs)==2 & use_back_antenna){
         angle<-data_tfs[1,"Orientation"]
         return(data.frame(timestamp=as.POSIXct(t,origin="1970-01-01",tz="UTC"),angle=angle,antennas=nrow(data_tfs),Station=s,freq_tag=f,strength=max(data_tfs$max_signal), method="frontback", recs=paste(data_tfs$Name[[1]], data_tfs$Name[[2]], sep = ","), stringsAsFactors=F))
       }
     }
   }
-  if(nrow(data_tfs)==1){
+  if(nrow(data_tfs)==1 & only_one_for_doa){
     if(anyNA(data_tfs[1,]))
       return(data.frame(timestamp=as.POSIXct(character()), angle=numeric(), antennas=numeric(), Station=character(), freq_tag=character(), strength=numeric(), method=character(), recs=character()))
     angle<-data_tfs[1,"Orientation"]
