@@ -214,3 +214,40 @@ doa_internal <- function(data, time_to_look_for, dBLoss=14, doa_approx="automati
   }
   return(split)
 }
+
+# adapted version of doa_internal used by fast_doa method
+calc_doa <- function(data_tfs, dBLoss, doa_approx) {
+  #sort using signal_strength
+  data_tfs<-unique(data_tfs[order(data_tfs$max_signal, decreasing = TRUE, na.last=NA),])
+  t<-data_tfs$time_matched[[1]]
+  s<-data_tfs$Station[[1]]
+  f<-data_tfs$freq_tag[[1]]
+  if(nrow(data_tfs)>1){
+    if(anyNA(data_tfs[1:2,]))
+      return(data.frame())
+    #check angle between strongest and second strongest and if it is smaller then 120 degree, calc it linearly
+    if(abs(angle_between(data_tfs[1,"Orientation"],data_tfs[2,"Orientation"]))<=120){
+      angle<-calc_angle(data_tfs[1,"max_signal"],data_tfs[2,"max_signal"],data_tfs[1,"Orientation"],data_tfs[2,"Orientation"],dBLoss,doa_approx)
+      return(data.frame(timestamp=as.POSIXct(t,origin="1970-01-01",tz="UTC"),angle=angle,antennas=nrow(data_tfs),Station=s,freq_tag=f,strength=max(data_tfs$max_signal),method="neighbours",recs=paste(data_tfs$Name[[1]], data_tfs$Name[[2]], sep = ","), stringsAsFactors=F))
+    }else{
+      #back antenna plays a big role here
+      if(nrow(data_tfs)>2){
+        angle_1<-data_tfs[1,"Orientation"]
+        angle_2<-calc_angle(data_tfs[1,"max_signal"],data_tfs[3,"max_signal"],data_tfs[1,"Orientation"],data_tfs[3,"Orientation"],2*dBLoss,"linear")
+        angle<-angle_1+angle_between(angle_1,angle_2)/abs(angle_between(data_tfs[1,"Orientation"],data_tfs[2,"Orientation"]))*60
+        return(data.frame(timestamp=as.POSIXct(t,origin="1970-01-01",tz="UTC"),angle=angle,antennas=nrow(data_tfs),Station=s,freq_tag=f,strength=max(data_tfs$max_signal), method="guess", recs=paste(data_tfs$Name[[1]],data_tfs$Name[[2]], data_tfs$Name[[3]], sep = ","),stringsAsFactors=F))
+      }
+      if(nrow(data_tfs)==2){
+        angle<-data_tfs[1,"Orientation"]
+        return(data.frame(timestamp=as.POSIXct(t,origin="1970-01-01",tz="UTC"),angle=angle,antennas=nrow(data_tfs),Station=s,freq_tag=f,strength=max(data_tfs$max_signal), method="frontback", recs=paste(data_tfs$Name[[1]], data_tfs$Name[[2]], sep = ","), stringsAsFactors=F))
+      }
+    }
+  }
+  if(nrow(data_tfs)==1){
+    if(anyNA(data_tfs[1,]))
+      return(data.frame(timestamp=as.POSIXct(character()), angle=numeric(), antennas=numeric(), Station=character(), freq_tag=character(), strength=numeric(), method=character(), recs=character()))
+    angle<-data_tfs[1,"Orientation"]
+    return(data.frame(timestamp=as.POSIXct(t,origin="1970-01-01",tz="UTC"),angle=angle,antennas=nrow(data_tfs),Station=s,freq_tag=f,strength=max(data_tfs$max_signal), method="onlyone", recs=data_tfs$Name[[1]],stringsAsFactors=F))
+  }
+  return(data.frame())
+}
