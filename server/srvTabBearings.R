@@ -40,6 +40,32 @@ calculate_bearings_time_match <- function(filtered_data, receivers, station_time
   return(b)
 }
 
+# wrapper for calculating berings via time windows
+calculate_bearings_time_window <- function(filtered_data, receivers, window_size, live_mode, live_update_interval, progress=F) {
+  require(data.table)
+  data<-copy(filtered_data)
+  setDT(data)
+  setorder(data, timestamp)
+  start<-min(as.numeric(data$timestamp))
+  withProgress(min=0, max=length(unique(filtered_data$station)), value=0, message="Matching timestamps...", expr={
+    data[,time_matched:=as.POSIXct(start+floor((as.numeric(timestamp)-start)/window_size)*window_size, origin="1970-01-01", tz="GMT"), by=Name]
+  })
+  if (input$use_doa_fast){
+    bearings<-doa_fast(data, receivers, dBLoss = input$dBLoss)
+  } else {
+    bearings<-doa(data[,timestamp:=time_matched], receivers, dBLoss = input$dBLoss, live_mode, live_update_interval, progress)
+  }
+  return(bearings)
+}
+
+doa_fast <- function(signals, receivers, dBLoss=14, doa_approx="automatic") {
+  require(plyr)
+  data<-as.data.table(receivers)[as.data.table(signals), on=c(Name="receiver", Station="Name")]
+  data<-data[,.(max_signal=mean(max_signal)), by=.(time_matched,freq_tag, Station, Name, Orientation)]
+  result<-ddply(.data = data, .variables = .(time_matched, freq_tag, Station), .fun = calc_doa, dBLoss=dBLoss, doa_approx="automatic", use_back_antenna=input$use_back_antenna, only_one_for_doa=input$only_one_for_doa)
+  return(result)
+}
+
 observeEvent(input$start_doa,{
   cl <- parallel::makeCluster(detectCores())
   registerDoSNOW(cl)
@@ -49,6 +75,9 @@ observeEvent(input$start_doa,{
          },
          tm = {
            tmp <- calculate_bearings_time_match(filtered_data(), global$receivers, input$intra_station_time_error, global$live_mode, global$live_update_interval, T)
+         },
+         win = {
+           tmp <- calculate_bearings_time_window(filtered_data(), global$receivers, input$bearings_window_size, global$live_mode, global$live_update_interval)
          }
          )
   global$bearing<-tmp#subset(tmp, antennas>=input$min_doa_antennas)
