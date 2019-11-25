@@ -102,7 +102,7 @@ filtered_data <- reactive({
     need(nrow(tempo)[1]>0, "Oh no, there is no data to plot! Did you filter it all out?")
   )
   return(tempo)
-})
+}) %>% debounce(millis=300)
 
 output$histo <- renderPlot({
   validate(need(filtered_data(), "No data loaded"))
