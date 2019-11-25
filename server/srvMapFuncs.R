@@ -1,8 +1,9 @@
 # adds the cone outline to antennae on given map.
 addAntennaeCones<- function(m, cones) {
+  m<-m %>% clearGroup(group="antennae_cones")
   for(name in names(cones)) {
-    if(length(cones[[name]])>1){#group="antennae_cones",
-      m<-m %>% addPolygons(lng=cones[[name]]$x, lat=cones[[name]]$y, fill=FALSE, opacity=0.5, stroke=TRUE, weight=1)
+    if(length(cones[[name]])>1){
+      m<-m %>% addPolygons(lng=cones[[name]]$x, lat=cones[[name]]$y, group="antennae_cones", fill=FALSE, opacity=0.5, stroke=TRUE, weight=1)
     }else{
       m<-m %>% addCircles(lng=cones[[name]]$x, lat=cones[[name]]$y, fill=FALSE, opacity=0.5, stroke=TRUE, weight=1, radius =10)
     }
