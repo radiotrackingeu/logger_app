@@ -230,13 +230,16 @@ calc_doa <- function(data_tfs, dBLoss, doa_approx,use_back_antenna=FALSE,only_on
       angle<-calc_angle(data_tfs[1,"max_signal"],data_tfs[2,"max_signal"],data_tfs[1,"Orientation"],data_tfs[2,"Orientation"],dBLoss,doa_approx)
       return(data.frame(timestamp=as.POSIXct(t,origin="1970-01-01",tz="UTC"),angle=angle,antennas=nrow(data_tfs),Station=s,freq_tag=f,strength=max(data_tfs$max_signal),method="neighbours",recs=paste(data_tfs$Name[[1]], data_tfs$Name[[2]], sep = ","), stringsAsFactors=F))
     }else{
-      #back antenna plays a big role here
+      # ignore back antenna and use third-strongest instead
       if(nrow(data_tfs)>2){
-        angle_1<-data_tfs[1,"Orientation"]
-        angle_2<-calc_angle(data_tfs[1,"max_signal"],data_tfs[3,"max_signal"],data_tfs[1,"Orientation"],data_tfs[3,"Orientation"],2*dBLoss,"linear")
-        angle<-angle_1+angle_between(angle_1,angle_2)/abs(angle_between(data_tfs[1,"Orientation"],data_tfs[2,"Orientation"]))*60
-        return(data.frame(timestamp=as.POSIXct(t,origin="1970-01-01",tz="UTC"),angle=angle,antennas=nrow(data_tfs),Station=s,freq_tag=f,strength=max(data_tfs$max_signal), method="guess", recs=paste(data_tfs$Name[[1]],data_tfs$Name[[2]], data_tfs$Name[[3]], sep = ","),stringsAsFactors=F))
+        num_angle_2<-2
+        if ((data_tfs[1,"Orientation"]+180)%%360==data_tfs[2,"Orientation"]){
+          num_angle_2<-3
+        }
+        angle<-calc_angle(data_tfs[1,"max_signal"],data_tfs[num_angle_2,"max_signal"],data_tfs[1,"Orientation"],data_tfs[num_angle_2,"Orientation"],dBLoss,"linear")
+        return(data.frame(timestamp=as.POSIXct(t,origin="1970-01-01",tz="UTC"),angle=angle,antennas=nrow(data_tfs),Station=s,freq_tag=f,strength=max(data_tfs$max_signal), method="ignore_back", recs=paste(data_tfs$Name[[1]],data_tfs$Name[[2]], data_tfs$Name[[3]], sep = ","),stringsAsFactors=F))
       }
+      # use back antenna 
       if(nrow(data_tfs)==2 & use_back_antenna){
         angle<-data_tfs[1,"Orientation"]
         return(data.frame(timestamp=as.POSIXct(t,origin="1970-01-01",tz="UTC"),angle=angle,antennas=nrow(data_tfs),Station=s,freq_tag=f,strength=max(data_tfs$max_signal), method="frontback", recs=paste(data_tfs$Name[[1]], data_tfs$Name[[2]], sep = ","), stringsAsFactors=F))
