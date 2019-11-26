@@ -57,6 +57,8 @@ triangulate <- function(receivers, bearings, only_one=F,time_error_inter_station
   }
   if(nrow(result)>0){
     return(result[order(result$timestamp),])
+  } else {
+    return(data.frame(timestamp=as.POSIXct(character()), freq_tag=factor(character()), pos.X=numeric(), pos.Y=numeric(), pos.utm.X=numeric(), pos.utm.Y=numeric(), bearings=numeric()))
   }
 }
 
