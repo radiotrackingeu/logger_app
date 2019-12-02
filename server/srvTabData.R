@@ -245,26 +245,40 @@ calibration_list <- reactive({
 })
 
 gpx_data <- reactive({
-  mytrack<-NULL
+  require(data.table)
+  mytrack<-data.table()
   switch(input$data_type_input,
          "Miscellaneous" = {
-           if(input$misc_type_input == "GPX" && !is.null(input$coordinates_filepath)) {
-             mygpx <- readGPX(input$coordinates_filepath$datapath, waypoints = FALSE)
-             mytrack <- mygpx$tracks[[1]]$'NA'
-             mytrack$timestamp<-as.POSIXct(mytrack$time,format="%Y-%m-%dT%H:%M:%S.000Z")
-             mytrack$extensions<-NULL
+           if(input$misc_type_input == "GPX Track" && !is.null(input$coordinates_filepath)) {
+             tracks <- readGPX(input$coordinates_filepath$datapath, metadata = F, bounds = F, routes = F, waypoints = FALSE)$tracks
+             track<-data.table()
+             for (t in tracks) {
+               for (s in t) {
+                 track<-rbind(track, as.data.table(s), stringsAsFactors=F)
+               }
+             }
+             setnames(track, old = c("time"), new=c("timestamp" ))
+             track[,timestamp:=fasttime::fastPOSIXct(timestamp)]
+             mytrack<-rbind(mytrack, track, fill=T, stringsAsFactors=F)
+           }
+           if(input$misc_type_input == "GPX Waypoints" && !is.null(input$coordinates_filepath)) {
+             waypoints <- readGPX(input$coordinates_filepath$datapath, metadata = F, bounds = F, routes = F, tracks = FALSE)$waypoints
+             setDT(waypoints)
+             setnames(waypoints, old = c("time"), new=c("timestamp" ))
+             waypoints[,timestamp:=fasttime::fastPOSIXct(timestamp)]
+             mytrack<-rbind(mytrack, waypoints, fill=T, stringsAsFactors=F)
            }
            if(input$misc_type_input == "KML" && !is.null(input$coordinates_filepath)) {
              mytrack<-readOGR(input$coordinates_filepath$datapath)
              #maybe variables need to be renamed
-             mytrack<-data.frame(Lat=mytrack@coords[,1],Lon=mytrack@coords[,2],timestamp=mytrack$Name)
+             mytrack<-data.frame(lat=mytrack@coords[,1],lon=mytrack@coords[,2],timestamp=mytrack$Name)
            }
            if(input$misc_type_input == "KMZ" && !is.null(input$coordinates_filepath)) {
              filename<-unzip(input$coordinates_filepath$datapath)
              mytrack<-readOGR(filename)
              file.remove(filename)
              #maybe variables need to be renamed
-             mytrack<-data.frame(Lat=mytrack@coords[,1],Lon=mytrack@coords[,2],timestamp=mytrack$Name)
+             mytrack<-data.frame(lat=mytrack@coords[,1],lon=mytrack@coords[,2],timestamp=mytrack$Name)
            }
            if(input$misc_type_input == "readOGR" && !is.null(input$coordinates_filepath)) {
              spdf<-readOGR(input$coordinates_filepath$datapath)
