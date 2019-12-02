@@ -53,7 +53,7 @@ output$freq_tags <- renderUI({
 pre_filtered_data <-reactive({
   if (is.null(global$signals))
     return(NULL)
-  subset(global$signals, (timestamp>=as.POSIXct(input$filter_for_dates[1]))&(timestamp<=as.POSIXct(input$filter_for_dates[2]+1)))
+  subset(global$signals, (timestamp>=as.POSIXct(input$filter_for_dates[1]))&&(timestamp<=as.POSIXct(input$filter_for_dates[2]+1)))
 })
 
 # applying filters
