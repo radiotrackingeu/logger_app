@@ -17,6 +17,7 @@ filter_data_time_interval <- function(data,time_distance){
       tmp2<-tmp2[order(tmp2$timestamp),]
       #calcualte the time distance between the impulses
       if(nrow(tmp2)>1){
+        tmp2$td<-NULL
         td<-diff(tmp2$timestamp)
         if(attr(td,"units")=="secs"){
           td<-c(td,td[length(td)])
