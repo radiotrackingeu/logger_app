@@ -160,10 +160,11 @@ doa <- function(signals, receivers,dBLoss=14, live_mode=FALSE, live_update_inter
 
 doa_internal <- function(data, time_to_look_for, dBLoss=14, doa_approx="automatic", progress=F,use_back_antenna=FALSE,only_one_for_doa=FALSE) {
   cnt_timestamp=0
+  # data$td_flat<-NULL
   split<-foreach(t=time_to_look_for,
           .export=c("angle_between","calc_angle"),
           .combine=rbind,
-          .inorder=F) %dopar% {
+          .inorder=F) %do% {
     if (progress)
       setProgress(value=cnt_timestamp, message = "Computing Bearings... ")
     #build subset for the timestamp
@@ -180,7 +181,7 @@ doa_internal <- function(data, time_to_look_for, dBLoss=14, doa_approx="automati
         #sort using signal_strength
         data_tfs<-unique(data_tfs[order(data_tfs$max_signal, decreasing = TRUE, na.last=NA),])
         if(nrow(data_tfs)>1){
-          if(anyNA(data_tfs[1:2,]))
+          if(anyNA(data_tfs[1:2,c("max_signal","Orientation")]))
             next
           #check angle between strongest and second strongest and if it is smaller then 90 degree, calc it linearly
           if(abs(angle_between(data_tfs[1,"Orientation"],data_tfs[2,"Orientation"]))<=120){
