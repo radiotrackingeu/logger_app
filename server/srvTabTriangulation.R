@@ -43,7 +43,7 @@ output$distance_btw_points <- renderPlot({
 output$triangulation_points <- renderDataTable({
   req(global$triangulation)
   return(global$triangulation)
-})
+}, rownames=F)
 
 output$tri_distance <- renderPlot({
   req(global$triangulation)

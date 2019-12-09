@@ -146,13 +146,13 @@ observeEvent(global$calibrated, {
 output$cal_factors <- renderDataTable({
   validate(need(global$calibration, "No calibration data found"))
   global$calibration
-})
+}, rownames=F)
 
 # calculate time match and DoA #1
 output$doa<- renderDataTable({
   validate(need(global$bearing, "No data found"))
   global$bearing[order(global$bearing$timestamp,decreasing=TRUE),]
-})
+}, rownames=F)
 
 # output DoA plot
 output$doa_plot <- renderPlot({

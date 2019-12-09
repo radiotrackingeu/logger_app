@@ -351,12 +351,12 @@ output$live_tab_remote_entries_table <- renderDataTable({
   tmp <- get_info_of_entries()[, c("Name", "running", "timestamp", "size","time")]
   names(tmp) <- c("Name", "Reachable", "Latest timestamp", "Size (MB)","System Time")
   tmp
-}, options = list(pageLength = 10))
+}, options = list(pageLength = 10), rownames=F)
 
 output$live_tab_mysql_data <- renderDataTable({
   validate(need(global$signals, "Please load some data"))
   global$signals
-}, options = list(pageLength = 10))
+}, options = list(pageLength = 10), rownames=F)
 
 output$live_tab_keepalive_plot <- renderPlot({
     validate(need(global$signals, "Please load some data"))

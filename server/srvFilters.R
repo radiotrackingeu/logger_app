@@ -68,7 +68,7 @@ calc_time_distance <- function(data){
 
 output$timediffs <- renderDataTable({
   get_timediffs(filtered_data(), 20.307, 0.0408)
-})
+}, rownames=F)
 
 output$timediffs_plot <- renderPlot({
   tmp<-get_timediffs(filtered_data(),input$temp_cal_a,input$temp_cal_b)

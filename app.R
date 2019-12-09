@@ -16,7 +16,8 @@ required_packages<-c("shiny",
                      "doParallel",
                      "doSNOW",
                      "fasttime",
-                     "shinybusy"
+                     "shinybusy",
+                     "DT"
                      )
 
 # try to load packages and install missing ones
