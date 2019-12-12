@@ -17,7 +17,9 @@ required_packages<-c("shiny",
                      "doSNOW",
                      "fasttime",
                      "shinybusy",
-                     "DT"
+                     "DT",
+                     "data.table",
+                     "dplyr"
                      )
 
 # try to load packages and install missing ones
@@ -62,6 +64,7 @@ server <- function(input, output, session) {
   source("server/srvFilters.R", local = TRUE)$value
   source("server/srvTabFilter.R", local = TRUE)$value
   source("server/srvTabResults.R", local = TRUE)$value
+  source("server/srvResults.R", local = TRUE)$value
   source("server/srvDoA.R", local = TRUE)$value
   source("server/srvTabBearings.R", local = TRUE)$value
   source("server/srvTabTriangulation.R",local = TRUE)$value

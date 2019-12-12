@@ -306,3 +306,17 @@ countCharOccurrences <- function(char, s) {
   s2 <- gsub(char,"",s)
   return (nchar(s) - nchar(s2))
 }
+
+extract_keepalives <- function(signals, updown_threshold=10) {
+  require(data.table)
+  keepalives<-as.data.table(subset(signals, subset = is.na(signals$signal_freq)))[,.(timestamp, Name, receiver)]
+  setorder(keepalives, timestamp)
+  # keepalives[,c("samples", "duration", "signal_freq", "signal_bw", "noise", "max_signal", "freq_tag"):=NULL]
+  keepalives[,td:=c(NA,diff(timestamp)), by=.(Name, receiver)][!is.na(td),td_fctr:=case_when(td<=updown_threshold ~ "up", td>updown_threshold ~ "down")]
+  if (!is.null(global$receivers$Orientation)) {
+    keepalives<-keepalives[as.data.table(global$receivers)[,.(Name, Orientation)],on=c(receiver="Name"), nomatch=NULL]
+  } else {
+    keepalives[,Orientation:=-1]
+  }
+  return(keepalives)
+}

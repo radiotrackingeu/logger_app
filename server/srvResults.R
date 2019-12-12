@@ -52,3 +52,49 @@ get_temp_coefficients <-function(freq_tag) {
 calculate_temperature <- function(td,a=19.449,b=0.0398) {
   return(log(60/as.numeric(td)/a)/b)
 }
+
+
+get_base_plot <- function(signal_data, signal_aes=aes(), style="none") {
+  require(ggplot2)
+  require(data.table)
+  if(!is.data.table(global$keepalives))
+    setDT(global$keepalives)
+  p<-ggplot(signal_data, signal_aes)
+  if(!is.null(global$keepalives) & nrow(global$keepalives)>0 & global$keepalives[td_fctr=="down",.N]>0) {
+    switch (style,
+      "white" = p<-p+geom_rect(
+        data=na.omit(
+          cols=c("timestamp", "td","td_fctr"), 
+          global$keepalives[td_fctr=="down" & timestamp %between% c(min(na.rm=T, signal_data$timestamp), max(na.rm=T, signal_data$timestamp))]
+        ), 
+        aes(ymin=-Inf, ymax=Inf, xmin=timestamp-60*td, xmax=timestamp-300, fill="white"), 
+        inherit.aes=F
+      )+
+        scale_fill_identity(name="Status", guide='legend', labels = c("not all receivers running"))+
+        guides(fill=guide_legend(title="Status", override.aes = list(color="grey"))),
+      "alpha" = p<-p+geom_rect(
+        data=na.omit(
+          cols=c("timestamp", "td","td_fctr"), 
+          global$keepalives[td_fctr=="down" & timestamp %between% c(min(na.rm=T, signal_data$timestamp), max(na.rm=T, signal_data$timestamp))]
+        ), 
+        aes(ymin=-Inf, ymax=Inf, xmin=timestamp-60*td, xmax=timestamp-300, fill=alpha("white", 2/length(unique(receiver)))), 
+        inherit.aes=F
+      )+
+        scale_fill_identity(name="Status", guide='legend', labels = c("less receivers running -> more transparent"))+
+        guides(fill=guide_legend(override.aes = list(color="grey", fill=alpha("white", 0.5))))
+      ,
+      "color" = p<-p+geom_rect(
+        data=na.omit(
+          cols=c("timestamp", "td","td_fctr"), 
+          global$keepalives[td_fctr=="down" & timestamp %between% c(min(na.rm=T, signal_data$timestamp), max(na.rm=T, signal_data$timestamp))]
+        ), 
+        aes(ymin=-Inf, ymax=Inf, xmin=timestamp-60*td, xmax=timestamp-300, fill=receiver), 
+        alpha=0.05, inherit.aes=F
+      )+
+        guides(fill=guide_legend(override.aes = list(alpha=0.5)))
+    )
+  } else {
+    message("No keepalive data for base plot.")
+  }
+  return(p)
+}

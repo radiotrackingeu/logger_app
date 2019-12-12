@@ -29,7 +29,10 @@ observeEvent(input$add_data,{
   global$calibrated <- FALSE
 
   if(input$data_type_input == "Data folder" && !is.null(local_logger_data())) {
-    global$signals<-unique.data.frame(rbind(local_logger_data(),global$signals))
+    tmp<-local_logger_data()
+    global$signals<-unique.data.frame(rbind(tmp,global$signals))
+    global$keepalives<-unique.data.frame(rbind(extract_keepalives(tmp), global$keepalives))
+    
     print(paste("Added",nrow(local_logger_data()),"points of data from local files."))
   }
   # add signal data if either SQLite or Logger Files has been selected
@@ -49,7 +52,7 @@ observeEvent(input$add_data,{
     }
     if(!is.null(tmp) && input$data_type_input != "SQLite File"){
         global$signals<-unique.data.frame(rbind(cbind(tmp,receiver = input$receiver_name_input, Name = input$station_name_input),global$signals))
-        global$keepalives<-unique.data.frame(rbind(subset(global$signals, subset = is.na(global$signals$signal_freq))))
+        global$keepalives<-unique.data.frame(rbind(extract_keepalives(cbind(tmp,receiver = input$receiver_name_input, Name = input$station_name_input)), global$keepalives))
     }
     else {
         global$signals<-unique.data.frame(rbind(tmp, global$signals))
@@ -60,9 +63,9 @@ observeEvent(input$add_data,{
             global$calibrated <- (calibrated[1, 1] == 1)
           }
           if (dbExistsTable(con, "rteu_keepalives")) {
-            global$keepalives <- unique.data.frame(rbind(dbReadTable(con, "rteu_keepalives")))
+            global$keepalives <- unique.data.frame(rbind(extract_keepalives(dbReadTable(con, "rteu_keepalives")), global$keepalives))
           } else {
-            global$keepalives<-unique.data.frame(rbind(subset(global$signals, subset = is.na(global$signals$signal_freq))))
+            global$keepalives<-unique.data.frame(rbind(extract_keepalives(tmp), global$keepalives))
           }
           dbDisconnect(con)
         }

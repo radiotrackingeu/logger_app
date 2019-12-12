@@ -1,4 +1,4 @@
-source("srvResults.R")
+
 
 observeEvent(input$slider_datetime, {
     patientReactive("slider_datetime", 1000, redraw_results_plot)
@@ -25,28 +25,32 @@ output$facet <- renderPlot({
   validate(need(filtered_data(), "No data loaded"))
   switch(input$choose_plot,
          'Time-Strength-Receiver-Station'={
-           ggplot(filtered_data()) +
+           get_base_plot(filtered_data(), style="white") +
+           # ggplot(filtered_data()) +
            geom_point(aes(x=as.POSIXct(timestamp, "UTC"), y=max_signal, color=receiver)) +
            labs(x="Time", y = "Signal Strength") +
            scale_x_datetime(labels = function(x) format(x, "%d-%m \n %H:%M:%S"))+
            facet_wrap(~Name)
          },
          'Time-Strength-Receiver-Station-Freq'={
-           ggplot(filtered_data()) +
+           # ggplot(filtered_data()) +
+           get_base_plot(filtered_data(), style="white") +
              geom_point(aes(x=as.POSIXct(timestamp, "UTC"), y=max_signal, color=receiver,group=freq_tag,shape=freq_tag)) +
              labs(x="Time", y = "Signal Strength") +
              scale_x_datetime(labels = function(x) format(x, "%d-%m \n %H:%M:%S"))+
              facet_wrap(~Name)
          },
          'Time-Freq-Strength-Station'={
-           ggplot(filtered_data()) +
+           # ggplot(filtered_data()) +
+           get_base_plot(filtered_data(), style="white") +
              geom_point(aes(x=timestamp, y=signal_freq, color=max_signal)) +
              labs(x="Time", y = "Frequency") +
              scale_x_datetime(labels = function(x) format(x, "%d-%m \n %H:%M:%S"))+
              facet_wrap(~Name)
          },
          'Time-Strength-Frequency-Station'={
-           ggplot(filtered_data()) +
+           # ggplot(filtered_data()) +
+           get_base_plot(filtered_data(), style="white") +
              geom_point(aes(x=as.POSIXct(timestamp, "UTC"), y=max_signal, color=freq_tag)) +
              labs(x="Time", y = "Signal Strength") +
              scale_x_datetime(labels = function(x) format(x, "%d-%m \n %H:%M:%S"))+
