@@ -60,7 +60,11 @@ get_base_plot <- function(signal_data, signal_aes=aes(), style="none") {
   if(!is.data.table(global$keepalives))
     setDT(global$keepalives)
   p<-ggplot(signal_data, signal_aes)
-  if(!is.null(global$keepalives) & nrow(global$keepalives)>0 & global$keepalives[td_fctr=="down",.N]>0) {
+  if(
+    !is.null(global$keepalives) & 
+      nrow(global$keepalives)>0 & 
+      global$keepalives[td_fctr=="down" & timestamp %between% c(min(na.rm=T, signal_data$timestamp), max(na.rm=T, signal_data$timestamp)),.N]>0
+    ) {
     switch (style,
       "white" = p<-p+geom_rect(
         data=na.omit(

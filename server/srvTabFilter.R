@@ -4,16 +4,19 @@
 
 observe({
   validate(
-   need(pre_filtered_data(), "Please provide logger data.")
+    need(pre_filtered_data(), "Please provide logger data.")#,
+    # need(nrow(pre_filtered_data())>0, "No data in given date range. Please adjust in Filter tab.")
   )
-  if(!is.null(global$signals)){
-    old_min <-isolate(input$slider_datetime[1])
+  if (nrow(pre_filtered_data())>0){
     min_date<-min(pre_filtered_data()$timestamp)-1
     max_date<-max(pre_filtered_data()$timestamp)+1
+    old_min <-isolate(input$slider_datetime[1])
     if(isolate(input$app_live_mode)) 
-      updateSliderInput(session, "slider_datetime",min=min_date,max=max_date,value = c(old_min,max_date) )
+      updateSliderInput(session, "slider_datetime", min=min_date, max=max_date, value = c(old_min,max_date) )
     else
-      updateSliderInput(session, "slider_datetime",min=min_date,max=max_date,value = c(min_date,max_date))
+      updateSliderInput(session, "slider_datetime", min=min_date, max=max_date, value = c(min_date,max_date))
+  } else {
+    updateSliderInput(session, "slider_datetime", min=input$filter_for_dates[1], max=input$filter_for_dates[2]+1, value = c(input$filter_for_dates[1],input$filter_for_dates[2]+1) )
   }
 })
 
@@ -24,15 +27,30 @@ observe({
   min_date<-as.Date(min(global$signals$timestamp))
   max_date<-as.Date(max(global$signals$timestamp))
   updateDateRangeInput(session,"filter_for_dates",start=min_date,end=max_date,min=min_date,max=max_date)
+})
+
+observeEvent(input$plus_one_day, {
+  validate(
+    need(global$signals, "Please provide logger data.")
+  )
+  min_date<-as.Date(min(global$signals$timestamp))
+  max_date<-as.Date(max(global$signals$timestamp))
   old_min <-isolate(input$filter_for_dates[1])
   old_max <-isolate(input$filter_for_dates[2])
-  if(input$plus_one_day){
-    updateDateRangeInput(session,"filter_for_dates",start=old_min+1,end=old_max+1,min=min_date,max=max_date)
-  }
-  if(input$minus_one_day){
-    updateDateRangeInput(session,"filter_for_dates",start=old_min-1,end=old_max-1,min=min_date,max=max_date)
-  }
+  updateDateRangeInput(session,"filter_for_dates",start=min(old_min+1, max_date),end=min(old_max+1, max_date),min=min_date,max=max_date)
 })
+
+observeEvent(input$minus_one_day, {
+  validate(
+    need(global$signals, "Please provide logger data.")
+  )
+  min_date<-as.Date(min(global$signals$timestamp))
+  max_date<-as.Date(max(global$signals$timestamp))
+  old_min <-isolate(input$filter_for_dates[1])
+  old_max <-isolate(input$filter_for_dates[2])
+  updateDateRangeInput(session,"filter_for_dates",start=max(old_min-1, min_date),end=max(old_max-1, min_date),min=min_date,max=max_date)
+})
+
 
 observe({
   validate(
@@ -51,9 +69,10 @@ output$freq_tags <- renderUI({
 })
 
 pre_filtered_data <-reactive({
+  validate(need(input$filter_for_dates[1]<=input$filter_for_dates[2], "Second date must be after first in date range."))
   if (is.null(global$signals))
     return(NULL)
-  subset(global$signals, (timestamp>=as.POSIXct(input$filter_for_dates[1]))&&(timestamp<=as.POSIXct(input$filter_for_dates[2]+1)))
+  subset(global$signals, (timestamp>=as.POSIXct(input$filter_for_dates[1]))&(timestamp<=as.POSIXct(input$filter_for_dates[2]+1)))
 })
 
 # applying filters
