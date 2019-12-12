@@ -1,3 +1,5 @@
+source("srvResults.R")
+
 observeEvent(input$slider_datetime, {
     patientReactive("slider_datetime", 1000, redraw_results_plot)
 })
