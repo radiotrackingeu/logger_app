@@ -62,11 +62,13 @@ observeEvent(input$add_data,{
             calibrated <- dbReadTable(con, "rteu_calibrated")
             global$calibrated <- (calibrated[1, 1] == 1)
           }
-          if (dbExistsTable(con, "rteu_keepalives")) {
-            global$keepalives <- unique.data.frame(rbind(extract_keepalives(dbReadTable(con, "rteu_keepalives")), global$keepalives))
-          } else {
-            global$keepalives<-unique.data.frame(rbind(extract_keepalives(tmp), global$keepalives))
-          }
+          # if (dbExistsTable(con, "rteu_keepalives")) {
+          #   global$keepalives <- unique.data.frame(rbind(extract_keepalives(dbReadTable(con, "rteu_keepalives")), global$keepalives))
+          # } else {
+          #   global$keepalives<-unique.data.frame(rbind(extract_keepalives(tmp), global$keepalives))
+          # }
+          if (is.null(global$keepalives))
+            global$keepalives<-data.frame(timestamp=as.POSIXct(character()), Name=character(), receiver=character(), Orientation=numeric(), td=numeric(), td_fctr=as.factor(character()))
           dbDisconnect(con)
         }
     }

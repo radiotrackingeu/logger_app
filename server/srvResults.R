@@ -57,14 +57,14 @@ calculate_temperature <- function(td,a=19.449,b=0.0398) {
 get_base_plot <- function(signal_data, signal_aes=aes(), style="none") {
   require(ggplot2)
   require(data.table)
-  if(!is.data.table(global$keepalives))
-    setDT(global$keepalives)
   p<-ggplot(signal_data, signal_aes)
   if(
     !is.null(global$keepalives) & 
       nrow(global$keepalives)>0 & 
-      global$keepalives[td_fctr=="down" & timestamp %between% c(min(na.rm=T, signal_data$timestamp), max(na.rm=T, signal_data$timestamp)),.N]>0
+      as.data.table(global$keepalives)[td_fctr=="down" & timestamp %between% c(min(na.rm=T, signal_data$timestamp), max(na.rm=T, signal_data$timestamp)),.N]>0
     ) {
+    if(!is.data.table(global$keepalives))
+      setDT(x=global$keepalives)
     switch (style,
       "white" = p<-p+geom_rect(
         data=na.omit(
