@@ -142,6 +142,10 @@ tabPanel("File Input",
                       dataTableOutput("data_tab_map_markers_table"),
                       actionButton("clear_map_markers_data", "Clear table")
              ),
+             tabPanel("Keepalives",
+                      dataTableOutput("data_tab_keepalive_table"),
+                      actionButton("clear_keepalive_data", "Clear table")
+             ),
              tabPanel("Help",
                       "1) First select the data source on the right",
                       br(),

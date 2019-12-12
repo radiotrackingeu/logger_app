@@ -12,6 +12,7 @@
 #global$calibrated is a boolean indicating whether or not the currently loaded data has already been calibrated
 #global$bearing is a data frame containing the calculted bearings
 #global$triangulation is a data frame containing the trinagulated points
+#global$keepalices is a data frame containing all keepalive signals
 global$calibrated = FALSE
 
 
@@ -48,6 +49,7 @@ observeEvent(input$add_data,{
     }
     if(!is.null(tmp) && input$data_type_input != "SQLite File"){
         global$signals<-unique.data.frame(rbind(cbind(tmp,receiver = input$receiver_name_input, Name = input$station_name_input),global$signals))
+        global$keepalives<-unique.data.frame(rbind(subset(global$signals, subset = is.na(global$signals$signal_freq))))
     }
     else {
         global$signals<-unique.data.frame(rbind(tmp, global$signals))
@@ -56,6 +58,11 @@ observeEvent(input$add_data,{
           if (dbExistsTable(con, "rteu_calibrated")) {
             calibrated <- dbReadTable(con, "rteu_calibrated")
             global$calibrated <- (calibrated[1, 1] == 1)
+          }
+          if (dbExistsTable(con, "rteu_keepalives")) {
+            global$keepalives <- unique.data.frame(rbind(dbReadTable(con, "rteu_keepalives")))
+          } else {
+            global$keepalives<-unique.data.frame(rbind(subset(global$signals, subset = is.na(global$signals$signal_freq))))
           }
           dbDisconnect(con)
         }
@@ -95,12 +102,18 @@ observe({
     global$map_markers <- NULL
 })
 
+observe({
+    input$clear_keepalive_data
+    global$keepalives <- NULL
+})
+
 js$mark_invalid("Frequencies")
 js$mark_invalid("Receivers")
 js$mark_invalid("Connections")
 js$mark_invalid("Logger data")
 js$mark_invalid("Calibration")
 js$mark_invalid("Map Markers")
+js$mark_invalid("Keepalives")
 
 update_single_tab_title_colour <- function(data, label) {
     if (!is.null(data)) {
@@ -117,6 +130,7 @@ observe({update_single_tab_title_colour(global$connections, "Connections")})
 observe({update_single_tab_title_colour(global$frequencies, "Frequencies")})
 observe({update_single_tab_title_colour(global$calibration, "Calibration")})
 observe({update_single_tab_title_colour(global$map_markers, "Map Markers")})
+observe({update_single_tab_title_colour(global$keepalives, "Keepalives")})
 
 ### get data stored in the data folder ###
 
@@ -487,4 +501,9 @@ output$data_tab_antennae_table <- renderDataTable({
 output$data_tab_remote_con_table <- renderDataTable({
   validate(need(global$connections, "Please provide remote connection data file."))
   global$connections
+}, options = list(pageLength = 10), rownames=F)
+
+output$data_tab_keepalive_table <- renderDataTable({
+  validate(need(global$keepalives, "Please provide logger data file."))
+  global$keepalives
 }, options = list(pageLength = 10), rownames=F)

@@ -20,12 +20,15 @@ shinyjs.mark_valid = function(tab_name) {
         case "Map Markers":
             tabset_panel[6].children[0].className = "available";
             break;
+        case "Keepalives":
+            tabset_panel[7].children[0].className = "available";
+            break;
     }
 }
 
 shinyjs.mark_invalid = function(tab_name) {
     var tabset_panel = document.getElementById("data_tab_tabset").children;
-    console.log(tab_name[0]);
+    //console.log(tab_name[0]);
 
     switch (tab_name[0]) {
         case "Logger data":
@@ -46,6 +49,9 @@ shinyjs.mark_invalid = function(tab_name) {
         case "Map Markers":
             tabset_panel[6].children[0].className = "needed";
             break;
+        case "Keepalives":
+            tabset_panel[7].children[0].className = "needed";
+            break;            
     }
 }
 
