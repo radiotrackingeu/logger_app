@@ -1,6 +1,6 @@
-redraw_results_plot <- function() {
-  global$invalidate_filtered_data <- global$invalidate_filtered_data + 1
-}
+# redraw_results_plot <- function() {
+#   global$invalidate_filtered_data <- global$invalidate_filtered_data + 1
+# }
 
 #calculate time difference between two consecutive signals
 calculate_delta_T <- function(data) {

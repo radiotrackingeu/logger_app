@@ -1,10 +1,10 @@
 
-
-observeEvent(input$slider_datetime, {
-    patientReactive("slider_datetime", 1000, redraw_results_plot)
-})
-
-global$invalidate_filtered_data <- 0
+# 
+# observeEvent(input$slider_datetime, {
+#     patientReactive("slider_datetime", 1000, redraw_results_plot)
+# })
+# 
+# global$invalidate_filtered_data <- 0
 
 filtered_data_td <- reactive({
   if (input$filter_type=="all")
