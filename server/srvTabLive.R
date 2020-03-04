@@ -147,6 +147,7 @@ observeEvent(input$load_mysql_data, {
     global$mysql_data_invalidator = !global$mysql_data_invalidator
     signal_data()
     #    keepalive_data()
+    fake_keepalives()
   }
   }
 })
@@ -262,6 +263,12 @@ keepalive_data <- reactive({
     tmp
   }
 })
+
+# Stopgap measure to allow current plotting to work with data without the proper keepalive structure.
+# To be removed once keepalives works the way it does for data folder
+fake_keepalives <- function() {
+  global$keepalives<-unique(rbind(global$keepalives, data.frame(timestamp=as.POSIXct(character()), Name=character(), receiver=character(), Orientation=numeric(), td=numeric(), td_fctr=as.factor(character()))))
+}
 
 build_signals_query <- function(table) {
     query_duration_filter<-""
