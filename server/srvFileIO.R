@@ -313,7 +313,7 @@ extract_keepalives <- function(signals, updown_threshold=10) {
   setorder(keepalives, timestamp)
   # keepalives[,c("samples", "duration", "signal_freq", "signal_bw", "noise", "max_signal", "freq_tag"):=NULL]
   keepalives[,td:=c(NA,diff(timestamp)), by=.(Name, receiver)][!is.na(td),td_fctr:=case_when(td<=updown_threshold ~ "up", td>updown_threshold ~ "down")]
-  if (!is.null(global$receivers$Orientation)) {
+  if (!is.null(global$receivers$Orientation)&nrow(keepalives)>0) {
     keepalives<-keepalives[as.data.table(global$receivers)[,.(Name, Orientation)],on=c(receiver="Name"), nomatch=NULL]
   } else {
     keepalives[,Orientation:=-1]
