@@ -9,7 +9,6 @@ triangulate <- function(receivers, bearings, only_one=F,time_error_inter_station
   stations<-as.data.frame(na.omit(unique(receivers[,c("Station","Longitude","Latitude")])))
   stations<-stations[!duplicated(stations$Station),]
   stations_utm<-cbind(stations,utm=wgstoutm(stations[,"Longitude"],stations[,"Latitude"]))
-
   if(length(unique(stations_utm$utm.zone))>1){
     print("UTM Zone Problem")
   }
@@ -26,6 +25,7 @@ triangulate <- function(receivers, bearings, only_one=F,time_error_inter_station
     timestamps_unique<-unique(tmp_f$timestamp)
     num_timestamps_unique<-length(timestamps_unique)
     #for each times interval
+                     browser()
     split<-foreach(j=timestamps_unique,
                    .export=c("tri_one","tri_two","tri_centroid","utmtowgs","coordinates","angle_between","triang"),
                    .packages=c("sp"),
