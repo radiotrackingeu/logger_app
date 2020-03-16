@@ -25,7 +25,6 @@ triangulate <- function(receivers, bearings, only_one=F,time_error_inter_station
     timestamps_unique<-unique(tmp_f$timestamp)
     num_timestamps_unique<-length(timestamps_unique)
     #for each times interval
-                     browser()
     split<-foreach(j=timestamps_unique,
                    .export=c("tri_one","tri_two","tri_centroid","utmtowgs","coordinates","angle_between","triang"),
                    .packages=c("sp"),
