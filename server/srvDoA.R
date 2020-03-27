@@ -173,9 +173,9 @@ doa_internal <- function(data, time_to_look_for, dBLoss=14, doa_approx="automati
     for(f in unique(data_t$freq_tag)) {
       #build subset for the frequency
       data_tf<-subset(data_t,freq_tag==f)
+      output<-NULL
       for(s in unique(data_tf$Station)) {
         result<-NULL
-        output<-NULL
         #build subset for the Station
         data_tfs<-subset(data_tf, Station==s)
         #sort using signal_strength
