@@ -161,6 +161,7 @@ live_invalidator <- observe({
     if (global$live_mode) {
         global$mysql_data_invalidator = !isolate(global$mysql_data_invalidator)
         signal_data()
+        fake_keepalives()
         #keepalive_data()
         invalidateLater(isolate(global$live_update_interval) * 1000)
     }
