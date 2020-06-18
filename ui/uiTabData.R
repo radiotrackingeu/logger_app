@@ -28,7 +28,7 @@ tabPanel("File Input",
                  width = NULL
                ),
                textInput("receiver_name_input","Please enter receiver name", value = "receiver_1"),
-               textInput("station_name_input","Please enter receiver name", value = "station_1")
+               textInput("station_name_input","Please enter station name", value = "station_1")
              ),
              conditionalPanel(
                condition = "input.data_type_input == 'Excel Files'",
