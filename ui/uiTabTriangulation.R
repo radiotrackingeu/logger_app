@@ -15,7 +15,7 @@ tabPanel("Triangulation",
                     sliderInput("tri_speed_slider","Speeds allowed [m/s]",0,400,150),
                     actionButton("form_centroids","Centroid Filter"),
                     numericInput("time_to_smooth","Minutes to smooth",1),
-                    numericInput("time_slot","Time sloth",0.5),
+                    numericInput("time_slot","Time slot",0.5),
                     selectInput("tri_smooth_method","Choose method",choices=c("mean","median")),
                     leafletOutput("tri_filter_map")
                     ),
