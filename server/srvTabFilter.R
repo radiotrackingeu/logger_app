@@ -156,6 +156,6 @@ output$total_counts<-renderText({
 
 output$freq_hover<-renderText({
   if(is.null((input$plot_freq_hover))) return(NULL)
-  return(paste("kHz:",round(input$plot_freq_hover$x)))
+  return(paste("kHz:",round(input$plot_freq_hover$x,2)))
 })
 
