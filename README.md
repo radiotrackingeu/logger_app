@@ -1,2 +1,2 @@
 # logger_app
-App to visualize several receivers data on a map
+App to visualize and analyse several receivers data on a map
