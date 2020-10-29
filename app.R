@@ -38,7 +38,11 @@ options(shiny.maxRequestSize=400000*1024^2)
 ui <- tagList(
   useShinyjs(),
   includeCSS("style.css"),
-  extendShinyjs("script.js",functions=c()),
+  extendShinyjs("script.js",functions=c("mark_valid",
+                                        "mark_invalid",
+                                        "disableTab",
+                                        "enableTab",
+                                        "disableButton")),
   add_busy_spinner(spin="circle", height = "30px", width = "30px"),
   navbarPage(id = "navbar", "rteu-logger-app v1.3",
     source("ui/uiTabData.R")$value,
