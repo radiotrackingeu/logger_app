@@ -19,6 +19,7 @@ required_packages<-c("shiny",
                      "shinybusy",
                      "DT",
                      "data.table",
+                     "plyr"
                      "dplyr"
                      )
 
