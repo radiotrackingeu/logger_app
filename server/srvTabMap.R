@@ -145,7 +145,7 @@ observe({
 # creates basic map
 map <- reactive({
   l<-leaflet() %>%
-    addProviderTiles(providers[[input$map_choose]]) %>%
+    # addProviderTiles(providers[[input$map_choose]]) %>%
     addMeasure(position = "bottomleft", 
       primaryLengthUnit = "meters",  
       primaryAreaUnit = "sqmeters",

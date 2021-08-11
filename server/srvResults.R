@@ -22,7 +22,7 @@ calculate_delta_T <- function(data) {
         if(attr(td,"units")=="secs"){
           td<-c(0,td)
           ab<-get_temp_coefficients(k)
-          tmp2<-cbind(tmp2,td=td,temperature=calculate_temperature(td, ab$a, ab$b))
+          tmp2<-cbind(tmp2,td=td,temperature=calculate_temperature(td, ab$a, ab$b, ab$c))
           return_td<-rbind(tmp2,return_td)
         }
       }
@@ -35,22 +35,25 @@ get_temp_coefficients <-function(freq_tag) {
   l<-switch(input$filter_type,
     "Multiple frequencies" = list(
       "a"=global$frequencies[global$frequencies$Name==freq_tag,]$Temp_A,
-      "b"=global$frequencies[global$frequencies$Name==freq_tag,]$Temp_B
+      "b"=global$frequencies[global$frequencies$Name==freq_tag,]$Temp_B,
+      "c"=ifelse("Temp_C" %in% names(global$frequencies), global$frequencies[global$frequencies$Name==freq_tag,]$Temp_C, 0)
     ),
     "Custom frequency" = list(
       "a" = input$single_freq_temp_a,
-      "b" = input$single_freq_temp_b
+      "b" = input$single_freq_temp_b,
+      "c" = input$single_freq_temp_c
     ),
     "all" = list(
-      "a" = 20.307,
-      "b" = 0.0408
+      "a" = 39.44,
+      "b" = 0.028,
+      "c" = -20.08
     )
   )
   return(l)
 }
 
-calculate_temperature <- function(td,a=19.449,b=0.0398) {
-  return(log(60/as.numeric(td)/a)/b)
+calculate_temperature <- function(td,a=39.44,b=0.028, c=-20.08) {
+  return(log((60/as.numeric(td)-c)/a)/b)
 }
 
 

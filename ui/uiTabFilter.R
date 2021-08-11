@@ -46,10 +46,11 @@ tabPanel("Filter",
                   radioButtons("filter_type", strong("Filter type:"), c("all","Multiple frequencies", "Custom frequency")),
                   conditionalPanel(condition='input.filter_type == "Custom frequency"',
                                    numericInput("single_freq", "Enter a frequency", value = 150175),
-                                   tags$span(style="font-weight:bold","For temperature curve a*e^b:"),
+                                   tags$span(style="font-weight:bold","For temperature curve f(t)=a*e^(t*b)+c:"),
                                    splitLayout(
-                                     numericInput("single_freq_temp_a", "Coefficient a",value = 20.307),
-                                     numericInput("single_freq_temp_b", "Coefficient b",value = 0.0408)
+                                     numericInput("single_freq_temp_a", "Coefficient a",value = 39.44),
+                                     numericInput("single_freq_temp_b", "Coefficient b",value = 0.028),
+                                     numericInput("single_freq_temp_c", "Coefficient c",value = -20.08)
                                    )
                   ),
                   conditionalPanel(condition='input.filter_type == "Multiple frequencies"',
