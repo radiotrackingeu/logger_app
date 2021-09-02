@@ -338,7 +338,7 @@ signal_data<-function(){
   if(nrow(tmp)==0) return(NULL)
   #tmp<-subset(get_mysql_data(),signal_freq!=0)
   tmp$timestamp <- as.POSIXct(tmp$timestamp,tz="UTC")
-  tmp$signal_freq <- round((tmp$signal_freq+tmp$center_freq)/1000)
+  tmp$signal_freq <- round((tmp$signal_freq+tmp$center_freq)/1000, 2)
   tmp$receiver <- substrLeft(tmp$device,17)
 
   signal_info <- tmp[, c("timestamp", "duration", "signal_freq", "Name", "receiver", "max_signal", "signal_bw")]
