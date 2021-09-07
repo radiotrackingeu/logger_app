@@ -243,6 +243,18 @@ output$download_excel_receivers <- downloadHandler(
     }
 )
 
+output$download_excel_bearings <- downloadHandler(
+  filename = "bearings.xlsx",
+  content = function(file) {
+    if (!is.null(global$bearing)) {
+      write_xlsx(global$bearing, file)
+    }
+    else {
+      write_xlsx(data.frame(), file)
+    }
+  }
+)
+
 output$download_tri_points <- downloadHandler(
   filename = "Triangulations.xlsx",
   content = function(file) {
