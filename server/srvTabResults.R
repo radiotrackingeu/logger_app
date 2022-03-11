@@ -25,7 +25,7 @@ output$facet <- renderPlot({
   validate(need(filtered_data(), "No data loaded"))
   validate(need(nrow(filtered_data())>0, "Oh no, there is no data to plot! Did you filter it all out?"))
   switch(input$choose_plot,
-         'Time-Strength-Receiver-Station'={
+         'Time-Strength-Antenna-Station'={
            get_base_plot(filtered_data(), style="white") +
            # ggplot(filtered_data()) +
            geom_point(aes(x=as.POSIXct(timestamp, "UTC"), y=max_signal, color=receiver)) +
@@ -34,7 +34,7 @@ output$facet <- renderPlot({
            facet_wrap(~Name) +
            guides(color=guide_legend(override.aes = list(size=3, alpha=1)))
          },
-         'Time-Strength-Receiver-Station-Freq'={
+         'Time-Strength-Antenna-Station-Freq'={
            # ggplot(filtered_data()) +
            get_base_plot(filtered_data(), style="white") +
              geom_point(aes(x=as.POSIXct(timestamp, "UTC"), y=max_signal, color=receiver,group=freq_tag,shape=freq_tag)) +

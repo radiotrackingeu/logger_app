@@ -74,7 +74,7 @@ get_base_plot <- function(signal_data, signal_aes=aes(), style="none") {
         aes(ymin=-Inf, ymax=Inf, xmin=timestamp-60*td, xmax=timestamp-300, fill="white"), 
         inherit.aes=F
       )+
-        scale_fill_identity(name="Status", guide='legend', labels = c("not all receivers running"))+
+        scale_fill_identity(name="Status", guide='legend', labels = c("not all antennas running"))+
         guides(fill=guide_legend(title="Status", override.aes = list(color="grey"))),
       "alpha" = p<-p+geom_rect(
         data=na.omit(
@@ -84,7 +84,7 @@ get_base_plot <- function(signal_data, signal_aes=aes(), style="none") {
         aes(ymin=-Inf, ymax=Inf, xmin=timestamp-60*td, xmax=timestamp-300, fill=alpha("white", 2/length(unique(receiver)))), 
         inherit.aes=F
       )+
-        scale_fill_identity(name="Status", guide='legend', labels = c("less receivers running -> more transparent"))+
+        scale_fill_identity(name="Status", guide='legend', labels = c("less antennas running -> more transparent"))+
         guides(fill=guide_legend(override.aes = list(color="grey", fill=alpha("white", 0.5))))
       ,
       "color" = p<-p+geom_rect(

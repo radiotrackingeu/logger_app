@@ -136,7 +136,7 @@ update_single_tab_title_colour <- function(data, label) {
 }
 
 observe({update_single_tab_title_colour(global$signals, "Logger data")})
-observe({update_single_tab_title_colour(global$receivers, "Receivers")})
+observe({update_single_tab_title_colour(global$receivers, "Antennas")})
 observe({update_single_tab_title_colour(global$connections, "Connections")})
 observe({update_single_tab_title_colour(global$frequencies, "Frequencies")})
 observe({update_single_tab_title_colour(global$calibration, "Calibration")})
@@ -232,7 +232,7 @@ receiver_list <- reactive({
       tmp
     },
     "Excel Files" = {
-      if(input$excel_data_content=="Receivers"){
+      if(input$excel_data_content=="Antennas"){
         if(is.null(input$excel_filepath_receivers))
           return(NULL)
         
@@ -383,7 +383,7 @@ preview_content <- reactive({
     switch(input$data_type_input,
         "Excel Files" = {
             switch(input$excel_data_content,
-                Receivers = {
+                Antennas = {
                     tmp <- receiver_list()
                 },
                 Frequencies = {
@@ -493,7 +493,7 @@ output$data_tab_preview <- renderDataTable({
 output$data_tab_logger_table <- renderDataTable({
   validate(need(global$signals, "Please provide logger data file."))
   global$signals
-}, options = list(pageLength = 10), rownames=F)
+}, options = list(pageLength = 10), colnames=c("antenna"="receiver"), rownames=F)
 
 output$data_tab_freq_table <- renderDataTable({
   validate(need(global$frequencies, "Please provide frequency data file."))

@@ -54,13 +54,13 @@ observeEvent(input$minus_one_day, {
 
 observe({
   validate(
-    need(global$signals, "Please provide file with antennae specifications.")
+    need(global$signals, "Please provide file with antenna specifications.")
   )
   if(!is.null(global$signals)){
     rec_names <- c("all",as.character(unique(global$signals$receiver)))
     station_names <- c("all",as.character(unique(global$signals$Name)))
-    updateSelectInput(session, "input_select_receiver", label = "Select Receiver", choices = rec_names, selected = "all")
-    updateSelectInput(session, "input_select_station", label = "Select Station", choices = station_names, selected = "all")
+    updateSelectInput(session, "input_select_receiver", choices = rec_names, selected = "all")
+    updateSelectInput(session, "input_select_station", choices = station_names, selected = "all")
   }
 })
 

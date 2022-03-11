@@ -113,7 +113,7 @@ addTriangulations <- function(m, data, showBearings=T, error=0,  errorColor="blu
 #'
 #' @return the map with added cone
 addDetectionCones<-function(m,data) {
-  # print(paste("total", nrow(sorted_data()),"unique",length(unique(sorted_data()$timestamp)),"receivers",length(unique(sorted_data()$receiver))))
+  # print(paste("total", nrow(sorted_data()),"unique",length(unique(sorted_data()$timestamp)),"antennas",length(unique(sorted_data()$receiver))))
   #data<-subset(data_in,timestamp==timestamp[input$map_choose_single_data_set])
   if(nrow(data)==0) 
     return(NULL)
@@ -126,7 +126,7 @@ addDetectionCones<-function(m,data) {
     }
     a<-antennae_cones()[[data$receiver[p]]]
     label_kegel <- paste0("Signal Properties:",br(),
-      "Receiver: ",data$receiver[p], br(),
+      "Antenna: ",data$receiver[p], br(),
       "Date and Time: ", data$time[p],br(),
       "Strength: ", data$max_signal[p],br(),
       "Length: ", data$duration[p],br(),

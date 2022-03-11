@@ -27,18 +27,18 @@ tabPanel("File Input",
                  accept = NULL,
                  width = NULL
                ),
-               textInput("receiver_name_input","Please enter receiver name", value = "receiver_1"),
+               textInput("receiver_name_input","Please enter antenna name", value = "receiver_1"),
                textInput("station_name_input","Please enter station name", value = "station_1")
              ),
              conditionalPanel(
                condition = "input.data_type_input == 'Excel Files'",
                radioButtons("excel_data_content",
-                            choices = c("Receivers", "Frequencies", "Connections", "Calibration", "Map Markers"),
+                            choices = c("Antennas", "Frequencies", "Connections", "Calibration", "Map Markers"),
                             label = "Add following data:"
                ),
                conditionalPanel(
-                 condition = "input.excel_data_content == 'Receivers'",
-                 h6("Information about each receiver used"),
+                 condition = "input.excel_data_content == 'Antennas'",
+                 h6("Information about each antenna used"),
                  fileInput(
                    "excel_filepath_receivers",
                    "",
@@ -71,7 +71,7 @@ tabPanel("File Input",
                ),
                conditionalPanel(
                  condition = "input.excel_data_content == 'Calibration'",
-                 h6("Calibration of receiver's sensitivity"),
+                 h6("Calibration of antenna's sensitivity"),
                  fileInput(
                    "excel_filepath_calibration",
                    "",
@@ -122,7 +122,7 @@ tabPanel("File Input",
                       dataTableOutput("data_tab_logger_table"),
                       actionButton("clear_logger_data", "Clear table")
              ),
-             tabPanel("Antennas and Receivers",
+             tabPanel("Antennas",
                       dataTableOutput("data_tab_antennae_table"),
                       actionButton("clear_receivers_data", "Clear table")
              ),

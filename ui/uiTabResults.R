@@ -4,14 +4,14 @@ tabPanel("Results",
     column(
       width=3,
       selectInput("choose_plot","Choose Plot",
-        choices = c("Time-Strength-Receiver-Station",
-                    "Time-Strength-Receiver-Station-Freq",
+        choices = c("Time-Strength-Antenna-Station",
+                    "Time-Strength-Antenna-Station-Freq",
                     "Time-Freq-Strength-Station",
                     "Time-Strength-Frequency-Station",
                     "Time-Temperature-Station-Frequency",
                     "Time-TD-Station-Frequency"
         ),
-        selected="Time-Strength-Receiver-Station"
+        selected="Time-Strength-Antenna-Station"
       )
     ),
     column(

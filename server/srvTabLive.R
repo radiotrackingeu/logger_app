@@ -378,7 +378,7 @@ output$live_tab_keepalive_plot <- renderPlot({
     validate(need(nrow(keepalive_data()) > 0, "No keepalives found."))
     ggplot(keepalive_data()) +
     geom_point(aes(x=timestamp, y=receiver, color=receiver)) +
-    labs(x = "Time", y = "Receiver") +
+    labs(x = "Time", y = "Antenna") +
     theme(axis.text.x=element_text(angle = 60, hjust = 1)) +
     scale_x_datetime(labels = function(x) format(x, "%d-%m \n %H:%M:%S"))
 })

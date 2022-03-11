@@ -108,7 +108,7 @@ smooth_to_time_match <-function(data,spar_value=0.01, progress=F){
     for(i in unique(data$receiver)){
       if (progress) {
         setProgress(value=cnt_recs)
-        incProgress(amount=0, detail = paste0("Receiver: ",i))
+        incProgress(amount=0, detail = paste0("Antenna: ",i))
       }
       tmp_r<-subset(data,receiver==i)
       num_tags=length(unique(tmp_r$freq_tag))

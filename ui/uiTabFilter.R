@@ -101,14 +101,14 @@ tabPanel("Filter",
       ),
       selectInput(
         "input_select_receiver",
-        "Select Receiver/s",
+        "Select Antenna(s)",
         choices = NULL,
         multiple = TRUE,
         selectize = TRUE
       ),
       selectInput(
         "input_select_station",
-        "Select Station/s",
+        "Select Station(s)",
         choices = NULL,
         multiple = TRUE,
         selectize = TRUE
