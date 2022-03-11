@@ -270,7 +270,7 @@ output$download_tri_points <- downloadHandler(
 
 
 output$download_csv_temperature <- downloadHandler(
-  filename = "TemperatureData.csv",
+  filename = "TemperatureData.xlsx",
   content = function(file) {
     if (!is.null(filtered_data_td())) {
       write.csv2(filtered_data_td(), file)
