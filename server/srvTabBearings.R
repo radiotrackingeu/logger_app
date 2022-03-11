@@ -122,7 +122,8 @@ output$correction_list <- renderUI({
 output$polar_output <- renderPlot({
   validate(need(global$bearing, "No data found"))
   p<-ggplot(global$bearing)+
-    geom_bar(aes(x=round(angle),y=strength,fill=Station), stat="identity",width=10)+
+    geom_bar(aes(x=round(angle),fill=Station, group=Station),width=10)+
+    xlab("DoA")+ylab("Number of signals")+
     facet_wrap(~freq_tag)+
     coord_polar()+theme_minimal()+
     scale_x_continuous(breaks = c(0,90,180,270),limits = c(0, 359))

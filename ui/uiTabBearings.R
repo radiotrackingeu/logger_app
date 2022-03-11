@@ -38,11 +38,11 @@ tabPanel("Bearings",
                     uiOutput("correction_list"),
                     actionButton("change_manu","Change manually")
            ),
-           tabPanel("Life DoA",
-                    plotOutput("polar_output")
-           ),
            tabPanel("DoA Table",
                     dataTableOutput("doa")
+           ),
+           tabPanel("DoA Polar Plot",
+             plotOutput("polar_output")
            ),
            tabPanel("DoA Plot",
                     plotOutput("doa_plot"),
