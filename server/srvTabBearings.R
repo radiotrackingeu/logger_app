@@ -120,16 +120,12 @@ output$correction_list <- renderUI({
 
 #plot polar plots
 output$polar_output <- renderPlot({
-  validate(need(doa_smoothed(), "No data found"))
-  tmp<-doa_smoothed()[1:4,]
-  tmp<-tmp[order(tmp$timestamp),]
-  p<-ggplot(doa_smoothed()[1:4,])+
-    geom_bar(aes(x=round(angle),y=strength),stat="identity",width=10)+
+  validate(need(global$bearing, "No data found"))
+  p<-ggplot(global$bearing)+
+    geom_bar(aes(x=round(angle),y=strength,fill=Station), stat="identity",width=10)+
+    facet_wrap(~freq_tag)+
     coord_polar()+theme_minimal()+
     scale_x_continuous(breaks = c(0,90,180,270),limits = c(0, 359))
-  if(input$filter_freq){
-    p <- p + facet_wrap(~freq_tag)
-  }
   p
 })
 
