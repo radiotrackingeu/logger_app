@@ -46,7 +46,7 @@ ui <- tagList(
                                         "enableTab",
                                         "disableButton")),
   add_busy_spinner(spin="circle", height = "30px", width = "30px"),
-  navbarPage(id = "navbar", "rteu-logger-app v1.3",
+  navbarPage(id = "navbar", "rteu-logger-app v1.4",
     source("ui/uiTabData.R")$value,
     source("ui/uiTabLive.R")$value,
     source("ui/uiTabFilter.R")$value,
