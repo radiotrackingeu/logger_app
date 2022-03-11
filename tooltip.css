@@ -9,7 +9,7 @@
 /* Tooltip text */
   .tooltip .tooltiptext {
     visibility: hidden;
-    width: 120px;
+    width: 200px;
     background-color: #eee;
     color: black;
       text-align: center;
@@ -19,7 +19,7 @@
     /* Position the tooltip text - see examples below! */
     position: absolute;
     z-index: 1;
-    top: 2px;
+    top: -4px;
     left: 110%;
   }
   
