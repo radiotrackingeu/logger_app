@@ -41,14 +41,20 @@ observeEvent(input$add_data,{
     if(is.null(tmp$freq_tag)){
       tmp$freq_tag<-NA
     }
-    if(is.null(global$signals$freq_tag)&&!is.null(global$signals)){
+    if(!is.null(global$signals) && is.null(global$signals$freq_tag)){
       global$signals$freq_tag<-NA
     }
     if(is.null(tmp$signal_bw)){
       tmp$signal_bw<-NA
     }
-    if(is.null(global$signals$signal_bw)&&!is.null(global$signals)){
+    if(!is.null(global$signals) && is.null(global$signals$signal_bw)){
       global$signals$signal_bw<-NA
+    }
+    if(is.null(tmp$td)){
+      tmp$td<-NA
+    }
+    if(!is.null(global$signals) && is.null(global$signals$td)){
+      global$signals$td<-NA
     }
     if(!is.null(tmp) && input$data_type_input != "SQLite File"){
         global$signals<-unique.data.frame(rbind(cbind(tmp,receiver = input$receiver_name_input, Name = input$station_name_input),global$signals))
