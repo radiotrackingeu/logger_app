@@ -317,17 +317,23 @@ build_signals_query <- function(table) {
             }
       }
     }
+    runfiltertoggle<-F
+    if (runfiltertoggle) {
+      runfilter<-"`run` between 1349 and 1367 "
+    } else
+      runfilter<-" "
+    
     where<-""
     and <- ""
     if(any(input$check_sql_duration,input$check_sql_strength,input$query_filter_freq)){
         and <- "AND"
     }
-    if(any(input$check_sql_duration,input$check_sql_strength,input$query_filter_freq)){
+    if(any(runfiltertoggle,input$check_sql_duration,input$check_sql_strength,input$query_filter_freq)){
       where<-" WHERE"
     }
     #keepalive_filter <- paste(and, "max_signal != 0")
 
-    print(paste0("SELECT timestamp, duration, signal_freq, run, max_signal, signal_bw FROM `",table,"` s", inner_join, where,query_duration_filter,query_max_signal_filter,query_freq_filter, " ORDER BY s.id DESC", ifelse(input$live_last_points == 0,"", paste0(" LIMIT ",input$live_last_points)),";"))
+    print(paste0("SELECT timestamp, duration, signal_freq, run, max_signal, signal_bw FROM `",table,"` s", inner_join, where, runfilter, and,query_duration_filter,query_max_signal_filter,query_freq_filter, " ORDER BY s.id ASC", ifelse(input$live_last_points == 0,"", paste0(" LIMIT ",input$live_last_points)),";"))
 }
 
 signal_data<-function(){
