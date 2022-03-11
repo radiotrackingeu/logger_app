@@ -45,8 +45,7 @@ tabPanel("Bearings",
              plotOutput("polar_output")
            ),
            tabPanel("DoA Plot",
-                    plotOutput("doa_plot"),
-                    plotOutput("smoothed_curves")
+                    plotOutput("doa_plot")
            )
          )
 )
