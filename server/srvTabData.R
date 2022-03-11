@@ -207,32 +207,38 @@ frequencies_list <- reactive({
 })
 
 receiver_list <- reactive({
-    tmp<-NULL
-        switch(input$data_type_input,
-           "Data folder" = {
-               tmp<-safe_read_excel_silent("data/Antennas.xlsx")
-           },
-           "SQLite File" = {
-              for (file in input$SQLite_filepath[, "datapath"]) {
-                con <- dbConnect(RSQLite::SQLite(), file)
-                if (dbExistsTable(con, "rteu_antenna")) {
-                    tmp_data <- dbReadTable(con, "rteu_antenna")
-                    tmp <- rbind(tmp, tmp_data)
-                }
-                dbDisconnect(con)
-              }
-              tmp <- unique(tmp)
-              tmp
-           },
-           "Excel Files" = {
-             if(input$excel_data_content=="Receivers"){
-               if(is.null(input$excel_filepath_receivers))
-                 return(NULL)
-
-               tmp<-safe_read_excel(input$excel_filepath_receivers$datapath)
-             }
-           }
-    )
+  tmp<-NULL
+  switch(
+    input$data_type_input,
+    "Data folder" = {
+      tmp<-safe_read_excel_silent("data/Antennas.xlsx")
+    },
+    "SQLite File" = {
+      for (file in input$SQLite_filepath[, "datapath"]) {
+        con <- dbConnect(RSQLite::SQLite(), file)
+        if (dbExistsTable(con, "rteu_antenna")) {
+          tmp_data <- dbReadTable(con, "rteu_antenna")
+          tmp <- rbind(tmp, tmp_data)
+        }
+        dbDisconnect(con)
+      }
+      tmp <- unique(tmp)
+      tmp
+    },
+    "Excel Files" = {
+      if(input$excel_data_content=="Receivers"){
+        if(is.null(input$excel_filepath_receivers))
+          return(NULL)
+        
+        tmp<-safe_read_excel(input$excel_filepath_receivers$datapath)
+      }
+    }
+  )
+  if (!is.null(tmp)) {
+    setDT(tmp)
+    tmp[, Name:=trimws(Name, "right")]
+    tmp[, Station:=trimws(Station, "right")]
+  }
   return(tmp)
 })
 
