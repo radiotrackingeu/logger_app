@@ -39,6 +39,7 @@ options(shiny.maxRequestSize=400000*1024^2)
 ui <- tagList(
   useShinyjs(),
   includeCSS("style.css"),
+  includeCSS("tooltip.css"),
   extendShinyjs("script.js",functions=c("mark_valid",
                                         "mark_invalid",
                                         "disableTab",

@@ -1,6 +1,12 @@
 ############ tabBearings.R ############
 tabPanel("Bearings",
-         actionButton("start_doa","Calculate Bearings", style="margin-bottom:25px"),
+         tags$div(
+           style="display:inline-block", id="doa_tooltip", class="tooltip vis",
+           disabled(
+             actionButton("start_doa","Calculate Bearings", style="margin-bottom:25px")
+           ),
+           tags$span(class="tooltiptext", "No frequency selected, or all data filtered out.")
+         ),
          tabsetPanel(
            tabPanel("Settings",
                     selectInput("doa_option_approximation","Choose DoA Method",c("automatic","linear","arccos")),

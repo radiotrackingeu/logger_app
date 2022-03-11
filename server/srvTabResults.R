@@ -23,6 +23,7 @@ output$plot_x_y <- renderText({
 
 output$facet <- renderPlot({
   validate(need(filtered_data(), "No data loaded"))
+  validate(need(nrow(filtered_data())>0, "Oh no, there is no data to plot! Did you filter it all out?"))
   switch(input$choose_plot,
          'Time-Strength-Receiver-Station'={
            get_base_plot(filtered_data(), style="white") +

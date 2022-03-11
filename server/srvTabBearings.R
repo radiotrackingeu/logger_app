@@ -69,6 +69,31 @@ doa_fast <- function(signals, receivers, dBLoss=14, doa_approx="automatic") {
   return(result)
 }
 
+filter_type <- reactive({
+  input$filter_type
+}) %>% debounce(500)
+
+observeEvent({filter_type(); filtered_data(); input$choose_tag}, ignoreNULL = F, ignoreInit = T, {
+  dta <- nrow(filtered_data()) > 0
+  filter <- FALSE
+  
+  if (filter_type() == "Custom frequency" && !is.na(input$single_freq)) {
+    filter <- TRUE
+  }
+  if (filter_type() == "Multiple frequencies" && !is.null(input$choose_tag)){
+    filter <- TRUE
+  }
+  
+  
+  if (filter && dta) {
+    shinyjs::removeClass(id="doa_tooltip", class = "vis")
+    enable(id="start_doa")
+  } else {
+    shinyjs::addClass(id="doa_tooltip", class = "vis")
+    disable(id="start_doa")
+  }
+})
+
 observeEvent(input$start_doa,{
   cl <- parallel::makeCluster(detectCores())
   registerDoSNOW(cl)

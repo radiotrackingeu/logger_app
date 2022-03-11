@@ -92,7 +92,7 @@ filter_signal_strength <- function(data,pulse_strength){
 }
 
 filter_data_freq <- function(data,freq,freq_error,mid_freq,freq_labels = NULL){
-  freq_sorted<-NULL
+  freq_sorted<-data.table()
   for(i in freq){
     tmp<-subset(data, (data$signal_freq>(i-freq_error)) & (data$signal_freq<(i+freq_error)))
     if(!is.null(tmp) && nrow(tmp)>0){

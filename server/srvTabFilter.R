@@ -117,34 +117,29 @@ filtered_data <- reactive({
       }
     }
   }
-  validate(
-    need(nrow(tempo)[1]>0, "Oh no, there is no data to plot! Did you filter it all out?")
-  )
   return(tempo)
 }) %>% debounce(millis=300)
 
-output$histo <- renderPlot({
+plot_data <- reactive({
   validate(need(filtered_data(), "No data loaded"))
+  validate(need(nrow(filtered_data())>0, "Oh no, there is no data to plot! Did you filter it all out?"))
+  ggplot(filtered_data())
+})
 
-  ggplot(filtered_data()) + geom_histogram(aes(signal_freq),bins=200)+ scale_y_log10()
+output$histo <- renderPlot({
+   plot_data() + geom_histogram(aes(signal_freq),bins=200)+ scale_y_log10()
 })
 
 output$histo_length <- renderPlot({
-  validate(need(filtered_data(), "No data loaded"))
-
-  ggplot(filtered_data()) + geom_histogram(aes(duration),bins= 100)
+  plot_data() + geom_histogram(aes(duration),bins= 100)
 })
 
 output$histo_strength <- renderPlot({
-  validate(need(filtered_data(), "No data loaded"))
-
-  ggplot(filtered_data()) + geom_histogram(aes(max_signal),bins= 200)
+  plot_data() + geom_histogram(aes(max_signal),bins= 200)
 })
 
 output$histo_bandwidth<- renderPlot({
-  validate(need(filtered_data(), "No data loaded"))
-
-  ggplot(filtered_data()) + geom_histogram(aes(signal_bw),bins= 200)
+  plot_data() + geom_histogram(aes(signal_bw),bins= 200)
 })
 
 output$total_counts<-renderText({
