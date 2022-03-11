@@ -356,7 +356,7 @@ get_signals <- reactive({
                 for (file in input$SQLite_filepath[, "datapath"]) {
                     con <- dbConnect(RSQLite::SQLite(), file)
                     if (dbExistsTable(con, "rteu_logger_data")) {
-                        data <- rbind(data, dbReadTable(con, "rteu_logger_data"), stringsAsFactors=FALSE)
+                        data <- rbindlist(list(data, dbReadTable(con, "rteu_logger_data")), fill=T)
                     }
                     dbDisconnect(con)
                 }
