@@ -7,12 +7,9 @@
 # global$invalidate_filtered_data <- 0
 
 filtered_data_td <- reactive({
-  if (input$filter_type=="all")
-    return(NULL)
-  else
-    return(calculate_delta_T(filtered_data()))
+  validate(need(input$filter_type!="all", "Please use 'Filter' tab to specify one or more frequencies, by using either of the 'Multiple frequencies' or 'Custom frequency' options."))
+  return(calculate_delta_T(filtered_data()))
 })
-
 
 output$plot_x_y <- renderText({
   if(is.null(input$plot_hover$x)) return(NULL)
