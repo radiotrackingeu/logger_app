@@ -8,7 +8,7 @@ tabPanel("Triangulation",
                     selectInput("tri_option_dd","Choose Triangulation Method", choices = c("centroid","two_strongest")),
                     selectInput("tri_tm_method","Choose Time Match Methold", choices = c("tm","spline")),
                     sliderInput("spar_in_tri","Spar for smooth",0,1,value=0.1),
-                    checkboxInput("one_antenna_triang","One antenna gives a rough point using signal strength")
+                    disabled(checkboxInput("one_antenna_triang","One antenna gives a rough point using signal strength", value = FALSE))
            ),
            tabPanel("Filters",
                     actionButton("filter_speed","Distance Filter"),
