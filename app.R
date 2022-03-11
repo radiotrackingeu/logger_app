@@ -54,7 +54,6 @@ ui <- tagList(
     source("ui/uiTabBearings.R", encoding = "UTF-8")$value,
     source("ui/uiTabTriangulation.R")$value,
     source("ui/uiTabMap.R")$value,
-    source("ui/uiTabSpatialStatistic.R")$value,
     source("ui/uiTabSave.R")$value
   )
 )
