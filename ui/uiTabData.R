@@ -15,7 +15,11 @@ tabPanel("File Input",
                  multiple = TRUE,
                  accept = NULL,
                  width = NULL
-               )
+               ) %>% {
+                 temp = .
+                 temp$children[[2]]$children[[1]]$children[[1]]$children[[2]]$attribs$onchange <- "document.getElementById('add_data').disabled = true;"
+                 temp
+               }
              ),
              conditionalPanel(
                condition = "input.data_type_input == 'Logger Files'",
@@ -26,7 +30,11 @@ tabPanel("File Input",
                  multiple = TRUE,
                  accept = NULL,
                  width = NULL
-               ),
+               )%>% {
+                 temp = .
+                 temp$children[[2]]$children[[1]]$children[[1]]$children[[2]]$attribs$onchange <- "document.getElementById('add_data').disabled = true;"
+                 temp
+               },
                textInput("receiver_name_input","Please enter antenna name", value = "receiver_1"),
                textInput("station_name_input","Please enter station name", value = "station_1")
              ),

@@ -524,3 +524,13 @@ output$data_tab_keepalive_table <- renderDataTable({
   validate(need(global$keepalives, "Please provide logger data file."))
   global$keepalives
 }, options = list(pageLength = 10), rownames=F)
+
+observeEvent(input$SQLite_filepath, ignoreNULL = T, {
+  if (!is.null(input$SQLite_filepath$datapath))
+    enable(id='add_data')
+})
+
+observeEvent(input$logger_filepath, ignoreNULL = T, {
+  if (!is.null(input$logger_filepath$datapath))
+    enable(id='add_data')
+})
