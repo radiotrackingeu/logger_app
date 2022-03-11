@@ -8,7 +8,7 @@ filter_data_time_interval <- function(data,time_distance){
   list_of_receivers<-unique(data$receiver)
   #and each frequency
   list_of_frequencies<-unique(data$freq_tag)
-  #signals which appear betweeen time_distance[1] and time_distance[2] seconds
+  #signals which appear between time_distance[1] and time_distance[2] seconds
   return_tmp<-NULL
   for(i in list_of_receivers){
     tmp1 <- subset(data,receiver==i)
