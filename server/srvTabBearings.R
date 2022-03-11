@@ -50,11 +50,14 @@ calculate_bearings_time_window <- function(filtered_data, receivers, window_size
   withProgress(min=0, max=length(unique(filtered_data$station)), value=0, message="Matching timestamps...", expr={
     data[,time_matched:=as.POSIXct(start+floor((as.numeric(timestamp)-start)/window_size)*window_size, origin="1970-01-01", tz="GMT"), by=Name]
   })
-  if (input$use_doa_fast){
-    bearings<-doa_fast(data, receivers, dBLoss = input$dBLoss)
-  } else {
-    bearings<-doa(data[,timestamp:=time_matched], receivers, dBLoss = input$dBLoss, live_mode, live_update_interval, progress)
-  }
+
+  # if (input$use_doa_fast){
+  #   bearings<-doa_fast(data, receivers, dBLoss = input$dBLoss)
+  # } else {
+  #   bearings<-doa(data[,timestamp:=time_matched], receivers, dBLoss = input$dBLoss, live_mode, live_update_interval, progress)
+  # }
+  
+  bearings<-doa_fast(data, receivers, dBLoss = input$dBLoss)
   return(bearings)
 }
 

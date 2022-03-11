@@ -4,7 +4,7 @@ tabPanel("Bearings",
          tabsetPanel(
            tabPanel("Settings",
                     selectInput("doa_option_approximation","Choose DoA Method",c("automatic","linear","arccos")),
-                    selectInput("time_matching_method","Choose Time Match Method", c("tm"="tm","spline"="spline","windows"="win")),
+                    selectInput("time_matching_method","Choose Time Match Method", c("tm"="tm","spline"="spline","windows"="win"), selected = "win"),
                     conditionalPanel("input.time_matching_method=='spline'",
                       sliderInput("spar_in","Spar for smooth",0,1,value=0.1)
                     ),
@@ -12,8 +12,8 @@ tabPanel("Bearings",
                       numericInput("intra_station_time_error","Time Difference between the antennas",value=0.5)
                     ),
                     conditionalPanel("input.time_matching_method=='win'",
-                      numericInput("bearings_window_size", label="Time window size", value=15),
-                      checkboxInput("use_doa_fast", label = "Use doa_fast from script", value = F)
+                      numericInput("bearings_window_size", label="Time window size", value=15)#,
+                      #checkboxInput("use_doa_fast", label = "Use doa_fast from script", value = F)
                     ),
                     numericInput("dBLoss","dB between two neighbouring antennas",value=14),
                     checkboxInput("only_one_for_doa","If only one antenna receive - take the antennas direction"),
