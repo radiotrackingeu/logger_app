@@ -247,7 +247,7 @@ centroid_fun <- function(tri_data,time,s_time,method="mean"){
   return(cbind(utm,pos=location_wgs))
 }
 
-nigth_day <- function(tri_data){
+night_day <- function(tri_data){
   min_time<-as.Date(min(tri_data$timestamp))
   max_time<-as.Date(max(tri_data$timestamp))
   time_seq<-seq(min_time,max_time,by="days")
