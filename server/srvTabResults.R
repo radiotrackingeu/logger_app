@@ -33,7 +33,7 @@ output$facet <- renderPlot({
          },
          'Time-Strength-Antenna-Station-Freq'={
            # ggplot(filtered_data()) +
-           get_base_plot(filtered_data(), style="white") +
+           get_base_plot(filtered_data_td(), style="white") +
              geom_point(aes(x=as.POSIXct(timestamp, "UTC"), y=max_signal, color=receiver,group=freq_tag,shape=freq_tag)) +
              labs(x="Time", y = "Signal Strength") +
              scale_x_datetime(labels = function(x) format(x, "%d-%m \n %H:%M:%S"))+
@@ -42,7 +42,7 @@ output$facet <- renderPlot({
          },
          'Time-Freq-Strength-Station'={
            # ggplot(filtered_data()) +
-           get_base_plot(filtered_data(), style="white") +
+           get_base_plot(filtered_data_td(), style="white") +
              geom_point(aes(x=timestamp, y=signal_freq, color=max_signal)) +
              labs(x="Time", y = "Frequency") +
              scale_x_datetime(labels = function(x) format(x, "%d-%m \n %H:%M:%S"))+
@@ -50,7 +50,7 @@ output$facet <- renderPlot({
          },
          'Time-Strength-Frequency-Station'={
            # ggplot(filtered_data()) +
-           get_base_plot(filtered_data(), style="white") +
+           get_base_plot(filtered_data_td(), style="white") +
              geom_point(aes(x=as.POSIXct(timestamp, "UTC"), y=max_signal, color=freq_tag)) +
              labs(x="Time", y = "Signal Strength") +
              scale_x_datetime(labels = function(x) format(x, "%d-%m \n %H:%M:%S"))+
