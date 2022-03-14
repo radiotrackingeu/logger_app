@@ -247,19 +247,19 @@ centroid_fun <- function(tri_data,time,s_time,method="mean"){
   return(cbind(utm,pos=location_wgs))
 }
 
-night_day <- function(tri_data){
-  min_time<-as.Date(min(tri_data$timestamp))
-  max_time<-as.Date(max(tri_data$timestamp))
-  time_seq<-seq(min_time,max_time,by="days")
-  utm<-foreach(i=time_seq,
-               .combine=rbind,
-               .inorder=F) %dopar% {
-                 sunrise<-getSunlightTimes(i,lat=tri_data$pos.Y[2],lon=tri_data$pos.X[2])$sunrise
-                 sunset<-getSunlightTimes(i,lat=tri_data$pos.Y[2],lon=tri_data$pos.X[2])$sunset
-                 tmp<-subset(tri_data,timestamp>=sunrise-60*t_error&timestamp<=sunset+60*t_error)
-                 tmp$day_night<-"day"
-               }
-}
+# night_day <- function(tri_data){
+#   min_time<-as.Date(min(tri_data$timestamp))
+#   max_time<-as.Date(max(tri_data$timestamp))
+#   time_seq<-seq(min_time,max_time,by="days")
+#   utm<-foreach(i=time_seq,
+#                .combine=rbind,
+#                .inorder=F) %dopar% {
+#                  sunrise<-getSunlightTimes(i,lat=tri_data$pos.Y[2],lon=tri_data$pos.X[2])$sunrise
+#                  sunset<-getSunlightTimes(i,lat=tri_data$pos.Y[2],lon=tri_data$pos.X[2])$sunset
+#                  tmp<-subset(tri_data,timestamp>=sunrise-60*t_error&timestamp<=sunset+60*t_error)
+#                  tmp$day_night<-"day"
+#                }
+# }
 
 
 centroid_roost <- function(tri_data,time="day",t_error=30,method="mean"){
