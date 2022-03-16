@@ -74,7 +74,7 @@ filter_type <- reactive({
 }) %>% debounce(500)
 
 observeEvent({filter_type(); filtered_data(); input$choose_tag}, ignoreNULL = F, ignoreInit = T, {
-  dta <- nrow(filtered_data()) > 0
+  dta <- !is.null(filtered_data()) && nrow(filtered_data()) > 0
   filter <- FALSE
   
   if (filter_type() == "Custom frequency" && !is.na(input$single_freq)) {
