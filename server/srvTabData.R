@@ -39,10 +39,10 @@ observeEvent(input$add_data,{
   if(input$data_type_input=="Logger Files"||input$data_type_input=="SQLite File"&&!input$data_type_input == "Data folder"){
     tmp<-get_signals()
     if(is.null(tmp$freq_tag)){
-      tmp$freq_tag<-NA
+      tmp$freq_tag<-as.character(NA)
     }
     if(!is.null(global$signals) && is.null(global$signals$freq_tag)){
-      global$signals$freq_tag<-NA
+      global$signals$freq_tag<-as.character(NA)
     }
     if(is.null(tmp$signal_bw)){
       tmp$signal_bw<-NA
