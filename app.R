@@ -1,3 +1,6 @@
+##### Logger-App #####
+######################
+
 required_packages<-c("shiny",
                      "readxl",
                      "writexl",
