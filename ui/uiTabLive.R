@@ -3,6 +3,7 @@ tabPanel("Live Data",
            sidebarPanel(
              uiOutput('con_tags'),
              numericInput("live_last_points", "Number of entries to read (0 to get all)", 50, min=0),
+             airDatepickerInput("datetime_filter", label = "Load signals recorded after", timepicker=TRUE),
              actionButton("connect_mysql","Connect to DBs"),
              actionButton("load_mysql_data","Load Data"),
              checkboxInput("app_live_mode", "Live Mode"),

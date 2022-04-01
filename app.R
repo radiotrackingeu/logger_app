@@ -23,6 +23,7 @@ required_packages<-c("shiny",
                      "DT",
                      "data.table",
                      "plyr",
+                     "shinyWidgets",
                      "dplyr"
                      )
 
