@@ -95,7 +95,7 @@ triang <- function(x1,y1,alpha1,x2,y2,alpha2){
   # First calculate tan keeping in mind that 0° in geo-coordinates are 90° in a x-y plane
   ta1 <- (alpha1%%360)/180*pi
   ta2 <- (alpha2%%360)/180*pi
-  if(((alpha1-alpha2)%%180)==0){#print("No triangulation possible: all three points are on one line")
+  if((abs(alpha1-alpha2)%%180)<=0.001){
     return(c(NA,NA))}
 
   # Findinf Intersection Using solver
@@ -103,7 +103,15 @@ triang <- function(x1,y1,alpha1,x2,y2,alpha2){
   a1<-c(sin(ta1),cos(ta1))
   a2<-c(-sin(ta2),-cos(ta2))
   a<-matrix(c(a1,a2),nrow=2)
-  l<-solve(a,b)
+  l<-tryCatch({
+    solve(a,b)
+  },
+    error=function(e) {
+      write(paste0("Could not biangulate for positions (X=",x1,", Y=",y1,", a=",alpha1,") and (X=",x2,", Y=",y2,", a=",alpha2,")"), stderr())
+      write(e$message, stderr())
+      c(-1,-1)
+    }
+  )
   px<-x1+l[1]*sin(ta1)
   py<-y1+l[1]*cos(ta1)
 
