@@ -42,7 +42,7 @@ output$facet <- renderPlot({
          },
          'Time-Freq-Strength-Station'={
            # ggplot(filtered_data()) +
-           get_base_plot(filtered_data_td(), style="white") +
+           get_base_plot(filtered_data(), style="white") +
              geom_point(aes(x=timestamp, y=signal_freq, color=max_signal)) +
              labs(x="Time", y = "Frequency") +
              scale_x_datetime(labels = function(x) format(x, "%d-%m \n %H:%M:%S"))+
