@@ -150,7 +150,32 @@ output$total_counts<-renderText({
 })
 
 output$freq_hover<-renderText({
-  if(is.null((input$plot_freq_hover))) return(NULL)
-  return(paste("kHz:",round(input$plot_freq_hover$x,2)))
+  switch (input$filter_plotTabs,
+    "Frequency" = {
+      if(is.null((input$plot_freq_hover))) 
+        return(NULL)
+      else
+        return(paste("Freq:", round(input$plot_freq_hover$x,2), "kHz"))
+    },
+    "Duration" = {
+      if(is.null((input$histo_length_hover))) 
+        return(NULL)
+      else
+        return(paste("Duration:", round(input$histo_length_hover$x,2), "ms"))
+    },
+    "Signal Strength" = {
+      if(is.null((input$histo_strength_hover))) 
+        return(NULL)
+      else
+        return(paste("Max signal strength:", round(input$histo_strength_hover$x,2), "dB"))
+    },
+    "Signal Bandwidth" = {
+      if(is.null((input$histo_bandwidth_hover))) 
+        return(NULL)
+      else
+        return(paste("Signal bandwith:", round(input$histo_bandwidth_hover$x,2), "Hz"))
+    }
+  )
+  
 })
 

@@ -38,6 +38,7 @@ tabPanel("Filter",
       ),
 
       tabsetPanel(
+        id = "filter_plotTabs",
         type = "tabs",
         tabPanel("Frequency",
           div(
@@ -47,19 +48,19 @@ tabPanel("Filter",
         tabPanel("Duration",
           div(
             style="height: calc(100vh - 280px)",
-            plotOutput("histo_length", height="100%")
+            plotOutput("histo_length", hover = "histo_length_hover", height="100%")
           )
         ),
         tabPanel("Signal Strength",
           div(
             style="height: calc(100vh - 280px)",
-            plotOutput("histo_strength", height="100%")
+            plotOutput("histo_strength", hover = "histo_strength_hover", height="100%")
           )
         ),
         tabPanel("Signal Bandwidth",
           div(
             style="height: calc(100vh - 280px)",
-            plotOutput("histo_bandwidth", height="100%")
+            plotOutput("histo_bandwidth", hover = "histo_bandwidth_hover", height="100%")
           )
         )
       )
