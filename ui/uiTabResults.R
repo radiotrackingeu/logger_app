@@ -15,13 +15,19 @@ tabPanel("Results",
       )
     ),
     column(
-      width=3,
+      width=4,
+      conditionalPanel(
+        condition = "input.choose_plot=='Time-TD-Station-Frequency'",
+        sliderInput("results_slider_tdRange", "Set y-range limits", min=0, max=20, value=c(0,4.5), step=0.1, width="100%")
+      )
+    ),
+    column(
+      width=2,
       actionButton("minus_one_day","Minus one day"),
       actionButton("plus_one_day","Plus one day")
     ),
     column(
       width=3,
-      offset = 3,
       br(),
       h4(textOutput("plot_x_y"))
     )

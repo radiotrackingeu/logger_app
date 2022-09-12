@@ -72,7 +72,7 @@ output$facet <- renderPlot({
              xlab("Date and Time in UTC")+
              scale_x_datetime(labels = function(x) format(x, "%d-%m \n %H:%M:%S"))+
              facet_wrap(~Name)+
-             ylim(0.0,4.5) +
+             ylim(input$results_slider_tdRange) +
              guides(color=guide_legend(override.aes = list(size=3, alpha=1)))
          }
          )
