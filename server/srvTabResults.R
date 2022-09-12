@@ -26,7 +26,7 @@ output$facet <- renderPlot({
            get_base_plot(filtered_data(), style="white") +
            # ggplot(filtered_data()) +
            geom_point(aes(x=as.POSIXct(timestamp, "UTC"), y=max_signal, color=receiver)) +
-           labs(x="Time", y = "Signal Strength") +
+           labs(x="Date and Time in UTC", y = "Signal Strength") +
            scale_x_datetime(labels = function(x) format(x, "%d-%m \n %H:%M:%S"))+
            facet_wrap(~Name) +
            guides(color=guide_legend(override.aes = list(size=3, alpha=1)))
@@ -35,7 +35,7 @@ output$facet <- renderPlot({
            # ggplot(filtered_data()) +
            get_base_plot(filtered_data_td(), style="white") +
              geom_point(aes(x=as.POSIXct(timestamp, "UTC"), y=max_signal, color=receiver,group=freq_tag,shape=freq_tag)) +
-             labs(x="Time", y = "Signal Strength") +
+             labs(x="Date and Time in UTC", y = "Signal Strength") +
              scale_x_datetime(labels = function(x) format(x, "%d-%m \n %H:%M:%S"))+
              facet_wrap(~Name) +
              guides(color=guide_legend(override.aes = list(size=3, alpha=1)), shape=guide_legend(override.aes = list(size=3)))
@@ -44,7 +44,7 @@ output$facet <- renderPlot({
            # ggplot(filtered_data()) +
            get_base_plot(filtered_data(), style="white") +
              geom_point(aes(x=timestamp, y=signal_freq, color=max_signal)) +
-             labs(x="Time", y = "Frequency") +
+             labs(x="Date and Time in UTC", y = "Frequency") +
              scale_x_datetime(labels = function(x) format(x, "%d-%m \n %H:%M:%S"))+
              facet_wrap(~Name)
          },
@@ -52,7 +52,7 @@ output$facet <- renderPlot({
            # ggplot(filtered_data()) +
            get_base_plot(filtered_data_td(), style="white") +
              geom_point(aes(x=as.POSIXct(timestamp, "UTC"), y=max_signal, color=freq_tag)) +
-             labs(x="Time", y = "Signal Strength") +
+             labs(x="Date and Time in UTC", y = "Signal Strength") +
              scale_x_datetime(labels = function(x) format(x, "%d-%m \n %H:%M:%S"))+
              facet_wrap(~Name) +
              guides(color=guide_legend(override.aes = list(size=3, alpha=1)))
@@ -60,7 +60,7 @@ output$facet <- renderPlot({
          'Time-Temperature-Station-Frequency'={
            ggplot(filtered_data_td())+
              geom_point(aes(x=as.POSIXct(timestamp, "UTC"), y=temperature,color=Name))+
-             labs(x="Time", y = "Temperature [C]") +
+             labs(x="Date and Time in UTC", y = "Temperature [C]") +
              ylim(27.4,40)+
              facet_wrap(~freq_tag) +
              guides(color=guide_legend(override.aes = list(size=3, alpha=1)))
