@@ -31,8 +31,8 @@ tabPanel("Filter",
         sliderInput(
           "signal_bw",
           "",
-          min = 500,
-          max = 50000,
+          min = 0,
+          max = 100000,
           value = c(2000, 8000)
         )
       ),
