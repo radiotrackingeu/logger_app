@@ -11,5 +11,8 @@ tabPanel("Save Data",
     downloadButton("download_csv_temperature", "Download temperature data"),
     downloadButton("download_excel_map_markers", "Download map markers"),
     downloadButton("download_excel_bearings", "Download bearings"),
-    downloadButton("download_tri_points", "Download triangulated points")
+    downloadButton("download_tri_points", "Download triangulated points"),
+    h1("CSV"),
+    downloadButton("download_csv_signals", "Download filtered signals"),
+    tags$span("(Use csv if there are too many signals for excel files.)")
 )

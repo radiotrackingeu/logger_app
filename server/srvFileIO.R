@@ -220,6 +220,19 @@ output$download_excel_signals <- downloadHandler(
     }
 )
 
+output$download_csv_signals <- downloadHandler(
+  filename = "filtered_data.csv",
+  content = function(file) {
+    if (!is.null(filtered_data_td())) {
+      fwrite(filtered_data_td()[,!c("temperature", "samples", "keep")], file, sep = ";", dec = ",")
+    } else if (!is.null(filtered_data())) {
+      fwrite(filtered_data()[,!c("samples", "keep")], file, sep = ";", dec = ",")
+    } else {
+      fwrite(data.frame(), file, sep = ";", dec = ",")
+    }
+  }
+)
+
 output$download_excel_remote_connections <- downloadHandler(
     filename = "RemoteConnections.xlsx",
     content = function(file) {
