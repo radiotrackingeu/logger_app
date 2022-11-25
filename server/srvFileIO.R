@@ -210,12 +210,13 @@ output$download_excel_calibrations <- downloadHandler(
 output$download_excel_signals <- downloadHandler(
     filename = "signals.xlsx",
     content = function(file) {
-        if (!is.null(global$signals)) {
-            write_xlsx(global$signals, file)
-        }
-        else {
-            write_xlsx(data.frame(), file)
-        }
+      if (!is.null(filtered_data_td())) {
+        write_xlsx(filtered_data_td()[,!c("temperature", "samples", "keep")], file)
+      } else if (!is.null(filtered_data())) {
+        write_xlsx(filtered_data()[,!c("samples", "keep")], file)
+      } else {
+        write_xlsx(data.frame(), file)
+      }
     }
 )
 
