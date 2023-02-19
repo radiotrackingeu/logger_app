@@ -5,18 +5,18 @@ tabPanel("Filter",
       9,
       column(
         4,
-        checkboxInput("filter_length", strong("Signal length"), value = FALSE),
+        checkboxInput("filter_length", strong("Signal length [ms]"), value = FALSE),
         sliderInput(
           "signal_length",
           "",
-          min = 0.0005,
-          max = 0.050,
-          value = c(0.01, 0.03)
+          min = 5,
+          max = 50,
+          value = c(10, 30)
         )
       ),
       column(
         4,
-        checkboxInput("filter_strength", strong("Signal Strength"), value = FALSE),
+        checkboxInput("filter_strength", strong("Signal Strength [dB]"), value = FALSE),
         sliderInput(
           "signal_strength",
           "",
@@ -27,13 +27,13 @@ tabPanel("Filter",
       ),
       column(
         4,
-        checkboxInput("filter_bw", strong("Bandwidth"), value = FALSE),
+        checkboxInput("filter_bw", strong("Bandwidth [kHz]"), value = FALSE),
         sliderInput(
           "signal_bw",
           "",
           min = 0,
-          max = 100000,
-          value = c(2000, 8000)
+          max = 100,
+          value = c(2, 8)
         )
       ),
 
