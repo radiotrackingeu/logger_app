@@ -218,7 +218,8 @@ get_mysql_data <- eventReactive(global$mysql_data_invalidator, {
     else{
       tmp<-NULL
     }
-    global$tmp_data <- tmp
+    # global$tmp_data <- tmp
+    tmp
   }
 })
 
