@@ -20,9 +20,9 @@ tabPanel("Filter",
         sliderInput(
           "signal_strength",
           "",
-          min = 0,
-          max = 100,
-          value = c(15, 95)
+          min = -100,
+          max = 0,
+          value = c(-95, -5)
         )
       ),
       column(
