@@ -124,8 +124,8 @@ observe({
       if(nrow(data)>0){
         data<-merge(data,global$receivers[!duplicated(global$receivers$Station),c("Station","Longitude","Latitude")],by.x="Station",by.y="Station")
         data<-cbind(data,utm=wgstoutm(data[,"Longitude"],data[,"Latitude"]))
-        colnames(data)[which(colnames(data)=='Longitude')]<-"pos_x"
-        colnames(data)[which(colnames(data)=='Latitude')]<-"pos_y"
+        colnames(data)[which(colnames(data)=='Longitude')]<-"latitude"
+        colnames(data)[which(colnames(data)=='Latitude')]<-"longitude"
         leafletProxy("map") %>% addBearings(data)
       }
     }

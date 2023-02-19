@@ -185,9 +185,9 @@ get_mysql_data <- eventReactive(global$mysql_data_invalidator, {
               if(dbIsValid(open_connections()[[i]]$conn)) {
                 signals<-suppressWarnings(dbGetQuery(open_connections()[[i]]$conn, build_signals_query(open_connections()[[i]]$table)))
                 if(input$global_db_hostname){
-                  mysql_query_runs<-paste("SELECT id, device, pos_x, pos_y, orientation, beam_width, center_freq, hostname FROM `runs`")
+                  mysql_query_runs<-paste("SELECT id, device, latitude, longitude, orientation, center_freq, hostname FROM `runs`")
                 }else{
-                  mysql_query_runs<-paste("SELECT id, device, pos_x, pos_y, orientation, beam_width, center_freq FROM `runs`")
+                  mysql_query_runs<-paste("SELECT id, device, latitude, longitude, orientation, center_freq FROM `runs`")
                 }
                 runs<-suppressWarnings(dbGetQuery(open_connections()[[i]]$conn,mysql_query_runs))
                 if(nrow(signals)>0){
@@ -241,7 +241,7 @@ keepalive_data <- reactive({
 
                 if(nrow(results)>0){
                   results$Name <- i
-                  results$receiver <- substrLeft(results$device,17)
+                  results$receiver <- results$device#substrLeft(results$device,17)
                   results$device <- NULL
                   results$timestamp <- as.POSIXct(results$timestamp, tz="UTC")
                   tmp <- rbind(tmp,results)
@@ -347,13 +347,13 @@ signal_data<-function(){
   #tmp<-subset(get_mysql_data(),signal_freq!=0)
   tmp$timestamp <- as.POSIXct(tmp$timestamp,tz="UTC")
   # tmp$signal_freq <- round((tmp$signal_freq), 2)
-  tmp$receiver <- substrLeft(tmp$device,17)
+  tmp$receiver <- tmp$device#substrLeft(tmp$device,17)
   signal_info <- tmp[, c("timestamp", "duration", "signal_freq", "Name", "receiver", "max_signal", "signal_bw")]
   global$signals<-unique.data.frame(rbind(isolate(global$signals), signal_info))
 
-  receiver_info <- tmp[, c("receiver", "Name", "pos_x", "pos_y", "orientation", "beam_width")]
-  names(receiver_info) <- c("Name", "Station","Latitude","Longitude", "Orientation", "Beam width")
-  global$receivers<-unique.data.frame(rbind(isolate(global$receivers), receiver_info))
+  receiver_info <- tmp[, c("receiver", "Name", "latitude", "longitude", "orientation")]
+  names(receiver_info) <- c("Name", "Station","Latitude","Longitude", "Orientation")
+  global$receivers<-unique.data.frame(rbind(isolate(global$receivers), receiver_info, fill=T))
   tmp
 }
 
