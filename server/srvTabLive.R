@@ -184,6 +184,7 @@ get_mysql_data <- eventReactive(global$mysql_data_invalidator, {
             else {
               if(dbIsValid(open_connections()[[i]]$conn)) {
                 signals<-suppressWarnings(dbGetQuery(open_connections()[[i]]$conn, build_signals_query(open_connections()[[i]]$table)))
+                signals<- signals %>% filter(signal_freq!=0)
                 if(input$global_db_hostname){
                   mysql_query_runs<-paste("SELECT id, device, latitude, longitude, orientation, center_freq, hostname FROM `runs`")
                 }else{
