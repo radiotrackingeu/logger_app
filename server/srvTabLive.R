@@ -35,8 +35,8 @@ open_connections <- eventReactive(input$connect_mysql,{
           table = connect_to$Table[i]
           table = ifelse(!is.character(table),"signals",table)
           tmp_list[[connect_to$Name[i]]] <- list("conn"=open_connection(connect_to[i, ]), "table"=table)
-              incProgress(amount=1)
-            }
+          incProgress(amount=1)
+        }
       },
       message = "Attempting connection: ",
       max = nrow(connect_to),
@@ -300,7 +300,7 @@ build_signals_query <- function(table) {
             if(nrow(global$frequencies)>1&&query_freq_filter!=""){
               and<-"OR"
             }
-            query_freq_filter<-paste(query_freq_filter, and, "((signal_freq + center_freq + ",error,") >", k*1000, "  AND (signal_freq + center_freq - ",error,")  <", k*1000, ")")
+            query_freq_filter<-paste(query_freq_filter, and, "((signal_freq + ",error,") >", k, "  AND (signal_freq - ",error,")  <", k, ")")
           }
           if(any(input$check_sql_duration,input$check_sql_strength)){
             query_freq_filter<-paste("",query_freq_filter,")")
@@ -311,7 +311,7 @@ build_signals_query <- function(table) {
             if(any(input$check_sql_duration,input$check_sql_strength)) {
               and<-"AND("
             }
-            query_freq_filter<-paste(query_freq_filter, and, "((signal_freq + center_freq + ",error,") >", k*1000, "  AND (signal_freq + center_freq - ",error,")  <", k*1000, ")")
+            query_freq_filter<-paste(query_freq_filter, and, "((signal_freq + ",error,") >", k, "  AND (signal_freq - ",error,")  <", k, ")")
             if(any(input$check_sql_duration,input$check_sql_strength)){
               query_freq_filter<-paste("",query_freq_filter,")")
             }
@@ -344,9 +344,8 @@ signal_data<-function(){
   if(nrow(tmp)==0) return(NULL)
   #tmp<-subset(get_mysql_data(),signal_freq!=0)
   tmp$timestamp <- as.POSIXct(tmp$timestamp,tz="UTC")
-  tmp$signal_freq <- round((tmp$signal_freq+tmp$center_freq)/1000, 2)
+  # tmp$signal_freq <- round((tmp$signal_freq), 2)
   tmp$receiver <- substrLeft(tmp$device,17)
-
   signal_info <- tmp[, c("timestamp", "duration", "signal_freq", "Name", "receiver", "max_signal", "signal_bw")]
   global$signals<-unique.data.frame(rbind(isolate(global$signals), signal_info))
 
