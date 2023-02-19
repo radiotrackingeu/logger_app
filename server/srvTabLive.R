@@ -34,9 +34,11 @@ open_connections <- eventReactive(input$connect_mysql,{
           setProgress(detail=connect_to$Name[i])
           table = connect_to$Table[i]
           table = ifelse(!is.character(table),"signals",table)
-          tmp_list[[connect_to$Name[i]]] <- list("conn"=open_connection(connect_to[i, ]), "table"=table)
-          incProgress(amount=1)
-        }
+          database = connect_to$Database[i]
+          database = ifelse(!is.character(database),"rteu",database)
+          tmp_list[[connect_to$Name[i]]] <- list("conn"=open_connection(connect_to[i, ]), "table"=table, "database"=database)
+              incProgress(amount=1)
+            }
       },
       message = "Attempting connection: ",
       max = nrow(connect_to),
@@ -50,7 +52,7 @@ open_connection <- function(connection_info) {
   tryCatch(
     dbConnect(
       drv = RMySQL::MySQL(),
-      dbname = "rteu",
+      dbname = ifelse(!is.null(connection_info$Database), connection_info$Database, "rteu"),
       host = connection_info$Host,
       port = connection_info$Port,
       username = connection_info$User,
@@ -87,7 +89,7 @@ get_info_of_entries <- reactive({
             if(nrow(results)>0){
               results$size <- suppressWarnings(dbGetQuery(open_connections()[[i]]$conn, paste0('
                                        SELECT ROUND(SUM(data_length + index_length) / 1024 / 1024, 1) "size"
-                                       FROM information_schema.tables WHERE table_schema = "rteu" AND table_name = "', open_connections()[[i]]$table, '";')
+                                       FROM information_schema.tables WHERE table_schema = "', open_connections()[[i]]$database, '" AND table_name = "', open_connections()[[i]]$table, '";')
                                        )$size)
               results$time <- suppressWarnings(dbGetQuery(open_connections()[[i]]$conn, 'SELECT NOW();')$'NOW()')
               if(abs(difftime(as.POSIXct(Sys.time(), tz="UTC"),as.POSIXct(results$timestamp, tz="UTC"),units="mins"))<6){

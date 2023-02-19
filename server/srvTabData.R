@@ -151,11 +151,7 @@ remote_connections <- reactive({
     switch(input$data_type_input,
            "Data folder" = {
                 tmp<-safe_read_excel_silent("data/RemoteConnections.xlsx")
-                if ("Table" %in% names(tmp))
-                  tmp<-tmp[,c("Name","Host","Table","Port","User","Password")]
-                else
-                  tmp<-tmp[,c("Name","Host","Port","User","Password")]
-                  
+                tmp<-tmp[, names(tmp)[names(tmp) %in% c("Name","Host","Database","Table","Port","User","Password")]]
            },
            "SQLite File" = {
               tmp <- NULL
@@ -166,7 +162,7 @@ remote_connections <- reactive({
                 }
                 dbDisconnect(con)
               }
-              tmp<-tmp[,c("Name","Host","Port","User","Password")]
+              tmp<-tmp[, names(tmp)[names(tmp) %in% c("Name","Host","Database","Table","Port","User","Password")]]
            },
            "Excel Files" = {
              if(input$excel_data_content=="Connections") {
@@ -177,7 +173,7 @@ remote_connections <- reactive({
                if(is.null(tmp$Table)){
                  tmp$Table<-"signals"
                }
-               tmp<-tmp[,c("Name","Host","Port","User","Password","Table")]
+               tmp<-tmp[, names(tmp)[names(tmp) %in% c("Name","Host","Database","Table","Port","User","Password")]]
              }
            }
     )
