@@ -45,8 +45,19 @@ addBearings <-function(m, data, strength=25, ...) {
 addStations <-function(m, data, ...) {
   if (is.null(data) || nrow(data)<=0)
     return(m)
-  data<-data[!duplicated(data[,c("Station","Longitude","Latitude")]),]
-  m<-m%>% addCircles(lng = data$Longitude, lat=data$Latitude, label=data$Station, ...)
+  stations<-data[!duplicated(data[,c("Station","Longitude","Latitude")]),]
+  setorder(data, Orientation)
+  for (i in 1:nrow(stations)) {
+    m<-m%>% addCircles(
+      lng = stations$Longitude[i], 
+      lat=stations$Latitude[i], 
+      label=stations$Station[i], 
+      popup = HTML(data[Longitude==stations[i]$Longitude & Latitude==stations[i]$Latitude,paste0(Name, ": ",sprintf("%03d",Orientation),"°", collapse="<br>")]),
+      ...
+    )
+  }
+  m
+    
 }
 
 #' Calculates triangulated positions and adds circles and dashed bearings to the map

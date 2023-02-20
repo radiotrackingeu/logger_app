@@ -77,7 +77,7 @@ server <- function(input, output, session) {
   source("server/srvDoA.R", local = TRUE)$value
   source("server/srvTabBearings.R", local = TRUE)$value
   source("server/srvTabTriangulation.R",local = TRUE)$value
-  source("server/srvMapFuncs.R",local=TRUE)$value
+  source("server/srvMapFuncs.R",local=TRUE, encoding = "UTF-8")$value
   source("server/srvTriangulation.R",local=TRUE)$value
   source("server/srvTabMap.R", local = TRUE)$value
 
