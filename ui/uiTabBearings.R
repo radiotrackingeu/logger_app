@@ -5,7 +5,7 @@ tabPanel("Bearings",
            disabled(
              actionButton("start_doa","Calculate Bearings", style="margin-bottom:25px")
            ),
-           tags$span(class="tooltiptext", "No frequency selected, or all data filtered out.")
+           tags$span(class="tooltiptext", "No frequency selected, all data filtered out, or no dBLoss set.")
          ),
          tabsetPanel(
            tabPanel("Settings",

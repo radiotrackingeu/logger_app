@@ -76,7 +76,7 @@ filter_type <- reactive({
   input$filter_type
 }) %>% debounce(500)
 
-observeEvent({filter_type(); filtered_data(); input$choose_tag}, ignoreNULL = F, ignoreInit = T, {
+observeEvent({filter_type(); filtered_data(); input$choose_tag; dBLoss()}, ignoreNULL = F, ignoreInit = T, {
   dta <- !is.null(filtered_data()) && nrow(filtered_data()) > 0
   filter <- FALSE
   
@@ -87,8 +87,9 @@ observeEvent({filter_type(); filtered_data(); input$choose_tag}, ignoreNULL = F,
     filter <- TRUE
   }
   
+  dBLossSet <- !is.na(dBLoss())
   
-  if (filter && dta) {
+  if (filter && dta && dBLossSet) {
     shinyjs::removeClass(id="doa_tooltip", class = "vis")
     enable(id="start_doa")
   } else {
