@@ -315,6 +315,9 @@ gpx_data <- reactive({
 map_markers <- reactive({
   markers <-NULL
   switch(input$data_type_input,
+    "Data folder" = {
+      markers<-safe_read_excel_silent("data/MapMarkers.xlsx")
+    },
     "Excel Files" = {
       if (input$excel_data_content == "Map Markers" && !is.null(input$excel_filepath_map_markers)) {
         markers <- safe_read_excel(input$excel_filepath_map_markers$datapath)

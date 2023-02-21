@@ -158,7 +158,7 @@ map <- reactive({
   if (is.null(isolate(global$map_markers)))
     return(l)
   l<-l %>%
-    addMarkers(lat=isolate(global$map_markers$Latitude), lng=isolate(global$map_markers$Longitude), group="user_markers", layerId=paste0("marker_",seq_len(nrow(isolate(global$map_markers)))), label = isolate(global$map_markers$comment))
+    addCircleMarkers(lat=isolate(global$map_markers$Latitude), lng=isolate(global$map_markers$Longitude), group="user_markers", layerId=paste0("marker_",seq_len(nrow(isolate(global$map_markers)))), label = isolate(global$map_markers$Comment))
 })
 
 # add features to the basic map
