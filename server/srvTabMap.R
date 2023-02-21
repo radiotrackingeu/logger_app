@@ -19,14 +19,14 @@ output$map <- renderLeaflet({
 })
 
 # add extra spatial points
-observeEvent(input$add_data,{
-  req(gpx_data())
-  #leafletProxy("map") %>% addMarkers(data=gpx_data(),label=~paste(time,session_start))
-  #mytrack<-subset(gpx_data(),timestamp>=(selected_time()-30)&timestamp<=(selected_time()+30))
-  #if(nrow(mytrack)>0){
-  #  leafletProxy("map") %>% addCircles(lng = mytrack$lon, lat=mytrack$lat, radius=5, label=mytrack$timestamp, group = "GPX")
-  #}
-})
+# observeEvent(input$add_data,{
+#   req(gpx_data())
+#   #leafletProxy("map") %>% addMarkers(data=gpx_data(),label=~paste(time,session_start))
+#   #mytrack<-subset(gpx_data(),timestamp>=(selected_time()-30)&timestamp<=(selected_time()+30))
+#   #if(nrow(mytrack)>0){
+#   #  leafletProxy("map") %>% addCircles(lng = mytrack$lon, lat=mytrack$lat, radius=5, label=mytrack$timestamp, group = "GPX")
+#   #}
+# })
 
 
 # render data info text 
