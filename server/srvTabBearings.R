@@ -1,5 +1,9 @@
 ############ srvTabBearings.R ############
 
+dBLoss <- reactive({
+  as.numeric(unlist(strsplit(input$dBLoss, "[:space:]*[/\\,][:space:]*")))
+})
+
 #input fields for manual calibration
 correction_list<-reactive({
   if(is.null(filtered_data())){
@@ -26,7 +30,7 @@ calculate_bearings_spline <- function (filtered_data, receivers, spar_value, liv
   withProgress(min=0, max=length(unique(filtered_data$receiver)), value=0, message="Matching timestamps...", expr={
     d <- smooth_to_time_match(filtered_data,spar_value, progress)
   })
-  b <- doa(d, receivers, dBLoss=input$dBLoss,live_mode, live_update_interval, progress)
+  b <- doa(d, receivers, dBLoss=dBLoss(),live_mode, live_update_interval, progress)
   return(b)
 }
 
@@ -36,7 +40,7 @@ calculate_bearings_time_match <- function(filtered_data, receivers, station_time
   withProgress(min=0, max=length(unique(filtered_data$station)), value=0, message="Matching timestamps...", expr={
     d <- time_match_signals(filtered_data, station_time_error, progress=F)
   })
-  b <- doa(d, receivers, dBLoss=input$dBLoss,live_mode, live_update_interval, progress)
+  b <- doa(d, receivers, dBLoss=dBLoss(),live_mode, live_update_interval, progress)
   return(b)
 }
 
@@ -52,12 +56,11 @@ calculate_bearings_time_window <- function(filtered_data, receivers, window_size
   })
 
   # if (input$use_doa_fast){
-  #   bearings<-doa_fast(data, receivers, dBLoss = input$dBLoss)
+  #   bearings<-doa_fast(data, receivers, dBLoss = dBLoss())
   # } else {
-  #   bearings<-doa(data[,timestamp:=time_matched], receivers, dBLoss = input$dBLoss, live_mode, live_update_interval, progress)
+  #   bearings<-doa(data[,timestamp:=time_matched], receivers, dBLoss = dBLoss(), live_mode, live_update_interval, progress)
   # }
-  
-  bearings<-doa_fast(data, receivers, dBLoss = input$dBLoss)
+  bearings<-doa_fast(data, receivers, dBLoss = dBLoss())
   return(bearings)
 }
 
