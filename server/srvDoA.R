@@ -32,9 +32,24 @@ calc_angle <- function(sig_a, sig_b, angle_a, angle_b, dbLoss, option){
     angle_r<-angle_a
     alpha<-angle_between(angle_l,angle_r)
   }
-  #if the the angle ist the same
+  #if the the angle is the same
   if(alpha==0) return(NA)
-  delta_m<-(sig_l-sig_r)/dbLoss
+  print(str(dbLoss))
+  if(length(dbLoss)==1) { # normal operation
+    delta_m<-(sig_l-sig_r)/dbLoss
+  } else if (length(dbLoss)==2) {
+    if (alpha >= 85) { # normal 90 degree neighbours
+      delta_m<-(sig_l-sig_r)/max(dbLoss, na.rm=T)
+      print(paste0("dBLoss==2 - alpha >= 85, using dBLoss ", max(dbLoss, na.rm=T),"\n"))
+    } else if (alpha<85) { # assume octologger
+      delta_m<-(sig_l-sig_r)/min(dbLoss, na.rm=T)
+      print(paste0("dBLoss==2 - alpha < 85, using dBLoss ", min(dbLoss, na.rm=T),"\n"))
+    }
+  } else {
+    warning("Error: calc_angle - Illegal dbLoss: ", dbLoss, " Returning NA.")
+    return(NA)
+  }
+  
   if(abs(delta_m)>1){
     return(NA)
   }
@@ -152,7 +167,7 @@ doa <- function(signals, receivers,dBLoss=14, live_mode=FALSE, live_update_inter
   }
   if(progress)
     withProgress(min=0, max=length(time_to_look_for), value=0, expr={ 
-      doa_internal(data, time_to_look_for, progress,dBLoss=input$dBLoss,doa_approx=input$doa_option_approximation,use_back_antenna=input$use_back_antenna,only_one_for_doa=input$only_one_for_doa)
+      doa_internal(data, time_to_look_for, progress,dBLoss=dBLoss(),doa_approx=input$doa_option_approximation,use_back_antenna=input$use_back_antenna,only_one_for_doa=input$only_one_for_doa)
     })
   else
     doa_internal(data, time_to_look_for,dBLoss=dBLoss, doa_approx="automatic", progress=F,use_back_antenna=input$use_back_antenna,only_one_for_doa=input$only_one_for_doa)

@@ -21,7 +21,7 @@ tabPanel("Bearings",
                       numericInput("bearings_window_size", label="Time window size", value=15)#,
                       #checkboxInput("use_doa_fast", label = "Use doa_fast from script", value = F)
                     ),
-                    numericInput("dBLoss","dB between two neighbouring antennas",value=14),
+                    textInput(inputId = "dBLoss", label = "dB between two neighbouring antennas", value = 14),
                     checkboxInput("only_one_for_doa","If only one antenna receive - take the antennas direction"),
                     checkboxInput("use_back_antenna","If two antennas receive and they are 180° apart"),
                     numericInput("angle_sep","angle between two neighbouring antennas",value=90),
