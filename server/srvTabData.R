@@ -240,13 +240,12 @@ receiver_list <- reactive({
     setDT(tmp)
     tmp[, Name:=trimws(Name, "right")]
     tmp[, Station:=trimws(Station, "right")]
+    if(nrow(tmp)>0){
+      ### Steinkauz ###
+      tmp[Station %in% c("rteu-50","rteu-51"), Station:="rteu-50/51"]
+      tmp[Station %in% c("rteu-52","rteu-53"), Station:="rteu-52/53"]
+    }
   }
-  # if(nrow(tmp)>0){
-  # browser()
-  # ### Steinkauz ###
-  # tmp[Name %in% c("rteu-50","rteu-51"), Name:="rteu-50/51"]
-  # tmp[Name %in% c("rteu-52","rteu-53"), Name:="rteu-52/53"]
-  # }
   return(tmp)
 })
 
