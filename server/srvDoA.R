@@ -34,7 +34,7 @@ calc_angle <- function(sig_a, sig_b, angle_a, angle_b, dbLoss, option){
   }
   #if the the angle is the same
   if(alpha==0) return(NA)
-  print(str(dbLoss))
+  
   if(length(dbLoss)==1) { # normal operation
     delta_m<-(sig_l-sig_r)/dbLoss
   } else if (length(dbLoss)==2) {
