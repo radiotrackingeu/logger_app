@@ -40,10 +40,10 @@ calc_angle <- function(sig_a, sig_b, angle_a, angle_b, dbLoss, option){
   } else if (length(dbLoss)==2) {
     if (alpha >= 85) { # normal 90 degree neighbours
       delta_m<-(sig_l-sig_r)/max(dbLoss, na.rm=T)
-      print(paste0("dBLoss==2 - alpha >= 85, using dBLoss ", max(dbLoss, na.rm=T),"\n"))
+      # print(paste0("dBLoss==2 - alpha >= 85, using dBLoss ", max(dbLoss, na.rm=T),"\n"))
     } else if (alpha<85) { # assume octologger
       delta_m<-(sig_l-sig_r)/min(dbLoss, na.rm=T)
-      print(paste0("dBLoss==2 - alpha < 85, using dBLoss ", min(dbLoss, na.rm=T),"\n"))
+      # print(paste0("dBLoss==2 - alpha < 85, using dBLoss ", min(dbLoss, na.rm=T),"\n"))
     }
   } else {
     warning("Error: calc_angle - Illegal dbLoss: ", dbLoss, " Returning NA.")
