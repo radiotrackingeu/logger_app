@@ -293,7 +293,7 @@ build_signals_query <- function(table) {
     query_freq_filter<-""
     inner_join <- ""
     if (input$query_filter_freq){
-      error <- input$freq_error * 1000
+      error <- input$freq_error
       and<-""
       inner_join <- " INNER JOIN `runs` r ON s.run = r.id"
       if (input$query_filter_frequency_type == "Multiple") {
