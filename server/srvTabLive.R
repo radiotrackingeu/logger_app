@@ -7,7 +7,7 @@ observeEvent(input$add_manual_connection, {
     }
     else {
     global$connections <- rbind(global$connections,
-      data.frame("Name"=input$MySQL_name, "Host"=input$MySQL_host, "Table"=input$MySQL_table, "Port"=input$MySQL_port,"User"=input$MySQL_user,"Password"=input$MySQL_pw,stringsAsFactors=F)
+      data.frame("Name"=input$MySQL_name, "Host"=input$MySQL_host, "Database"=input$MySQL_db, "Table"=input$MySQL_table, "Port"=input$MySQL_port,"User"=input$MySQL_user,"Password"=input$MySQL_pw,stringsAsFactors=F)
     )
     }
 })
