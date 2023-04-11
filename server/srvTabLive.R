@@ -85,7 +85,7 @@ get_info_of_entries <- reactive({
         }
             else {
           if(dbIsValid(open_connections()[[i]]$conn)) {
-            results<-suppressWarnings(dbGetQuery(open_connections()[[i]]$conn,paste0("SELECT id,timestamp FROM `",open_connections()[[i]]$table,"` ORDER BY id DESC LIMIT 1;")))
+            results<-suppressWarnings(dbGetQuery(open_connections()[[i]]$conn,paste0("SELECT timestamp FROM `",open_connections()[[i]]$table,"` ORDER BY timestamp DESC LIMIT 1;")))
             if(nrow(results)>0){
               results$size <- suppressWarnings(dbGetQuery(open_connections()[[i]]$conn, paste0('
                                        SELECT ROUND(SUM(data_length + index_length) / 1024 / 1024, 1) "size"
@@ -337,7 +337,7 @@ build_signals_query <- function(table) {
     
     #keepalive_filter <- paste(and, "max_signal != 0")
     
-    print(paste0("SELECT timestamp, duration, signal_freq, run, max_signal, signal_bw FROM `",table,"` s", inner_join, where, query_duration_filter,query_max_signal_filter,query_freq_filter, " ORDER BY s.id DESC", ifelse(input$live_last_points == 0,"", paste0(" LIMIT ",input$live_last_points)),";"))
+    print(paste0("SELECT timestamp, duration, signal_freq, run, max_signal, signal_bw FROM `",table,"` s", inner_join, where, query_duration_filter,query_max_signal_filter,query_freq_filter, " ORDER BY s.timestamp DESC", ifelse(input$live_last_points == 0,"", paste0(" LIMIT ",input$live_last_points)),";"))
 }
 
 signal_data<-function(){
