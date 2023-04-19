@@ -1,7 +1,10 @@
 ##### Logger-App A33#####
 #########################
 
-required_packages<-c("shiny",
+required_packages<-c(
+                     "RCurl",
+                     # "jsonlite",
+                     "shiny",
                      "readxl",
                      "writexl",
                      "ggplot2",
@@ -52,6 +55,7 @@ ui <- tagList(
   add_busy_spinner(spin="circle", height = "30px", width = "30px"),
   navbarPage(id = "navbar", "rteu-logger-app A33",
     source("ui/uiTabData.R")$value,
+    source("ui/uiTabStatus.R")$value,
     source("ui/uiTabLive.R")$value,
     source("ui/uiTabFilter.R")$value,
     source("ui/uiTabResults.R")$value,
@@ -68,6 +72,7 @@ server <- function(input, output, session) {
 
   source("server/srvFunctions.R", local = TRUE)$value
   source("server/srvTabData.R", local = TRUE)$value
+  source("server/srvTabStatus.R", local = TRUE)$value
   source("server/srvTabLive.R", local = TRUE)$value
   source("server/srvFileIO.R", local = TRUE)$value
   source("server/srvFilters.R", local = TRUE)$value
