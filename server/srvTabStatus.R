@@ -52,6 +52,18 @@ stat_response <- eventReactive(input$stat_send_cmd, ignoreInit = T, {
   return(resp)
 })
 
+observeEvent({input$stat_select_cmd; input$stat_select_service; input$stat_select_connection}, ignoreInit = FALSE, ignoreNULL = FALSE, {
+  if(any(c(
+    is.null(input$stat_select_cmd),
+    is.null(input$stat_select_service),
+    is.null(input$stat_select_connection)
+  ))){
+    disable("stat_send_cmd")
+  } else {
+    enable("stat_send_cmd")
+    }
+})
+
 output$status_tab_overview <- renderDataTable({
   req(stat_response(), cancelOutput = T)
   stat_response()
