@@ -47,10 +47,10 @@ observeEvent(input$conf_editor, {
 
 observeEvent(input$conf_uload, ignoreInit = T, {
   tfile<-tempfile(pattern=paste0("rteu_", format(Sys.time(), "%FT%Hh%Mm"),"_"), fileext = ".json")
-  fileConn<-file(tfile)
+  fileConn<-file(tfile, open = "wb")
   writeLines(text = input$conf_editor, con = fileConn, sep = "")
   close(fileConn)
-  
+
   recs <- subset(global$connections,Name %in% input$conf_select_connection)
   cl<-parallel::makeCluster(min(detectCores(),nrow(recs)))
   doParallel::registerDoParallel(cl)
