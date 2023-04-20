@@ -31,18 +31,18 @@ tabPanel("Receiver configs",
           )
         ),
         tabPanel("Help",
-          tags$h3("Download:"),
-          "1) Select a single connection to download the config from.",
-          br(),
-          "2) Hit 'Download config'.",
+          tags$h3("Loading:"),
+          "- Select ", tags$b("a single"), " connection to download the config from and hit the download button.",br(),
+          "or",br(),
+          "- Use the Browse button to load a file from your device.",
           tags$h3("Edit:"),
-          "1) Just edit the file in the editor box on the right.",
-          tags$h3("Upload:"),
-          "1) Select one or multiple connections to upload a config to.",
-          br(),
-          "2) Double check your input!",
-          br(),
-          "3) Hit 'Upload config(s)'"
+          "Just edit the file in the editor box on the right.",
+          tags$h3("Saving:"),
+          "- To save to one or multiple remote connection(s), select the connection(s) and hit the upload button.",br(),
+          "or", br(),
+          "- Use the save locally button to download the file unto your device.",br(),
+          hr(),
+          "It is recommended to load connections using a RemoteConnections Excel-file, however you can manually add connections using the Live Data Tab. Keep in mind, that you need to specify the MySQL port there."
         )
       )
     )
