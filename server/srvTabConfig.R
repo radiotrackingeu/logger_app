@@ -20,3 +20,25 @@ observeEvent(input$conf_select_connection, ignoreInit = F, ignoreNULL = F, {
   else
     enable("conf_uload")
 })
+
+observeEvent(input$conf_dload, ignoreNULL = T, ignoreInit = T, {
+  recs <- subset(global$connections,Name %in% input$conf_select_connection)
+  
+  if (nrow(recs)>1) {
+    showNotification("Can only download from one device at a time.", type = "error")
+  } else {
+    global$config <- RCurl::getURL(
+      url = paste0("sftp://", recs$Host, "/opt/rteu.json"), 
+      port = recs$Port+1, 
+      ssh.private.keyfile = "./sftp_rsa", 
+      ssh.public.keyfile = "./sftp_rsa.pub", 
+      username = "sftp", 
+      verbose = FALSE
+    )    
+  }
+})
+
+observeEvent(global$config, ignoreInit = T, {
+  updateAceEditor(session = session, editorId = "conf_editor", value = global$config)
+})
+
