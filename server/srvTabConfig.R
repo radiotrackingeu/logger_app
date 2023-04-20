@@ -37,11 +37,12 @@ observeEvent(input$conf_dload, ignoreNULL = T, ignoreInit = T, {
         binary = FALSE
       )
     })
+    updateAceEditor(session, "conf_editor", value=ret)
   }
 })
 
-observeEvent(global$config, ignoreInit = T, {
-  updateAceEditor(session = session, editorId = "conf_editor", value = global$config)
+observeEvent(input$conf_editor, {
+  global$config<-input$conf_editor
 })
 
 observeEvent(input$conf_uload, ignoreInit = T, {
