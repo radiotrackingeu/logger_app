@@ -10,7 +10,7 @@ tabPanel("Receiver configs",
     ),
     mainPanel(
       tabsetPanel(
-        id = "conf_editor",
+        id = "tab_conf_editor",
         tabPanel("Editor",
           aceEditor(
             outputId = "conf_editor",
