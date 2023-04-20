@@ -84,3 +84,9 @@ output$conf_dl <- downloadHandler(
   },
   contentType = "application/json"
 )
+
+observeEvent(input$conf_file, ignoreNULL = T, ignoreInit = T, {
+  req(input$conf_file)
+  content<-paste0(readLines(input$conf_file$datapath), collapse = "\n")
+  updateAceEditor(session, editorId = "conf_editor", value = content)
+})

@@ -5,6 +5,8 @@ tabPanel("Receiver configs",
       h4("Load from ..."),
       uiOutput('conf_ui_select'),
       actionButton("conf_dload", "Dowload config"),
+      h5("or"),
+      fileInput("conf_file", "... local file"),
       hr(),
       h4("Save..."),
       fluidRow(
