@@ -54,7 +54,7 @@ observeEvent(input$conf_uload, ignoreInit = T, {
   recs <- subset(global$connections,Name %in% input$conf_select_connection)
   cl<-parallel::makeCluster(min(detectCores(),nrow(recs)))
   doParallel::registerDoParallel(cl)
-  tmp<- foreach(i = iter(recs, by="row"), .export = c("session")) %dopar% {
+  tmp<- foreach(i = iter(recs, by="row")) %dopar% {
     ret<-tryCatch({
       RCurl::ftpUpload(
         what = tfile,
@@ -66,13 +66,15 @@ observeEvent(input$conf_uload, ignoreInit = T, {
         ) 
       )
     })
-    if (ret>0) {
-      showNotification(session = session, ui = HTML("Upload to ", i$Name ," failed. Please download to see current state and try again."), type="error")
-    } else {
-      showNotification(session = session, ui = HTML("Upload to ", i$Name ," successful."), type="message")
-    }
+    cbind(i,"ret"=ret)
   }
   parallel::stopCluster(cl)
+  for(i in tmp) 
+    if (i$ret>0) {
+      showNotification( ui = HTML("Upload to ", i$Name ," failed. Please download to see current state and try again."), type="error")
+    } else {
+      showNotification( ui = HTML("Upload to ", i$Name ," successful."), type="message")
+    }
 })
 
 output$conf_dl <- downloadHandler(
