@@ -29,7 +29,7 @@ observeEvent(input$conf_dload, ignoreNULL = T, ignoreInit = T, {
   } else {
     ret<-tryCatch({
       RCurl::scp(
-        host = "sftp@vpn.rteu.me:2779", 
+        host = paste0("sftp@", recs$Host, ":", recs$Port+1), 
         path="/opt/rteu.json", 
         key = c("./sftp_rsa.pub","./sftp_rsa"), 
         user="sftp", 
