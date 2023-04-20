@@ -54,7 +54,7 @@ observeEvent(input$conf_uload, ignoreInit = T, {
   recs <- subset(global$connections,Name %in% input$conf_select_connection)
   cl<-parallel::makeCluster(min(detectCores(),nrow(recs)))
   doParallel::registerDoParallel(cl)
-  tmp<- foreach(i = iter(recs, by="row"), .export = c("session")) %do% {
+  tmp<- foreach(i = iter(recs, by="row"), .export = c("session")) %dopar% {
     ret<-tryCatch({
       RCurl::ftpUpload(
         what = tfile,
