@@ -2,11 +2,16 @@
 tabPanel("Receiver configs",
   sidebarLayout(
     sidebarPanel(
+      h4("Load from ..."),
       uiOutput('conf_ui_select'),
       actionButton("conf_dload", "Dowload config"),
-      br(),
-      br(),
-      actionButton("conf_uload", "Upload config(s)")#,
+      hr(),
+      h4("Save..."),
+      fluidRow(
+        actionButton("conf_uload", "Upload config(s)", style="display:inline-block;"),
+        h5("or", style="display:inline-block; margin: 0 20px 0 20px;"),
+        downloadButton("conf_dl", "Save locally", style="display:inline-block;")
+      ),
     ),
     mainPanel(
       tabsetPanel(

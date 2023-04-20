@@ -5,7 +5,7 @@ output$conf_ui_select <- renderUI({
     "conf_select_connection", 
     multiple=TRUE,
     selected=global$connections$Name,
-    label="Connections selection", 
+    label="... remote device", 
     choices = global$connections$Name
   )
 })
@@ -74,3 +74,13 @@ observeEvent(input$conf_uload, ignoreInit = T, {
   }
   parallel::stopCluster(cl)
 })
+
+output$conf_dl <- downloadHandler(
+  filename = function() {
+    paste0("rteu_", format(Sys.time(), "%FT%Hh%Mm"), ".json")
+  },
+  content = function(file) {
+    writeLines(text = global$config, con = file, sep = "" )
+  },
+  contentType = "application/json"
+)
