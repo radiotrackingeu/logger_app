@@ -27,14 +27,16 @@ observeEvent(input$conf_dload, ignoreNULL = T, ignoreInit = T, {
   if (nrow(recs)>1) {
     showNotification("Can only download from one device at a time.", type = "error")
   } else {
-    global$config <- RCurl::getURL(
-      url = paste0("sftp://", recs$Host, "/opt/rteu.json"), 
-      port = recs$Port+1, 
-      ssh.private.keyfile = "./sftp_rsa", 
-      ssh.public.keyfile = "./sftp_rsa.pub", 
-      username = "sftp", 
-      verbose = FALSE
-    )    
+    ret<-tryCatch({
+      RCurl::scp(
+        host = "sftp@vpn.rteu.me:2779", 
+        path="/opt/rteu.json", 
+        key = c("./sftp_rsa.pub","./sftp_rsa"), 
+        user="sftp", 
+        verbose=T, 
+        binary = FALSE
+      )
+    })
   }
 })
 
@@ -45,11 +47,10 @@ observeEvent(global$config, ignoreInit = T, {
 observeEvent(input$conf_uload, ignoreInit = T, {
   tfile<-tempfile(pattern=paste0("rteu_", format(Sys.time(), "%FT%Hh%Mm"),"_"), fileext = ".json")
   fileConn<-file(tfile)
-  writeLines(input$conf_editor, fileConn, sep = "")
+  writeLines(text = input$conf_editor, con = fileConn, sep = "")
   close(fileConn)
   
   recs <- subset(global$connections,Name %in% input$conf_select_connection)
-  
   cl<-parallel::makeCluster(min(detectCores(),nrow(recs)))
   doParallel::registerDoParallel(cl)
   tmp<- foreach(i = iter(recs, by="row"), .export = c("session")) %do% {
