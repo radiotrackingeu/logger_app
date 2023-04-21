@@ -33,7 +33,7 @@ observeEvent(input$conf_dload, ignoreNULL = T, ignoreInit = T, {
         path="/opt/rteu.json", 
         key = c("./sftp_rsa.pub","./sftp_rsa"), 
         user="sftp", 
-        verbose=T, 
+        verbose=F, 
         binary = FALSE
       )
     })
@@ -59,7 +59,7 @@ observeEvent(input$conf_uload, ignoreInit = T, {
       RCurl::ftpUpload(
         what = tfile,
         to = paste0("sftp://sftp@", i$Host, ":", i$Port+1, "/home/sftp/rteu.json"),
-        verbose = TRUE,
+        verbose = FALSE,
         .opts = list(
           ssh.private.keyfile = "./sftp_rsa", 
           ssh.public.keyfile = "./sftp_rsa.pub"
