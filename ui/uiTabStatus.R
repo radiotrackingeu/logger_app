@@ -1,4 +1,4 @@
-tabPanel("Receiver Status",
+tabPanel("Command",
   sidebarLayout(
     sidebarPanel(
       uiOutput('stat_ui_select'),

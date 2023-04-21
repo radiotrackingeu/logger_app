@@ -1,5 +1,5 @@
 #uiTabconfings.R
-tabPanel("Receiver configs",
+tabPanel("Configure",
   sidebarLayout(
     sidebarPanel(
       h4("Load from ..."),
