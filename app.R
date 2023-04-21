@@ -2,32 +2,33 @@
 #########################
 
 required_packages<-c(
-                     "RCurl",
-                     # "jsonlite",
-                     "shiny",
-                     "readxl",
-                     "writexl",
-                     "ggplot2",
-                     "leaflet",
-                     "rgdal",
-                     "DBI",
-                     "RSQLite",
-                     "shinyjs",
-                     "htmltools",
-                     "shinycssloaders",
-                     "RMySQL",
-                     "plotKML",
-                     "geosphere",
-                     "foreach",
-                     "doParallel",
-                     "doSNOW",
-                     "fasttime",
-                     "shinybusy",
-                     "DT",
-                     "data.table",
-                     "plyr",
-                     "shinyWidgets",
-                     "dplyr"
+  "RCurl",
+  "jsonlite",
+  "shiny",
+  "shinyAce",
+  "readxl",
+  "writexl",
+  "ggplot2",
+  "leaflet",
+  "rgdal",
+  "DBI",
+  "RSQLite",
+  "shinyjs",
+  "htmltools",
+  "shinycssloaders",
+  "RMySQL",
+  "plotKML",
+  "geosphere",
+  "foreach",
+  "doParallel",
+  "doSNOW",
+  "fasttime",
+  "shinybusy",
+  "DT",
+  "data.table",
+  "plyr",
+  "shinyWidgets",
+  "dplyr"
                      )
 
 # try to load packages and install missing ones
@@ -56,6 +57,7 @@ ui <- tagList(
   navbarPage(id = "navbar", "rteu-logger-app A33",
     source("ui/uiTabData.R")$value,
     source("ui/uiTabStatus.R")$value,
+    source("ui/uiTabConfig.R")$value,
     source("ui/uiTabLive.R")$value,
     source("ui/uiTabFilter.R")$value,
     source("ui/uiTabResults.R")$value,
@@ -71,6 +73,7 @@ server <- function(input, output, session) {
   global <- reactiveValues()
 
   source("server/srvFunctions.R", local = TRUE)$value
+  source("server/srvTabConfig.R", local = TRUE)$value
   source("server/srvTabData.R", local = TRUE)$value
   source("server/srvTabStatus.R", local = TRUE)$value
   source("server/srvTabLive.R", local = TRUE)$value
