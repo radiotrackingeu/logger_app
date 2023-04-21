@@ -32,20 +32,22 @@ output$stat_ui_select <- renderUI({
 stat_response <- eventReactive(input$stat_send_cmd, ignoreInit = T, {
   cmd <- input$stat_select_cmd
   serv <- input$stat_select_service
-  recs <- subset(global$connections,Name %in% input$stat_select_connection)
+  recs <- subset(global$connections, Name %in% input$stat_select_connection)
   resp <- NULL
   
   if (!cmd=="status" && length(serv)>1) {
     showNotification("Only command 'status' can be executed for multiple services.", type = "error")
   } else {
-    # print(global$connections$Port-16)
+    # print(recs$Name)
     # print(serv)
     # print(cmd)
 
-    resp<-sysdweb_ctr2(
-      ports=recs$Port-16,
+    resp <- poll_sysdbweb(
+      hosts = recs,
       services=serv,
-      cmd=cmd
+      cmd=cmd,
+      user = "pi",
+      password = "CxmNpiPLqz"
     )
   }
   # print(resp)
@@ -69,37 +71,28 @@ output$status_tab_overview <- renderDataTable({
   stat_response()
 })
 
-## TODO change to accept lines out of remoteconnections.xslx
-## TODO allow different hosts per port
-## nested foreach for one thread per request when making multiple calls to one device
-sysdweb_ctr2 <- function(
-  host="http://vpn.rteu.me",
-  ports=seq(2982,3122,20),
-  services="rteu",
-  cmd="status",
-  user="pi",
-  pw="CxmNpiPLqz"){
+poll_sysdbweb <- function(hosts, services, cmd, user, password) {
+  dests<-adply(.data = services, .margins = 1, .expand = F, .id = NULL, .fun = function(serv) {
+    cbind(hosts, "service"=serv)
+  })
   # start_time <- Sys.time()
-  cl<-parallel::makeCluster(4)
+  cl<-parallel::makeCluster(min(length(dests), detectCores()))
   doParallel::registerDoParallel(cl)
-  tmp<- foreach(i = ports, .packages = c("data.table")) %dopar% {
+  tmp<-foreach(dest = iter(dests, by="row")) %dopar% {
     h <- curl::new_handle()
     curl::handle_setopt(
       handle = h,
       httpauth = 1,
-      userpwd = paste0(user,":",pw)
+      userpwd = paste0(user,":",password)
     )
-    l<-data.table("cmd"=cmd, "port"=i)
-    for (s in services) {
-      l[, (s):=tryCatch({
-        resp <- curl::curl_fetch_memory(url=paste0(host,":",i,"/api/v1/",s,"/",cmd), handle = h)
-        jsonlite::fromJSON(rawToChar(resp$content))[[1]]
-      })]
-    }
-    l
+    ret<-tryCatch({
+      resp <- curl::curl_fetch_memory(url=paste0(dest$Host,":",dest$Port-16,"/api/v1/",dest$service,"/",cmd), handle = h)
+      jsonlite::fromJSON(rawToChar(resp$content))[[1]]
+    })
+    cbind(dest,"response"=ret)
   }
-  parallel::stopCluster(cl)
   tmp<-rbindlist(tmp, fill=T)
+  parallel::stopCluster(cl)
   # end_time <- Sys.time()
   # print(end_time - start_time)
   return(tmp)
