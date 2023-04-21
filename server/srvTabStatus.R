@@ -67,8 +67,8 @@ observeEvent({input$stat_select_cmd; input$stat_select_service; input$stat_selec
 })
 
 output$status_tab_overview <- renderDataTable({
-  req(stat_response(), cancelOutput = T)
-  stat_response()
+  req(stat_response())
+  stat_response()[order(Name),.(Name, service, response)]
 })
 
 poll_sysdbweb <- function(hosts, services, cmd, user, password) {
