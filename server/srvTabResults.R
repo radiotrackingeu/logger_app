@@ -7,7 +7,7 @@
 # global$invalidate_filtered_data <- 0
 
 filtered_data_td <- reactive({
-  validate(need(input$filter_type!="all", "Please use 'Filter' tab to specify one or more frequencies, by using either of the 'Multiple frequencies' or 'Custom frequency' options."))
+  shiny::validate(need(input$filter_type!="all", "Please use 'Filter' tab to specify one or more frequencies, by using either of the 'Multiple frequencies' or 'Custom frequency' options."))
   return(calculate_delta_T(filtered_data()))
 })
 
@@ -19,8 +19,8 @@ output$plot_x_y <- renderText({
 #Temperature would be great here
 
 output$facet <- renderPlot({
-  validate(need(filtered_data(), "No data loaded"))
-  validate(need(nrow(filtered_data())>0, "Oh no, there is no data to plot! Did you filter it all out?"))
+  shiny::validate(need(filtered_data(), "No data loaded"))
+  shiny::validate(need(nrow(filtered_data())>0, "Oh no, there is no data to plot! Did you filter it all out?"))
   switch(input$choose_plot,
          'Time-Strength-Antenna-Station'={
            get_base_plot(filtered_data(), style="white") +

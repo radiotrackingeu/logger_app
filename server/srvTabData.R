@@ -490,42 +490,42 @@ preview_content <- reactive({
 
 ### render Tables ###
 output$data_tab_preview <- renderDataTable({
-    validate(need(preview_content(), "Please select a file."))
+    shiny::validate(need(preview_content(), "Please select a file."))
     preview_content()
 }, options = list(pageLength = 10), rownames=F)
 
 output$data_tab_logger_table <- renderDataTable({
-  validate(need(global$signals, "Please provide logger data file."))
+  shiny::validate(need(global$signals, "Please provide logger data file."))
   global$signals
 }, options = list(pageLength = 10), colnames=c("antenna"="receiver"), rownames=F)
 
 output$data_tab_freq_table <- renderDataTable({
-  validate(need(global$frequencies, "Please provide frequency data file."))
+  shiny::validate(need(global$frequencies, "Please provide frequency data file."))
   global$frequencies
 }, options = list(pageLength = 10), rownames=F)
 
 output$data_tab_calibration_table <- renderDataTable({
-  validate(need(global$calibration, "Please provide calibration data file."))
+  shiny::validate(need(global$calibration, "Please provide calibration data file."))
   global$calibration
 }, options = list(pageLength = 10), rownames=F)
 
 output$data_tab_map_markers_table <- renderDataTable({
-  validate(need(global$map_markers, "Please provide map markers data file."))
+  shiny::validate(need(global$map_markers, "Please provide map markers data file."))
   global$map_markers
 }, options = list(pageLength = 10), rownames=F)
 
 output$data_tab_antennae_table <- renderDataTable({
-  validate(need(global$receivers, "Please provide antenna data file."))
+  shiny::validate(need(global$receivers, "Please provide antenna data file."))
   global$receivers
 }, options = list(pageLength = 10), rownames=F)
 
 output$data_tab_remote_con_table <- renderDataTable({
-  validate(need(global$connections, "Please provide remote connection data file."))
+  shiny::validate(need(global$connections, "Please provide remote connection data file."))
   global$connections
 }, options = list(pageLength = 10), rownames=F)
 
 output$data_tab_keepalive_table <- renderDataTable({
-  validate(need(global$keepalives, "Please provide logger data file."))
+  shiny::validate(need(global$keepalives, "Please provide logger data file."))
   global$keepalives
 }, options = list(pageLength = 10), rownames=F)
 

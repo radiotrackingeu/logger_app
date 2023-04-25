@@ -128,7 +128,7 @@ addDetectionCones<-function(m,data) {
   #data<-subset(data_in,timestamp==timestamp[input$map_choose_single_data_set])
   if(nrow(data)==0) 
     return(NULL)
-  validate(
+  shiny::validate(
     need(data, "Please have a look at the filter settings.")
   )
   for(p in 1:nrow(data)){

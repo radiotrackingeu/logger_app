@@ -124,7 +124,7 @@ output$correction_list <- renderUI({
 
 #plot polar plots
 output$polar_output <- renderPlot({
-  validate(need(global$bearing, "No data found"))
+  shiny::validate(need(global$bearing, "No data found"))
   p<-ggplot(global$bearing)+
     geom_bar(aes(x=round(angle),fill=Station, group=Station),width=10)+
     xlab("DoA")+ylab("Number of signals")+
@@ -173,19 +173,19 @@ observeEvent(global$calibrated, {
 })
 
 output$cal_factors <- renderDataTable({
-  validate(need(global$calibration, "No calibration data found"))
+  shiny::validate(need(global$calibration, "No calibration data found"))
   global$calibration
 }, rownames=F)
 
 # calculate time match and DoA #1
 output$doa<- renderDataTable({
-  validate(need(global$bearing, "No data found"))
+  shiny::validate(need(global$bearing, "No data found"))
   global$bearing[order(global$bearing$timestamp,decreasing=TRUE),]
 }, rownames=F)
 
 # output DoA plot
 output$doa_plot <- renderPlot({
-  validate(need(global$bearing, "No data found - first do calculation"))
+  shiny::validate(need(global$bearing, "No data found - first do calculation"))
   ggplot(global$bearing) + geom_point(mapping=aes(x=timestamp,y=angle,col=Station)) + facet_wrap(~freq_tag)+
     scale_x_datetime(labels = function(x) format(x, "%d-%m \n %H:%M:%S"))
 })

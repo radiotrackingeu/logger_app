@@ -366,8 +366,8 @@ signal_data<-function(){
 }
 
 output$live_tab_remote_entries_table <- renderDataTable({
-  validate(need(get_info_of_entries(), "No known connections."))
-  validate(need(nrow(get_info_of_entries()) > 0, "No connections selected."))
+  shiny::validate(need(get_info_of_entries(), "No known connections."))
+  shiny::validate(need(nrow(get_info_of_entries()) > 0, "No connections selected."))
   if (nrow(get_info_of_entries()) == 0) {
     return (NULL)
   }
@@ -377,14 +377,14 @@ output$live_tab_remote_entries_table <- renderDataTable({
 }, options = list(pageLength = 10), rownames=F)
 
 output$live_tab_mysql_data <- renderDataTable({
-  validate(need(global$signals, "Please load some data"))
+  shiny::validate(need(global$signals, "Please load some data"))
   global$signals
 }, options = list(pageLength = 10), rownames=F)
 
 output$live_tab_keepalive_plot <- renderPlot({
-    validate(need(global$signals, "Please load some data"))
-    validate(need(keepalive_data(), "No keepalives found."))
-    validate(need(nrow(keepalive_data()) > 0, "No keepalives found."))
+    shiny::validate(need(global$signals, "Please load some data"))
+    shiny::validate(need(keepalive_data(), "No keepalives found."))
+    shiny::validate(need(nrow(keepalive_data()) > 0, "No keepalives found."))
     ggplot(keepalive_data()) +
     geom_point(aes(x=timestamp, y=receiver, color=receiver)) +
     labs(x = "Time", y = "Antenna") +

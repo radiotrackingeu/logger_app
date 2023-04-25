@@ -3,7 +3,7 @@
 # update UIs
 
 observe({
-  validate(
+  shiny::validate(
     need(pre_filtered_data(), "Please provide logger data.")#,
     # need(nrow(pre_filtered_data())>0, "No data in given date range. Please adjust in Filter tab.")
   )
@@ -21,7 +21,7 @@ observe({
 })
 
 observe({
-  validate(
+  shiny::validate(
     need(global$signals, "Please provide logger data.")
   )
   min_date<-as.Date(min(global$signals$timestamp))
@@ -30,7 +30,7 @@ observe({
 })
 
 observeEvent(input$plus_one_day, {
-  validate(
+  shiny::validate(
     need(global$signals, "Please provide logger data.")
   )
   min_date<-as.Date(min(global$signals$timestamp))
@@ -41,7 +41,7 @@ observeEvent(input$plus_one_day, {
 })
 
 observeEvent(input$minus_one_day, {
-  validate(
+  shiny::validate(
     need(global$signals, "Please provide logger data.")
   )
   min_date<-as.Date(min(global$signals$timestamp))
@@ -53,7 +53,7 @@ observeEvent(input$minus_one_day, {
 
 
 observe({
-  validate(
+  shiny::validate(
     need(global$signals, "Please provide file with antenna specifications.")
   )
   if(!is.null(global$signals)){
@@ -69,7 +69,7 @@ output$freq_tags <- renderUI({
 })
 
 pre_filtered_data <-reactive({
-  validate(need(input$filter_for_dates[1]<=input$filter_for_dates[2], "Second date must be after first in date range."))
+  shiny::validate(need(input$filter_for_dates[1]<=input$filter_for_dates[2], "Second date must be after first in date range."))
   if (is.null(global$signals))
     return(NULL)
   subset(global$signals, (timestamp>=as.POSIXct(input$filter_for_dates[1]))&(timestamp<=as.POSIXct(input$filter_for_dates[2]+1)))
@@ -121,8 +121,8 @@ filtered_data <- reactive({
 }) %>% debounce(millis=300)
 
 plot_data <- reactive({
-  validate(need(filtered_data(), "No data loaded"))
-  validate(need(nrow(filtered_data())>0, "Oh no, there is no data to plot! Did you filter it all out?"))
+  shiny::validate(need(filtered_data(), "No data loaded"))
+  shiny::validate(need(nrow(filtered_data())>0, "Oh no, there is no data to plot! Did you filter it all out?"))
   ggplot(filtered_data())
 })
 
