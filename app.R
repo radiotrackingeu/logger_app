@@ -1,5 +1,5 @@
-##### Logger-App A33#####
-#########################
+##### Logger-App A33 #####
+##########################
 
 required_packages<-c(
   "RCurl",
@@ -17,6 +17,7 @@ required_packages<-c(
   "htmltools",
   "shinycssloaders",
   "RMySQL",
+  "RMariaDB",
   "plotKML",
   "geosphere",
   "foreach",
@@ -91,7 +92,7 @@ server <- function(input, output, session) {
   source("server/srvTabMap.R", local = TRUE)$value
 
   onStop(function() {
-    close_all_dbs()
+    # close_all_dbs()
     if (exists("cl"))
       stopCluster(cl)
   })

@@ -51,7 +51,7 @@ open_connections <- eventReactive(input$connect_mysql,{
 open_connection <- function(connection_info) {
   tryCatch(
     dbConnect(
-      drv = RMySQL::MySQL(),
+      drv = RMariaDB::MariaDB(),
       dbname = ifelse(!is.null(connection_info$Database), connection_info$Database, "rteu"),
       host = connection_info$Host,
       port = connection_info$Port,
@@ -86,6 +86,7 @@ get_info_of_entries <- reactive({
             else {
           if(dbIsValid(open_connections()[[i]]$conn)) {
             results<-suppressWarnings(dbGetQuery(open_connections()[[i]]$conn,paste0("SELECT timestamp FROM `",open_connections()[[i]]$table,"` ORDER BY timestamp DESC LIMIT 1;")))
+            results$timestamp <- as.character(results$timestamp)
             if(nrow(results)>0){
               results$size <- suppressWarnings(dbGetQuery(open_connections()[[i]]$conn, paste0('
                                        SELECT ROUND(SUM(data_length + index_length) / 1024 / 1024, 1) "size"
@@ -99,7 +100,7 @@ get_info_of_entries <- reactive({
               }
               }
             if(nrow(results)==0){
-              results<-data.frame(timestamp="unknow",Name=i,id=NA,size="unknown",running="no data",time="unknown")
+              results<-data.frame(timestamp="unknown",Name=i,id=NA,size="unknown",running="no data",time="unknown")
             }
             results$Name<-i
             tmp<-rbind(tmp,results)
@@ -183,14 +184,20 @@ get_mysql_data <- eventReactive(global$mysql_data_invalidator, {
             }
             else {
               if(dbIsValid(open_connections()[[i]]$conn)) {
-                signals<-suppressWarnings(dbGetQuery(open_connections()[[i]]$conn, build_signals_query(open_connections()[[i]]$table)))
-                signals<- signals %>% filter(signal_freq!=0)
-                if(input$global_db_hostname){
-                  mysql_query_runs<-paste("SELECT id, device, latitude, longitude, orientation, center_freq, hostname FROM `runs`")
-                }else{
-                  mysql_query_runs<-paste("SELECT id, device, latitude, longitude, orientation, center_freq FROM `runs`")
+                tryCatch({
+                  signals<-RMariaDB::dbGetQuery(open_connections()[[i]]$conn, build_signals_query(open_connections()[[i]]$table))
+                  signals<- signals %>% filter(signal_freq!=0)
+                  if(input$global_db_hostname){
+                    mysql_query_runs<-paste("SELECT id, device, latitude, longitude, orientation, center_freq, hostname FROM `runs`")
+                  }else{
+                    mysql_query_runs<-paste("SELECT id, device, latitude, longitude, orientation, center_freq FROM `runs`")
+                  }
+                  runs<-dbGetQuery(open_connections()[[i]]$conn,mysql_query_runs)
+                },
+                error = function(err) {
+                  showNotification(session, HTML("Error getting data:<br>", err[1]), type = "error")
                 }
-                runs<-suppressWarnings(dbGetQuery(open_connections()[[i]]$conn,mysql_query_runs))
+              )
                 if(nrow(signals)>0){
                   results<-merge(signals,runs,by.x="run",by.y="id")
                   results$run <- NULL
@@ -287,7 +294,7 @@ build_signals_query <- function(table) {
       }else{
         and<-""
       }
-      query_max_signal_filter<-paste(and,"max_signal >=",input$query_filter_strength[1],"AND max_signal <=",input$query_filter_strength[2])
+      query_max_signal_filter<-paste(and, "max_signal >=",input$query_filter_strength[1],"AND max_signal <=",input$query_filter_strength[2])
     }
 
     query_freq_filter<-""

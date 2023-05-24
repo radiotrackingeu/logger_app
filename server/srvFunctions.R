@@ -5,14 +5,14 @@ substrLeft <- function(x, n){
     substr(xx, 0, nchar(xx)-n)
   )
 }
-
-close_all_dbs <- function(){
-    all_con <- dbListConnections(MySQL())
-
-    for (con in all_con) {
-        dbDisconnect(con)
-    }
-}
+# 
+# close_all_dbs <- function(){
+#     all_con <- dbListConnections(MySQL())
+# 
+#     for (con in all_con) {
+#         dbDisconnect(con)
+#     }
+# }
 
 global$patients_next_id <- 1
 global$patients_list <- list()
