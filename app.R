@@ -1,44 +1,12 @@
 ##### Logger-App A33#####
 #########################
 
-required_packages<-c(
-  "RCurl",
-  "jsonlite",
-  "shiny",
-  "shinyAce",
-  "readxl",
-  "writexl",
-  "ggplot2",
-  "leaflet",
-  "rgdal",
-  "DBI",
-  "RSQLite",
-  "shinyjs",
-  "htmltools",
-  "shinycssloaders",
-  "RMySQL",
-  "plotKML",
-  "geosphere",
-  "foreach",
-  "doParallel",
-  "doSNOW",
-  "fasttime",
-  "shinybusy",
-  "DT",
-  "data.table",
-  "plyr",
-  "shinyWidgets",
-  "dplyr"
-                     )
-
-# try to load packages and install missing ones
+# attach packages defined in renv.lock
+required_packages <- sort(names(jsonlite::fromJSON("renv.lock")$Packages))
 for (package in required_packages) {
-    # require tries to load a package, and returns a boolean indicating success
-    if (!require(package, character.only = TRUE)) {
-        install.packages(package , dependencies = TRUE)
-        require(package, character.only = TRUE)
-    }
+  require(package, character.only = TRUE)
 }
+
 
 #timestamps to be shown with 3 digits
 options(digits.secs = 3)
