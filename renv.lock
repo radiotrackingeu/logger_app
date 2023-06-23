@@ -84,6 +84,11 @@
       "Version": "3.4.2",
       "Source": "Repository"
     },
+    "git2r": {
+      "Package": "git2r",
+      "Version": "0.32.0",
+      "Source": "Repository"
+    },
     "hms": {
       "Package": "hms",
       "Version": "1.1.3",
