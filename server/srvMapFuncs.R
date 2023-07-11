@@ -52,7 +52,11 @@ addStations <-function(m, data, ...) {
       lng = stations$Longitude[i], 
       lat=stations$Latitude[i], 
       label=stations$Station[i], 
-      popup = HTML(data[Longitude==stations[i]$Longitude & Latitude==stations[i]$Latitude,paste0(Name, ": ",sprintf("%03d",Orientation),"°", collapse="<br>")]),
+      popup = HTML(
+        "<b>", stations$Station[i], "</b><br>", 
+        paste0(stations$Latitude[i],"°N ", stations$Longitude[i],"°E<br>"), 
+        data[Longitude==stations[i]$Longitude & Latitude==stations[i]$Latitude,paste0(Name, ": ",sprintf("%03d",Orientation),"°", collapse="<br>")]
+      ),
       ...
     )
   }
