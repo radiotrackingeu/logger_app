@@ -1,6 +1,15 @@
 ##### Logger-App A33#####
 #########################
 
+# install rteu package feature branch from gitlab
+if(!require("rteu")){
+  devtools::install_git( 
+    url = "https://git.plecso.de/R/rteu_package.git",
+    branch = "rteu_pkg_refactoring",
+    credentials = git2r::cred_user_pass(Sys.getenv("GITLAB_USER"), Sys.getenv("GITLAB_TOKEN"))
+  )
+}
+
 # attach packages defined in renv.lock
 required_packages <- sort(names(jsonlite::fromJSON("renv.lock")$Packages))
 for (package in required_packages) {
