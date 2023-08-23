@@ -75,11 +75,11 @@ server <- function(input, output, session) {
   global <- reactiveValues()
 
   source("server/srvFunctions.R", local = TRUE)$value
+  source("server/srvFileIO.R", local = TRUE)$value
   source("server/srvTabConfig.R", local = TRUE)$value
   source("server/srvTabData.R", local = TRUE)$value
   source("server/srvTabStatus.R", local = TRUE)$value
   source("server/srvTabLive.R", local = TRUE)$value
-  source("server/srvFileIO.R", local = TRUE)$value
   source("server/srvFilters.R", local = TRUE)$value
   source("server/srvTabFilter.R", local = TRUE)$value
   source("server/srvTabResults.R", local = TRUE)$value
