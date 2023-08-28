@@ -349,7 +349,7 @@ build_signals_query <- function(table) {
     where<-""
     
     if (!is.null(input$datetime_filter)) {
-      where <- paste0("  WHERE timestamp >= '", input$datetime_filter, "' AND timestamp <= '2023-08-19 00:00:00' ")
+      where <- paste0("  WHERE timestamp >= '", input$datetime_filter, "' ")
     }
     
     if(any(input$check_sql_duration,input$check_sql_strength,input$query_filter_freq, input$check_sql_tag)){
