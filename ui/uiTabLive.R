@@ -98,7 +98,7 @@ tabPanel("Live Data",
                       actionButton("clear_logger_data_from_live", "Clear table")
              ),
              tabPanel("Plot of Keepalives",
-                      plotOutput("live_tab_keepalive_plot")
+                      plotOutput("live_tab_keepalive_plot", height = "calc( 100vh - 120px)")
              ),
              tabPanel("Help",
                       "1) First select the data source on the right",
