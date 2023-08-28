@@ -34,6 +34,10 @@ tabPanel("Live Data",
                     )
                 )
              ),
+             checkboxInput("check_sql_tag", "Tags"),
+             conditionalPanel(cond = "input.check_sql_tag",
+               selectInput("query_filter_tag", "Tags", choices=NULL),
+             ),
              tags$b("Add new connection:"),
              br(),
              checkboxInput(

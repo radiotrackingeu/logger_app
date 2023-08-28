@@ -149,8 +149,8 @@ observeEvent(input$load_mysql_data, {
   else {
     global$mysql_data_invalidator = !global$mysql_data_invalidator
     signal_data()
-    #    keepalive_data()
-    fake_keepalives()
+    keepalive_data()
+    # fake_keepalives()
   }
   }
 })
@@ -164,8 +164,8 @@ live_invalidator <- observe({
     if (global$live_mode) {
         global$mysql_data_invalidator = !isolate(global$mysql_data_invalidator)
         signal_data()
-        fake_keepalives()
-        #keepalive_data()
+        # fake_keepalives()
+        keepalive_data()
         invalidateLater(isolate(global$live_update_interval) * 1000)
     }
 })
@@ -245,7 +245,15 @@ keepalive_data <- reactive({
             }
             else {
               if(dbIsValid(open_connections()[[i]]$conn)) {
-                query <- paste0("SELECT timestamp, device FROM `",open_connections()[[i]]$table,"` s INNER JOIN runs r ON r.id = s.run WHERE max_signal = 0 LIMIT ", input$live_last_points, ";")
+                query <- paste0("SELECT timestamp, device FROM `keepalives` k INNER JOIN runs r ON r.id = k.run ")
+                if (!is.null(input$datetime_filter)) {
+                  query <- paste0(query, "WHERE timestamp >= '", input$datetime_filter, "' ")
+                }
+                if (!input$live_last_points==0)
+                  query <- paste0(query, "LIMIT ", input$live_last_points, ";")
+                else 
+                  query <- paste0(query,";")
+                print(query)
                 results<-suppressWarnings(dbGetQuery(open_connections()[[i]]$conn, query))
 
                 if(nrow(results)>0){
