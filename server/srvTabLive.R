@@ -328,7 +328,7 @@ build_signals_query <- function(table) {
             if(nrow(global$frequencies)>1&&query_freq_filter!=""){
               and<-"OR"
             }
-            query_freq_filter<-paste(query_freq_filter, and, "((signal_freq + ",error,") >", k, "  AND (signal_freq - ",error,")  <", k, ")")
+            query_freq_filter<-paste(query_freq_filter, and, "(signal_freq between (", k,"-", error,") AND (", k, "+", error, "))")
           }
           if(any(input$check_sql_duration,input$check_sql_strength)){
             query_freq_filter<-paste("",query_freq_filter,")")
@@ -339,7 +339,7 @@ build_signals_query <- function(table) {
             if(any(input$check_sql_duration,input$check_sql_strength)) {
               and<-"AND("
             }
-            query_freq_filter<-paste(query_freq_filter, and, "((signal_freq + ",error,") >", k, "  AND (signal_freq - ",error,")  <", k, ")")
+            query_freq_filter<-paste(query_freq_filter, and, "(signal_freq between (", k,"-", error,") AND (", k, "+", error, "))")
             if(any(input$check_sql_duration,input$check_sql_strength)){
               query_freq_filter<-paste("",query_freq_filter,")")
             }
@@ -349,7 +349,7 @@ build_signals_query <- function(table) {
     where<-""
     
     if (!is.null(input$datetime_filter)) {
-      where <- paste0("  WHERE timestamp >= '", input$datetime_filter, "' ")
+      where <- paste0("  WHERE timestamp >= '", input$datetime_filter, "' AND timestamp <= '2023-08-19 00:00:00' ")
     }
     
     if(any(input$check_sql_duration,input$check_sql_strength,input$query_filter_freq, input$check_sql_tag)){
