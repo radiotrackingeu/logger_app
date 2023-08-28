@@ -34,7 +34,7 @@ tabPanel("Live Data",
                     )
                 )
              ),
-             checkboxInput("check_sql_tag", "Tags"),
+             disabled(checkboxInput("check_sql_tag", "Tags", value = FALSE)),
              conditionalPanel(cond = "input.check_sql_tag",
                selectInput("query_filter_tag", "Tags", choices=NULL),
              ),
