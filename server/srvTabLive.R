@@ -393,8 +393,8 @@ output$live_tab_keepalive_plot <- renderPlot({
     shiny::validate(need(keepalive_data(), "No keepalives found."))
     shiny::validate(need(nrow(keepalive_data()) > 0, "No keepalives found."))
     ggplot(keepalive_data()) +
-    geom_point(aes(x=timestamp, y=receiver, color=receiver)) +
+    geom_point(aes(x=timestamp, y=receiver, color=receiver), size=0.2) +
     labs(x = "Time", y = "Antenna") +
-    theme(axis.text.x=element_text(angle = 60, hjust = 1)) +
+    theme(axis.text.x=element_text(angle = 60, hjust = 1), legend.position = "none") +
     scale_x_datetime(labels = function(x) format(x, "%d-%m \n %H:%M:%S"))
 })
