@@ -245,9 +245,9 @@ keepalive_data <- reactive({
             }
             else {
               if(dbIsValid(open_connections()[[i]]$conn)) {
-                query <- paste0("SELECT timestamp, device FROM `keepalives` k INNER JOIN runs r ON r.id = k.run ")
+                query <- paste0("SELECT k.timestamp, device FROM `keepalives` k INNER JOIN runs r ON r.id = k.run ")
                 if (!is.null(input$datetime_filter)) {
-                  query <- paste0(query, "WHERE timestamp >= '", input$datetime_filter, "' ")
+                  query <- paste0(query, "WHERE k.timestamp >= '", input$datetime_filter, "' ")
                 }
                 if (!input$live_last_points==0)
                   query <- paste0(query, "LIMIT ", input$live_last_points, ";")
