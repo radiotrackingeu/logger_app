@@ -58,10 +58,11 @@ get_base_plot <- function(signal_data, signal_aes=aes(), style="none") {
   require(ggplot2)
   require(data.table)
   p<-ggplot(signal_data, signal_aes)
+
   if(
-    !is.null(global$keepalives) & 
-      nrow(global$keepalives)>0 & 
-      "td_fctr" %in% names(global$keepalives) &
+    !is.null(global$keepalives) && 
+      nrow(global$keepalives)>0 && 
+      "td_fctr" %in% names(global$keepalives) &&
       as.data.table(global$keepalives)[td_fctr=="down" & timestamp %between% c(min(na.rm=T, signal_data$timestamp), max(na.rm=T, signal_data$timestamp)),.N]>0
     ) {
     if(!is.data.table(global$keepalives))
