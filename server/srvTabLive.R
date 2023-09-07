@@ -72,7 +72,7 @@ table_name <- reactive({
 })
 
 get_info_of_entries <- reactive({
-  tmp<-data.frame()
+  tmp<-data.table()
   if(!is.null(global$connections)){
     connect_to <- subset(global$connections,Name %in% input$select_connection)
     withProgress(
@@ -103,10 +103,12 @@ get_info_of_entries <- reactive({
               results<-data.frame(timestamp="unknown",Name=i,id=NA,size="unknown",running="no data",time="unknown")
             }
             results$Name<-i
-            tmp<-rbind(tmp,results)
+            # print(results)
+            tmp<-rbind(tmp,results, fill=TRUE)
           }else{
             results<-data.frame(Name=i,id=NA,timestamp="offline")
-            tmp<-rbind(tmp,results)
+            # print(results)
+            tmp<-rbind(tmp,results, fill=TRUE)
           }
       }
         incProgress(amount=1)
