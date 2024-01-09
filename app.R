@@ -29,11 +29,13 @@ required_packages<-c(
   "data.table",
   "plyr",
   "shinyWidgets",
-  "dplyr"
-                     )
+  "dplyr",
+  "lubridate",
+  "geosphere"
+)
 
 # try to load packages and install missing ones
-for (package in required_packages) {
+for (package in unique(required_packages)) {
     # require tries to load a package, and returns a boolean indicating success
     if (!require(package, character.only = TRUE)) {
         install.packages(package , dependencies = TRUE)
@@ -64,6 +66,7 @@ ui <- tagList(
     source("ui/uiTabFilter.R")$value,
     source("ui/uiTabResults.R")$value,
     source("ui/uiTabBearings.R", encoding = "UTF-8")$value,
+    source("ui/uiTabBearingsComp.R", encoding = "UTF-8")$value,
     source("ui/uiTabTriangulation.R")$value,
     source("ui/uiTabMap.R")$value,
     source("ui/uiTabSave.R")$value
@@ -86,6 +89,8 @@ server <- function(input, output, session) {
   source("server/srvResults.R", local = TRUE)$value
   source("server/srvDoA.R", local = TRUE)$value
   source("server/srvTabBearings.R", local = TRUE)$value
+  source("server/srvTabBearingsComp.R", local = TRUE)$value
+  source("server/srvTabBearingsComp.R", local = TRUE)$value
   source("server/srvTabTriangulation.R",local = TRUE)$value
   source("server/srvMapFuncs.R",local=TRUE, encoding = "UTF-8")$value
   source("server/srvTriangulation.R",local=TRUE)$value
