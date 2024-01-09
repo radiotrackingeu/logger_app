@@ -72,7 +72,7 @@ table_name <- reactive({
 })
 
 get_info_of_entries <- reactive({
-  tmp<-data.frame()
+  tmp<-data.table()
   if(!is.null(global$connections)){
     connect_to <- subset(global$connections,Name %in% input$select_connection)
     withProgress(
@@ -103,10 +103,12 @@ get_info_of_entries <- reactive({
               results<-data.frame(timestamp="unknown",Name=i,id=NA,size="unknown",running="no data",time="unknown")
             }
             results$Name<-i
-            tmp<-rbind(tmp,results)
+            # print(results)
+            tmp<-rbind(tmp,results, fill=TRUE)
           }else{
             results<-data.frame(Name=i,id=NA,timestamp="offline")
-            tmp<-rbind(tmp,results)
+            # print(results)
+            tmp<-rbind(tmp,results, fill=TRUE)
           }
       }
         incProgress(amount=1)
@@ -149,8 +151,8 @@ observeEvent(input$load_mysql_data, {
   else {
     global$mysql_data_invalidator = !global$mysql_data_invalidator
     signal_data()
-    #    keepalive_data()
-    fake_keepalives()
+    keepalive_data()
+    # fake_keepalives()
   }
   }
 })
@@ -164,8 +166,8 @@ live_invalidator <- observe({
     if (global$live_mode) {
         global$mysql_data_invalidator = !isolate(global$mysql_data_invalidator)
         signal_data()
-        fake_keepalives()
-        #keepalive_data()
+        # fake_keepalives()
+        keepalive_data()
         invalidateLater(isolate(global$live_update_interval) * 1000)
     }
 })
@@ -245,7 +247,15 @@ keepalive_data <- reactive({
             }
             else {
               if(dbIsValid(open_connections()[[i]]$conn)) {
-                query <- paste0("SELECT timestamp, device FROM `",open_connections()[[i]]$table,"` s INNER JOIN runs r ON r.id = s.run WHERE max_signal = 0 LIMIT ", input$live_last_points, ";")
+                query <- paste0("SELECT k.timestamp, device FROM `keepalives` k INNER JOIN runs r ON r.id = k.run ")
+                if (!is.null(input$datetime_filter)) {
+                  query <- paste0(query, "WHERE k.timestamp >= '", input$datetime_filter, "' ")
+                }
+                if (!input$live_last_points==0)
+                  query <- paste0(query, "LIMIT ", input$live_last_points, ";")
+                else 
+                  query <- paste0(query,";")
+                print(query)
                 results<-suppressWarnings(dbGetQuery(open_connections()[[i]]$conn, query))
 
                 if(nrow(results)>0){
@@ -285,6 +295,7 @@ fake_keepalives <- function() {
 build_signals_query <- function(table) {
     query_duration_filter<-""
     query_max_signal_filter<-""
+    query_tag_filter<-""
     if(input$check_sql_duration){
       query_duration_filter<-paste(" duration >",input$query_filter_duration[1],"AND duration <",input$query_filter_duration[2])
     }
@@ -295,6 +306,14 @@ build_signals_query <- function(table) {
         and<-""
       }
       query_max_signal_filter<-paste(and, "max_signal >=",input$query_filter_strength[1],"AND max_signal <=",input$query_filter_strength[2])
+    }
+    
+    if(input$check_sql_tag) {
+      and<-""
+      if(any(input$check_sql_duration,input$check_sql_strength)) {
+        and<-" AND "
+      }
+      query_tag_filter <- paste0(and, " freq_tag IN ('", paste0(input$query_filter_tag, collapse = "', '"), "') ")
     }
 
     query_freq_filter<-""
@@ -311,7 +330,7 @@ build_signals_query <- function(table) {
             if(nrow(global$frequencies)>1&&query_freq_filter!=""){
               and<-"OR"
             }
-            query_freq_filter<-paste(query_freq_filter, and, "((signal_freq + ",error,") >", k, "  AND (signal_freq - ",error,")  <", k, ")")
+            query_freq_filter<-paste(query_freq_filter, and, "(signal_freq between (", k,"-", error,") AND (", k, "+", error, "))")
           }
           if(any(input$check_sql_duration,input$check_sql_strength)){
             query_freq_filter<-paste("",query_freq_filter,")")
@@ -322,7 +341,7 @@ build_signals_query <- function(table) {
             if(any(input$check_sql_duration,input$check_sql_strength)) {
               and<-"AND("
             }
-            query_freq_filter<-paste(query_freq_filter, and, "((signal_freq + ",error,") >", k, "  AND (signal_freq - ",error,")  <", k, ")")
+            query_freq_filter<-paste(query_freq_filter, and, "(signal_freq between (", k,"-", error,") AND (", k, "+", error, "))")
             if(any(input$check_sql_duration,input$check_sql_strength)){
               query_freq_filter<-paste("",query_freq_filter,")")
             }
@@ -335,7 +354,7 @@ build_signals_query <- function(table) {
       where <- paste0("  WHERE timestamp >= '", input$datetime_filter, "' ")
     }
     
-    if(any(input$check_sql_duration,input$check_sql_strength,input$query_filter_freq)){
+    if(any(input$check_sql_duration,input$check_sql_strength,input$query_filter_freq, input$check_sql_tag)){
       if (where!="")
         where<-paste(where, " AND ")
       else
@@ -344,7 +363,7 @@ build_signals_query <- function(table) {
     
     #keepalive_filter <- paste(and, "max_signal != 0")
     
-    print(paste0("SELECT timestamp, duration, signal_freq, run, max_signal, signal_bw FROM `",table,"` s", inner_join, where, query_duration_filter,query_max_signal_filter,query_freq_filter, " ORDER BY s.timestamp DESC", ifelse(input$live_last_points == 0,"", paste0(" LIMIT ",input$live_last_points)),";"))
+    print(paste0("SELECT timestamp, duration, ", ifelse(input$check_sql_tag, "freq_tag, ", ""), "signal_freq, run, max_signal, signal_bw FROM `",table,"` s", inner_join, where, query_duration_filter,query_max_signal_filter,query_freq_filter, query_tag_filter," ORDER BY s.timestamp DESC", ifelse(input$live_last_points == 0,"", paste0(" LIMIT ",input$live_last_points)),";"))
 }
 
 signal_data<-function(){
@@ -360,6 +379,8 @@ signal_data<-function(){
   if(nrow(tmp)>0){
     #### Steinkauz ####
     setDT(tmp)
+    if ("freq_tag" %in% names(tmp))
+      tmp[, freq_tag:=NULL]
     tmp[Name %in% c("rteu-50","rteu-51"), Name:="rteu-50/51"]
     tmp[Name %in% c("rteu-52","rteu-53"), Name:="rteu-52/53"]
   }
@@ -393,8 +414,12 @@ output$live_tab_keepalive_plot <- renderPlot({
     shiny::validate(need(keepalive_data(), "No keepalives found."))
     shiny::validate(need(nrow(keepalive_data()) > 0, "No keepalives found."))
     ggplot(keepalive_data()) +
-    geom_point(aes(x=timestamp, y=receiver, color=receiver)) +
+    geom_point(aes(x=timestamp, y=receiver, color=receiver), size=0.2) +
     labs(x = "Time", y = "Antenna") +
-    theme(axis.text.x=element_text(angle = 60, hjust = 1)) +
+    theme(axis.text.x=element_text(angle = 60, hjust = 1), legend.position = "none") +
     scale_x_datetime(labels = function(x) format(x, "%d-%m \n %H:%M:%S"))
+})
+
+observeEvent(global$frequencies, {
+  updateSelectInput(session=session, "query_filter_tag", choices = global$frequencies$Name)
 })

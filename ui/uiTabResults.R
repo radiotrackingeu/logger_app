@@ -49,6 +49,7 @@ tabPanel("Results",
           as.POSIXlt("2017-09-24 00:00:00", "UTC"),
           as.POSIXlt("2017-09-29 23:59:59", "UTC")
         ),
+        step = 60,
         timezone = "UTC",
         dragRange = TRUE,
         animate = TRUE,

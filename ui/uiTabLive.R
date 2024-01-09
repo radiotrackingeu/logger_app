@@ -34,6 +34,10 @@ tabPanel("Live Data",
                     )
                 )
              ),
+             disabled(checkboxInput("check_sql_tag", "Tags", value = FALSE)),
+             conditionalPanel(cond = "input.check_sql_tag",
+               selectInput("query_filter_tag", "Tags", choices=NULL),
+             ),
              tags$b("Add new connection:"),
              br(),
              checkboxInput(
@@ -98,7 +102,7 @@ tabPanel("Live Data",
                       actionButton("clear_logger_data_from_live", "Clear table")
              ),
              tabPanel("Plot of Keepalives",
-                      plotOutput("live_tab_keepalive_plot")
+                      plotOutput("live_tab_keepalive_plot", height = "calc( 100vh - 120px)")
              ),
              tabPanel("Help",
                       "1) First select the data source on the right",
