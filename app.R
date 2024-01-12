@@ -31,7 +31,8 @@ required_packages<-c(
   "shinyWidgets",
   "dplyr",
   "lubridate",
-  "geosphere"
+  "geosphere",
+  "cowplot"
 )
 
 # try to load packages and install missing ones

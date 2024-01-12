@@ -143,27 +143,51 @@ observeEvent(filtered_drone_bearings(), {
 })
 
 output$bearings_comp_plot <- renderPlot({
+  pal <- colorRampPalette(c("Red","Blue"))
   switch (input$input_bearings_comp_plot_select,
-    "Plot1" = {
-      ggplot(matched_bearings())+
-        geom_point(aes(x=tag.timestamp, y=tag.angle), color="blue")+
-        geom_point(aes(x=drone.timestamp, y=drone.angle), color="green")+
-        geom_point(aes(x=drone.timestamp, y=angle_diff), color="red")+
-        scale_x_datetime(date_labels =  "%F %T")+
-        ylab("Bearing [°]")+
-        xlab("Timestamp")+
-        ggtitle(paste0("Bearings ", stat_name()), subtitle = paste0("Tag (blue) and Drone (green) bearings from ", stat_name(), " as well as the difference (red)."))
+    "Bearings & Diff" = {
+      cowplot::plot_grid(ncol=1, align = "v", rel_heights = c(4,1), axis="tblr",
+        ggplot(matched_bearings()[abs(time_diff)<10])+
+          geom_point(aes(x=tag.timestamp, y=tag.angle), color="blue", size=2)+
+          geom_point(aes(x=drone.timestamp, y=drone.angle), color="forestgreen", size=2)+
+          geom_point(data=~subset(., tag.angle >= 315), aes(x=tag.timestamp, y=tag.angle-360), color="blue", alpha=0.3, fill=NA)+
+          geom_point(data=~subset(., tag.angle <= 45 ), aes(x=tag.timestamp, y=tag.angle+360), color="blue", alpha=0.3, fill=NA)+
+          geom_point(data=~subset(., drone.angle >= 315), aes(x=drone.timestamp, y=drone.angle-360), color="forestgreen", alpha=0.3, fill=NA)+
+          geom_point(data=~subset(., drone.angle <= 45 ), aes(x=drone.timestamp, y=drone.angle+360), color="forestgreen", alpha=0.3, fill=NA)+
+          scale_x_datetime(date_labels =  "%F %T")+
+          ylab("Bearing [°]")+
+          xlab("Timestamp")+
+          ggtitle(paste0("Bearings ", stat_name()), subtitle = paste0("Tag (blue) and Drone (green) bearings from ", stat_name(), " as well as the difference (red).\nSmaller, transparent points are replicas of exiting points shifted by +/-360 degrees to better show groups reaching over 0/360 threshold.")),
+        ggplot(matched_bearings()[abs(time_diff)<10])+
+          geom_point(aes(x=tag.timestamp, y=angle_diff), color="red", size=2)+
+          ylab("Bearing diff. (abs) [°]")+
+          xlab("Timestamp")
+      )
     },
-    "Plot2" = {
-      ggplot(matched_bearings())+
-        geom_point(aes(x=drone.timestamp, y=angle_diff, color=as.numeric(time_diff)))+
-        scale_color_distiller("Tag time - Drone time [s]", palette = "RdYlGn")+
-        geom_point(data=~subset(., is.na(tag.angle)), aes(x=drone.timestamp, y=0), color="#ff00ff", size=1)+
-        scale_x_datetime(date_labels =  "%F %T")+
-        theme_dark()+
-        ylab("Tag Bearing - Drone Bearing [°]")+
-        xlab("Timestamp")+
-        ggtitle(paste0("Bearing Difference ", stat_name()), subtitle = "Missing Tag Bearings marked in pink at angle 0.")
+    # "Plot2" = {
+    #   ggplot(matched_bearings())+
+    #     geom_point(aes(x=drone.timestamp, y=angle_diff, color=as.numeric(time_diff)))+
+    #     scale_color_gradient2("Tag time - Drone time [s]", low="red", mid="forestgreen", high="red")+
+    #     geom_point(data=~subset(., is.na(tag.angle)), aes(x=drone.timestamp, y=0), color="#ff00ff", size=2)+
+    #     scale_x_datetime(date_labels =  "%F %T")+
+    #     # theme_dark()+
+    #     ylab("Tag Bearing - Drone Bearing [°]")+
+    #     xlab("Timestamp")+
+    #     ggtitle(paste0("Bearing Difference ", stat_name()), subtitle = "Missing Tag Bearings marked in pink at angle 0.")
+    # },
+    "Tag vs Drone Bearing" = {
+      ggplot(matched_bearings()[abs(time_diff)<10])+
+        geom_point(aes(x=drone.angle, y=tag.angle, color=abs(as.numeric(time_diff))), size=2)+
+        geom_point(data=~subset(., tag.angle >= 315), aes(x=drone.angle, y=tag.angle-360, color=abs(as.numeric(time_diff))), alpha=0.3, fill=NA)+
+        geom_point(data=~subset(., tag.angle <= 45 ), aes(x=drone.angle, y=tag.angle+360, color=abs(as.numeric(time_diff))), alpha=0.3, fill=NA)+
+        scale_color_gradient("Difference between Tag and Drone time [s]", low = "blue", high = "red")+
+        geom_abline(slope = 1, intercept = c(-360,0,360), color="#ff00ff")+
+        # scale_x_datetime(date_labels =  "%F %T")+
+        # theme_dark()+
+        ylab("Tag Bearing [°]")+
+        xlab("Drone Bearing [°]")+
+        lims(x=c(-45,415),y=c(-45,415))+
+        ggtitle(paste0("Bearing Ratio ", stat_name()), subtitle = "Purple lines are 1:1.\nSmaller, transparent points are replicas of exiting points shifted by +/-360 degrees to better show groups reaching over 0/360 threshold.")
     },
   )
 })

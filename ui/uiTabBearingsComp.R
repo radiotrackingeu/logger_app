@@ -4,7 +4,7 @@ tabPanel("Bearings Compare",
     column(
       width=2,
       # settings
-      selectInput(inputId = "input_bearings_comp_plot_select", label = "Select plot type", choices = c("Plot1", "Plot2")),
+      selectInput(inputId = "input_bearings_comp_plot_select", label = "Select plot type", choices = c("Bearings & Diff", "Tag vs Drone Bearing")),#, "Plot3")),
       selectInput(inputId = "input_bearings_comp_stat_select", label = "Select station", choices=NULL, multiple = F)
     ),
     column(
