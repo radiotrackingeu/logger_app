@@ -75,7 +75,7 @@ tabPanel("Filter",
       ),
       conditionalPanel(
         condition = 'input.filter_type == "Custom frequency"',
-        numericInput("single_freq", "Enter a frequency", value = 150175),
+        numericInput("single_freq", "Enter a frequency", value = 150157),
         tags$span(style = "font-weight:bold", "For temperature curve a*e^b:"),
         splitLayout(
           numericInput("single_freq_temp_a", "Coefficient a", value = 20.307),
