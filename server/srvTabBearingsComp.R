@@ -69,8 +69,8 @@ matched_bearings <- reactive({
   req(stat_bearings())
   req(filtered_drone_bearings())
   print("match bearings")
-  matched_bearings <- stat_bearings()[filtered_drone_bearings(), roll = "nearest"]
-  matched_bearings[, time_diff:=difftime(tag.timestamp, drone.timestamp)][, angle_diff:=tag.angle-drone.angle)%%360, ]
+  matched_bearings <- filtered_drone_bearings()[stat_bearings(), roll="nearest", nomatch=NULL]
+  matched_bearings[, time_diff:=difftime(tag.timestamp, drone.timestamp)][, angle_diff:=pmin((tag.angle-drone.angle)%%360, (drone.angle-tag.angle)%%360, na.rm=T)]
 })
 
 output$bearings_comp_map <- renderLeaflet({
