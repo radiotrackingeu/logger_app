@@ -70,6 +70,10 @@ calc_angle <- function(sig_a, sig_b, angle_a, angle_b, dbLoss, option){
   return(angle)
 }
 
+
+# beginning at first timestamp walk over all timestamps until you encounter a receiver a second time. This signal is the beginning of a new signal "group"
+# this is done per pair of station and frequency.
+
 time_match_signals <- function(data,station_time_error=0.3, progress=F){
   matched_data<-NULL
   cnt_stats=0
