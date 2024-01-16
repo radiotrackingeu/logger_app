@@ -72,7 +72,7 @@ table_name <- reactive({
 })
 
 get_info_of_entries <- reactive({
-  tmp<-data.frame()
+  tmp<-data.table()
   if(!is.null(global$connections)){
     connect_to <- subset(global$connections,Name %in% input$select_connection)
     withProgress(
@@ -80,8 +80,8 @@ get_info_of_entries <- reactive({
         for(i in connect_to$Name){
         setProgress(detail=i)
             if (input$connect_mysql == 0 || is.null(open_connections()[[i]]$conn)) {
-          results<-data.frame(Name=i,id=NA,timestamp="unknown",size="unknown",running="unknown",time="unknown",stringsAsFactors = FALSE)
-          tmp<-rbind(tmp,results)
+          results<-data.table(Name=i,id=NA,timestamp="unknown",size="unknown",running="unknown",time="unknown",stringsAsFactors = FALSE)
+          tmp<-rbind(tmp,results, fill=TRUE)
         }
             else {
           if(dbIsValid(open_connections()[[i]]$conn)) {
@@ -100,13 +100,13 @@ get_info_of_entries <- reactive({
               }
               }
             if(nrow(results)==0){
-              results<-data.frame(timestamp="unknown",Name=i,id=NA,size="unknown",running="no data",time="unknown")
+              results<-data.table(timestamp="unknown",Name=i,id=NA,size="unknown",running="no data",time="unknown")
             }
             results$Name<-i
-            tmp<-rbind(tmp,results)
+            tmp<-rbind(tmp,results, fill=TRUE)
           }else{
-            results<-data.frame(Name=i,id=NA,timestamp="offline")
-            tmp<-rbind(tmp,results)
+            results<-data.table(Name=i,id=NA,timestamp="offline")
+            tmp<-rbind(tmp,results, fill=TRUE)
           }
       }
         incProgress(amount=1)
