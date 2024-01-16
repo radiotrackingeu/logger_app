@@ -2,6 +2,25 @@
 
 # update UIs
 
+observeEvent(global$signals, ignoreNULL = T, ignoreInit = F, {
+  if (mean(global$signals$max_signal) < 0) {
+    min = -100
+    max = 0
+    value = c(-95, -5)
+    
+  } else {
+    min = 0
+    max = 100
+    value = c(5, 95)
+  }
+  updateSliderInput(
+    inputId = "signal_strength",
+    min=min,
+    max=max,
+    value=value
+  )
+})
+
 observe({
   shiny::validate(
     need(pre_filtered_data(), "Please provide logger data.")#,

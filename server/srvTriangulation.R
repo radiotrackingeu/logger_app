@@ -25,32 +25,51 @@ triangulate <- function(receivers, bearings, only_one=F,time_error_inter_station
     timestamps_unique<-unique(tmp_f$timestamp)
     num_timestamps_unique<-length(timestamps_unique)
     #for each times interval
-    split<-foreach(j=timestamps_unique,
-                   .export=c("tri_one","tri_two","tri_centroid","utmtowgs","coordinates","angle_between","triang"),
-                   .packages=c("sp"),
-                   .combine=rbind,
-                   .inorder=F) %dopar% {
-                     if(progress)
-                       setProgress(value=cnt_freq_names)
-                     tmp_ft <- subset(tmp_f,timestamp==j)
-                     tmp_fts <- merge(tmp_ft,stations_utm,by.x="Station",by.y="Station")
-                     #calculate positions for two or more bearings in one slot
-                     if(nrow(tmp_fts)==1&only_one){
-                       positions<-cbind(timestamp=j,freq_tag=i,pos=tri_one(tmp_fts),bearings=nrow(tmp_fts))
-                     }
-                     if(nrow(tmp_fts)>=2){
-                       positions<-cbind(
-                         timestamp=j,
-                         freq_tag=i,
-                         pos=switch(tri_option,
-                                    centroid =  tri_centroid(tmp_fts,angles_allowed),
-                                    two_strongest = tri_two(tmp_fts,angles_allowed)
-                         ),
-                         bearings=nrow(tmp_fts)
-                       )
-                     }
-                     positions
-                   }
+    setDT(tmp_f)
+    tmp_f<-tmp_f[stations_utm, on="Station"]
+    split<-ldply(.data=timestamps_unique, .id = NULL, .fun = function(ts){
+      tmp_fts<-tmp_f[timestamp==ts]
+      if (nrow(tmp_fts==1 & only_one))
+         positions<-cbind(timestamp=ts,freq_tag=i,pos=tri_one(tmp_fts),bearings=nrow(tmp_fts))
+      if (nrow(tmp_fts)>=2){
+        positions<-cbind(
+          timestamp=ts,
+          freq_tag=i,
+          pos=switch(tri_option,
+                     centroid =  tri_centroid(tmp_fts,angles_allowed),
+                     two_strongest = tri_two(tmp_fts,angles_allowed)
+          ),
+          bearings=nrow(tmp_fts)
+        )
+      }
+      
+    })
+    # split<-foreach(j=timestamps_unique,
+    #                .export=c("tri_one","tri_two","tri_centroid","utmtowgs","coordinates","angle_between","triang"),
+    #                .packages=c("sp"),
+    #                # .combine=rbind,
+    #                .inorder=F) %dopar% {
+    #                  if(progress)
+    #                    setProgress(value=cnt_freq_names)
+    #                  tmp_ft <- subset(tmp_f,timestamp==j)
+    #                  tmp_fts <- merge(tmp_ft,stations_utm,by.x="Station",by.y="Station")
+    #                  #calculate positions for two or more bearings in one slot
+    #                  if(nrow(tmp_fts)==1&only_one){
+    #                    positions<-cbind(timestamp=j,freq_tag=i,pos=tri_one(tmp_fts),bearings=nrow(tmp_fts))
+    #                  }
+    #                  if(nrow(tmp_fts)>=2){
+    #                    positions<-cbind(
+    #                      timestamp=j,
+    #                      freq_tag=i,
+    #                      pos=switch(tri_option,
+    #                                 centroid =  tri_centroid(tmp_fts,angles_allowed),
+    #                                 two_strongest = tri_two(tmp_fts,angles_allowed)
+    #                      ),
+    #                      bearings=nrow(tmp_fts)
+    #                    )
+    #                  }
+    #                  positions
+    #                }
     result<-rbind(split,result)
     cnt_freq_names<-cnt_freq_names+1
   }

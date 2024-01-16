@@ -58,6 +58,7 @@ get_base_plot <- function(signal_data, signal_aes=aes(), style="none") {
   require(ggplot2)
   require(data.table)
   p<-ggplot(signal_data, signal_aes)
+
   if(
     !is.null(global$keepalives) && 
       nrow(global$keepalives)>0 &&

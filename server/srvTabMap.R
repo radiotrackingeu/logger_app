@@ -103,7 +103,7 @@ observeEvent(input$update_map,{
     labFormat <- function(type, x) {format(as.POSIXct(x, origin="1970-01-01"), tz="UTC", format="%F %T" )}
     title <- "Timestamp"
   }
-
+  req(any(!is.na(global$triangulation$pos.X)))
   leafletProxy("map") %>% addCircles(lng = global$triangulation$pos.X, lat=global$triangulation$pos.Y, 
                                      label = as.POSIXct(global$triangulation$timestamp, tz="UTC", origin="1970-01-01"),
                                      radius=5, 
