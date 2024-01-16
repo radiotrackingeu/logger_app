@@ -7,10 +7,9 @@ drone_files<-list.files(path="data/drone_logs", pattern="*.csv", full.names=T)
 names(drone_files) <- substr(basename(drone_files), 1, nchar(basename(drone_files))-4)
 
 drone_gps <- ldply(.data = drone_files, .id="file", .fun=function(f) {
-  readDJI(fpath=f)
+  readDJI(fpath=f, tz = "Etc/GMT+5" )
 })
 setDT(drone_gps)
-
 observeEvent(global$signals, ignoreNULL = T, {
     station_names <- sort(as.character(unique(global$signals$Name)))
     updateSelectInput(session, "input_bearings_comp_stat_select", choices = station_names)
