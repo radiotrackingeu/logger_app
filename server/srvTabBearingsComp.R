@@ -143,11 +143,13 @@ observeEvent(filtered_drone_bearings(), {
 })
 
 output$bearings_comp_plot <- renderPlot({
+  dta<-matched_bearings()[abs(time_diff)<10]
+  validate(need(nrow(dta)>0, "No data to show."))
   pal <- colorRampPalette(c("Red","Blue"))
   switch (input$input_bearings_comp_plot_select,
     "Bearings & Diff" = {
       cowplot::plot_grid(ncol=1, align = "v", rel_heights = c(4,1), axis="tblr",
-        ggplot(matched_bearings()[abs(time_diff)<10])+
+        ggplot(dta)+
           geom_point(aes(x=tag.timestamp, y=tag.angle), color="blue", size=2)+
           geom_point(aes(x=drone.timestamp, y=drone.angle), color="forestgreen", size=2)+
           geom_point(data=~subset(., tag.angle >= 315), aes(x=tag.timestamp, y=tag.angle-360), color="blue", alpha=0.3, fill=NA)+
@@ -158,7 +160,7 @@ output$bearings_comp_plot <- renderPlot({
           ylab("Bearing [°]")+
           xlab("Timestamp")+
           ggtitle(paste0("Bearings ", stat_name()), subtitle = paste0("Tag (blue) and Drone (green) bearings from ", stat_name(), " as well as the difference (red).\nSmaller, transparent points are replicas of exiting points shifted by +/-360 degrees to better show groups reaching over 0/360 threshold.")),
-        ggplot(matched_bearings()[abs(time_diff)<10])+
+        ggplot(dta)+
           geom_point(aes(x=tag.timestamp, y=angle_diff), color="red", size=2)+
           ylab("Bearing diff. (abs) [°]")+
           xlab("Timestamp")
@@ -176,7 +178,7 @@ output$bearings_comp_plot <- renderPlot({
     #     ggtitle(paste0("Bearing Difference ", stat_name()), subtitle = "Missing Tag Bearings marked in pink at angle 0.")
     # },
     "Tag vs Drone Bearing" = {
-      ggplot(matched_bearings()[abs(time_diff)<10])+
+      ggplot(dta)+
         geom_point(aes(x=drone.angle, y=tag.angle, color=abs(as.numeric(time_diff))), size=2)+
         geom_point(data=~subset(., tag.angle >= 315), aes(x=drone.angle, y=tag.angle-360, color=abs(as.numeric(time_diff))), alpha=0.3, fill=NA)+
         geom_point(data=~subset(., tag.angle <= 45 ), aes(x=drone.angle, y=tag.angle+360, color=abs(as.numeric(time_diff))), alpha=0.3, fill=NA)+
