@@ -29,7 +29,9 @@ required_packages<-c(
   "data.table",
   "plyr",
   "shinyWidgets",
-  "dplyr"
+  "dplyr",
+  "sp",
+  "sf"
                      )
 
 # try to load packages and install missing ones

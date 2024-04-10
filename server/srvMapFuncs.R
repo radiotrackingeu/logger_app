@@ -201,14 +201,16 @@ calculate_cone_corners<-function(x,y,dir,length,deg){
 # in 2 numeric
 # out data.frame
 wgstoutm<-function(x,y){
-  tmp<-data.frame()
+  tmp<-data.frame(X = numeric(),Y= numeric(),zone= numeric())
   for(i in 1:length(x)){
     zone<-(floor((x[i] + 180)/6) %% 60) + 1
     xy <- data.frame(cbind("X"=x[i],"Y"=y[i]))
-    coordinates(xy) <- c("X", "Y")
+    sp::coordinates(xy) <- c("X", "Y")
     proj4string(xy) <- CRS("+proj=longlat +datum=WGS84")  ## for example
-    res <- spTransform(xy, CRS(paste("+proj=utm +zone=",zone," ellps=WGS84",sep='')))
-    tmp<-rbind(tmp,cbind.data.frame(X=res$X,Y=res$Y,zone))
+    result <- spTransform(xy, CRS(paste("+proj=utm +zone=",zone," ellps=WGS84",sep='')))
+    result <- as.data.frame(result)
+    names(result) <- c("X","Y")
+    tmp<-rbind(tmp,data.frame(cbind(X=result$X,Y=result$Y,zone)))
   }
   return(tmp)
 }
