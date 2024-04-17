@@ -103,10 +103,11 @@ get_info_of_entries <- reactive({
               results<-data.table(timestamp="unknown",Name=i,id=NA,size="unknown",running="no data",time="unknown")
             }
             results$Name<-i
-            tmp<-rbind(tmp,results, fill=TRUE)
+            results$id <- NA
+            tmp<-rbind(as.data.frame(tmp),results)
           }else{
             results<-data.table(Name=i,id=NA,timestamp="offline")
-            tmp<-rbind(tmp,results, fill=TRUE)
+            tmp<-rbind(as.data.frame(tmp),results, fill=TRUE)
           }
       }
         incProgress(amount=1)
