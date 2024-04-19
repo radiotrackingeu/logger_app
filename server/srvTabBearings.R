@@ -66,9 +66,11 @@ calculate_bearings_time_window <- function(filtered_data, receivers, window_size
 
 doa_fast <- function(signals, receivers, dBLoss=14, doa_approx="automatic") {
   require(plyr)
-  data<-as.data.table(receivers)[as.data.table(signals), on=c(Name="receiver", Station="Name")]
-  data<-data[,.(max_signal=mean(max_signal)), by=.(time_matched,freq_tag, Station, Name, Orientation)]
-  result<-ddply(.data = data, .variables = .(time_matched, freq_tag, Station), .fun = calc_doa, dBLoss=dBLoss, doa_approx="automatic", use_back_antenna=input$use_back_antenna, only_one_for_doa=input$only_one_for_doa)
+  # data<-as.data.table(receivers)[as.data.table(signals), on=c(Name="receiver", Station="Name")]
+  # data<-data[,.(max_signal=mean(max_signal)), by=.(time_matched,freq_tag, Station, Name, longitude, latitude, Orientation)]
+  data<-signals[,.(max_signal=mean(max_signal)), by=.(time_matched, freq_tag, Name, receiver, longitude, latitude, orientation)]
+  setnames(data, c("Name"), c("station"))
+  result<-ddply(.data = data, .variables = .(time_matched, freq_tag, station, longitude, latitude), .fun = calc_doa, dBLoss=dBLoss, doa_approx="automatic", use_back_antenna=input$use_back_antenna, only_one_for_doa=input$only_one_for_doa)
   return(result)
 }
 
