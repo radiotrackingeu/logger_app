@@ -368,13 +368,17 @@ signal_data<-function(){
   #tmp<-subset(get_mysql_data(),signal_freq!=0)
   tmp$timestamp <- as.POSIXct(tmp$timestamp,tz="UTC")
   # tmp$signal_freq <- round((tmp$signal_freq), 2)
-  tmp$receiver <- tmp$device#substrLeft(tmp$device,17)
+  tmp$receiver <- paste0(tmp$Name,"_",tmp$device,"_", tmp$orientation)#substrLeft(tmp$device,17)
 
-  signal_info <- tmp[, c("timestamp", "duration", "signal_freq", "Name", "receiver", "max_signal", "signal_bw")]
-  global$signals<-unique.data.frame(rbind(isolate(global$signals), signal_info))
+  global$signals <- unique.data.frame( 
+    rbind(
+      isolate(global$signals), 
+      tmp[, c("timestamp", "duration", "signal_freq", "Name", "receiver", "max_signal", "signal_bw", "longitude", "latitude", "orientation")]
+    )
+  )
 
-  receiver_info <- tmp[, c("receiver", "Name", "latitude", "longitude", "orientation")]
-  names(receiver_info) <- c("Name", "Station","Latitude","Longitude", "Orientation")
+  receiver_info <- unique(tmp[, c("receiver", "Name", "latitude", "longitude", "orientation", "device")])
+  names(receiver_info) <- c("Name", "Station","Latitude","Longitude", "Orientation", "device")
   global$receivers<-unique.data.frame(rbind(isolate(global$receivers), receiver_info, fill=T))
   tmp
 }
