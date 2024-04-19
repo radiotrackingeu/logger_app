@@ -3,7 +3,7 @@ tabPanel("File Input",
            sidebarPanel(
              radioButtons(
                "data_type_input",
-               choices = c("Data folder", "SQLite File", "Excel Files", "Logger Files", "Miscellaneous"),
+               choices = c("Data folder", "SQLite File", "Excel Files"),#, "Logger Files", "Miscellaneous"),
                label = "Add data using:"
              ),
              conditionalPanel(
@@ -41,7 +41,7 @@ tabPanel("File Input",
              conditionalPanel(
                condition = "input.data_type_input == 'Excel Files'",
                radioButtons("excel_data_content",
-                            choices = c("Antennas", "Frequencies", "Connections", "Calibration", "Map Markers"),
+                            choices = c("Antennas", "Frequencies", "Connections"),#, "Calibration", "Map Markers"),
                             label = "Add following data:"
                ),
                conditionalPanel(
