@@ -374,14 +374,7 @@ signal_data<-function(){
   tmp$timestamp <- as.POSIXct(tmp$timestamp,tz="UTC")
   # tmp$signal_freq <- round((tmp$signal_freq), 2)
   tmp$receiver <- tmp$device#substrLeft(tmp$device,17)
-  if(nrow(tmp)>0){
-    #### Steinkauz ####
-    setDT(tmp)
-    if ("freq_tag" %in% names(tmp))
-      tmp[, freq_tag:=NULL]
-    tmp[Name %in% c("rteu-50","rteu-51"), Name:="rteu-50/51"]
-    tmp[Name %in% c("rteu-52","rteu-53"), Name:="rteu-52/53"]
-  }
+
   signal_info <- tmp[, c("timestamp", "duration", "signal_freq", "Name", "receiver", "max_signal", "signal_bw")]
   global$signals<-unique.data.frame(rbind(isolate(global$signals), signal_info))
 
