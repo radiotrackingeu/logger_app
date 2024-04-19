@@ -32,7 +32,7 @@ required_packages<-c(
   "dplyr",
   "sp",
   "sf"
-                     )
+)
 
 # try to load packages and install missing ones
 for (package in required_packages) {
