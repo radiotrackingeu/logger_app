@@ -12,15 +12,15 @@ tabPanel("Live Data",
                               ),
              tags$b("DBs-Filters:"),
              br(),
-             checkboxInput("check_sql_duration", "Duration"),
+             disabled(checkboxInput("check_sql_duration", "Duration", value = FALSE)),
              conditionalPanel("input.check_sql_duration",
                               sliderInput("query_filter_duration", "Duration",min=0.003,max = 0.04, value=c(0.01,0.025))
                               ),
-             checkboxInput("check_sql_strength", "Strength"),
+             disabled(checkboxInput("check_sql_strength", "Strength", value = FALSE)),
              conditionalPanel("input.check_sql_strength",
                               sliderInput("query_filter_strength", "Strength",min=0,max = 100, value=c(15,90))
              ),
-             checkboxInput("query_filter_freq", "Frequencies"),
+               disabled(checkboxInput("query_filter_freq", "Frequencies", value = FALSE)),
              conditionalPanel(cond = "input.query_filter_freq",
                 radioButtons("query_filter_frequency_type",
                     choices = c("Multiple", "Single"),
@@ -44,9 +44,10 @@ tabPanel("Live Data",
                "show_add_connection_panel", "Show manual connection input panel"
              ),
              conditionalPanel("input.show_add_connection_panel",
-                  checkboxInput(
+                  disabled(checkboxInput(
                     "global_db_hostname", "If a single global DB is used"
-                  ),
+                    , value = FALSE
+                  )),
                   textInput(
                     "MySQL_name",
                     "Connection name",
