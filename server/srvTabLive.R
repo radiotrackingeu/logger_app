@@ -188,9 +188,9 @@ get_mysql_data <- eventReactive(global$mysql_data_invalidator, {
                   signals<-RMariaDB::dbGetQuery(open_connections()[[i]]$conn, build_signals_query(open_connections()[[i]]$table))
                   signals<- signals %>% filter(signal_freq!=0)
                   if(input$global_db_hostname){
-                    mysql_query_runs<-paste("SELECT id, device, latitude, longitude, orientation, center_freq, hostname FROM `runs`")
+                    mysql_query_runs<-paste("SELECT id, device, latitude, longitude, orientation, center_freq, hostname as 'Name' FROM `runs`")
                   }else{
-                    mysql_query_runs<-paste("SELECT id, device, latitude, longitude, orientation, center_freq FROM `runs`")
+                    mysql_query_runs<-paste("SELECT id, device, latitude, longitude, orientation, center_freq, hostname as 'Name' FROM `runs`")
                   }
                   runs<-dbGetQuery(open_connections()[[i]]$conn,mysql_query_runs)
                 },
@@ -202,11 +202,6 @@ get_mysql_data <- eventReactive(global$mysql_data_invalidator, {
                   results<-merge(signals,runs,by.x="run",by.y="id")
                   results$run <- NULL
                   results$id <- NULL
-                  if(input$global_db_hostname){
-                    results$Name<-results$hostname
-                  }else{
-                    results$Name<-i
-                  }
                   tmp<-rbind(tmp,results)
                 }
               }
