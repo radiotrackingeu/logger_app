@@ -225,7 +225,7 @@ receiver_list <- reactive({
         dbDisconnect(con)
       }
       tmp <- unique(tmp)
-      tmp
+      # tmp
     },
     "Excel Files" = {
       if(input$excel_data_content=="Antennas"){
