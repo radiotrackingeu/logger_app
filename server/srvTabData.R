@@ -21,7 +21,7 @@ global$calibrated = FALSE
 # Add Data Button is pressed
 observeEvent(input$add_data,{
   global$connections<-unique.data.frame(rbind(remote_connections(),global$connections))
-  global$receivers<-unique.data.frame(rbind(receiver_list(),global$receivers))
+  global$receivers<-unique(rbind(receiver_list(), global$receivers), fill=T)
   global$frequencies<-unique.data.frame(rbind(frequencies_list(),global$frequencies))
   global$calibration <- unique.data.frame(rbind(calibration_list(), global$calibration))
   global$map_markers <- unique.data.frame(rbind(map_markers(), global$map_markers))

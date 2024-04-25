@@ -376,10 +376,10 @@ signal_data<-function(){
       tmp[, c("timestamp", "duration", "signal_freq", "Name", "receiver", "max_signal", "signal_bw", "longitude", "latitude", "orientation")]
     )
   )
-
+  setDT(tmp)
   receiver_info <- unique(tmp[, c("receiver", "Name", "latitude", "longitude", "orientation", "device")])
-  names(receiver_info) <- c("Name", "Station","Latitude","Longitude", "Orientation", "device")
-  global$receivers<-unique.data.frame(rbind(isolate(global$receivers), receiver_info, fill=T))
+  setnames(receiver_info, c("receiver", "Name", "latitude", "longitude", "orientation", "device"), c("Name", "Station","Latitude","Longitude", "Orientation", "device"))
+  global$receivers<-unique(rbind(isolate(global$receivers), receiver_info, fill=T))
 }
 
 output$live_tab_remote_entries_table <- renderDataTable({
