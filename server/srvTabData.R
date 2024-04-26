@@ -193,6 +193,10 @@ frequencies_list <- reactive({
                 if (dbExistsTable(con, "rteu_freqs")) {
                     tmp <- rbind(tmp, dbReadTable(con, "rteu_freqs"))
                 }
+                # new structure
+                else if (dbExistsTable(con, "signals")) {
+                  tmp <- rbind(tmp, dbReadTable(con, "signals"))
+                }
                 dbDisconnect(con)
               }
               tmp <- unique(tmp)
@@ -386,11 +390,11 @@ get_signals <- reactive({
                     else if(dbExistsTable(con, "signals")){
                       
                       # signals needs geo information
-                      query <- "SELECT * FROM signals INNER JOIN runs ON signals.run = runs.id"
+                      query <- "SELECT signals.*, hostname, device, orientation, latitude, longitude  FROM signals INNER JOIN runs ON signals.run = runs.id"
                       tmp_data <- dbGetQuery(con, query)
-                      tmp_data$Name <- paste(tmp_data$hostname, tmp_data$device, tmp_data$orientation, sep = "_")
+                      tmp_data$receiver <- paste(tmp_data$hostname, tmp_data$device, tmp_data$orientation, sep = "_")
                       # fix column names 
-                      names(tmp_data)[names(tmp_data) == "hostname"] <- "Station"
+                      names(tmp_data)[names(tmp_data) == "hostname"] <- "Name"
                       names(tmp_data)[names(tmp_data) == "latitude"] <- "Latitude"
                       names(tmp_data)[names(tmp_data) == "longitude"] <- "Longitude"
                       names(tmp_data)[names(tmp_data) == "orientation"] <- "Orientation"
