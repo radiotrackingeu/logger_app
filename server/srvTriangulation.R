@@ -6,9 +6,13 @@ triangulate <- function(receivers, bearings, only_one=F,time_error_inter_station
   progress=F
   positions<-data.frame()
   #Calc UTM of Stations and add them
-  stations<-as.data.frame(na.omit(unique(receivers[,c("Station","Longitude","Latitude")])))
-  stations<-stations[!duplicated(stations$Station),]
-  stations_utm<-cbind(stations,utm=wgstoutm(stations[,"Longitude"],stations[,"Latitude"]))
+  # stations<-as.data.frame(na.omit(unique(receivers[,c("Station","Longitude","Latitude")])))
+  # stations<-stations[!duplicated(stations$Station),]
+  # stations_utm<-cbind(stations,utm=wgstoutm(stations[,"Longitude"],stations[,"Latitude"]))
+  stations<-na.omit(unique(bearings[,c("Station","longitude","latitude")]))
+  # setDF(stations)
+  # stations<-stations[!duplicated(stations$Station),]
+  stations_utm<-cbind(stations, utm = wgstoutm(stations$longitude, stations$latitude))
   if(length(unique(stations_utm$utm.zone))>1){
     print("UTM Zone Problem")
   }
@@ -26,7 +30,7 @@ triangulate <- function(receivers, bearings, only_one=F,time_error_inter_station
     num_timestamps_unique<-length(timestamps_unique)
     #for each times interval
     setDT(tmp_f)
-    tmp_f<-tmp_f[stations_utm, on="Station"]
+    tmp_f<-tmp_f[stations_utm, on=c("Station", "longitude", "latitude")]
     split<-ldply(.data=timestamps_unique, .id = NULL, .fun = function(ts){
       tmp_fts<-tmp_f[timestamp==ts]
       if (nrow(tmp_fts==1 & only_one))
