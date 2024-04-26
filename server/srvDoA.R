@@ -256,7 +256,7 @@ calc_doa <- function(data_tfs, dBLoss, doa_approx,use_back_antenna=FALSE,only_on
     #check angle between strongest and second strongest and if it is smaller then 120 degree, calc it linearly
     if(abs(angle_between(data_tfs[1,"orientation"],data_tfs[2,"orientation"]))<=120){
       angle<-calc_angle(data_tfs[1,"max_signal"],data_tfs[2,"max_signal"],data_tfs[1,"orientation"],data_tfs[2,"orientation"],dBLoss,doa_approx)
-      return(data.frame(timestamp=as.POSIXct(t,origin="1970-01-01",tz="UTC"),angle=angle,antennas=nrow(data_tfs),Station=s,freq_tag=f,strength=max(data_tfs$max_signal),method="neighbours",recs=paste(data_tfs$receiver[[1]], data_tfs$receiver[[2]], sep = ","), origin_longitude = longs, origin_latitude=lats, stringsAsFactors=F))
+      return(data.frame(timestamp=as.POSIXct(t,origin="1970-01-01",tz="UTC"),angle=angle,antennas=nrow(data_tfs),Station=s,freq_tag=f,strength=max(data_tfs$max_signal),method="neighbours",recs=paste(data_tfs$receiver[[1]], data_tfs$receiver[[2]], sep = ","), stringsAsFactors=F))
     }else{
       # ignore back antenna and use third-strongest instead
       if(nrow(data_tfs)>2){
@@ -265,20 +265,20 @@ calc_doa <- function(data_tfs, dBLoss, doa_approx,use_back_antenna=FALSE,only_on
           num_angle_2<-3
         }
         angle<-calc_angle(data_tfs[1,"max_signal"],data_tfs[num_angle_2,"max_signal"],data_tfs[1,"orientation"],data_tfs[num_angle_2,"orientation"],dBLoss,"linear")
-        return(data.frame(timestamp=as.POSIXct(t,origin="1970-01-01",tz="UTC"),angle=angle,antennas=nrow(data_tfs),Station=s,freq_tag=f,strength=max(data_tfs$max_signal), method="ignore_back", recs=paste(data_tfs$receiver[[1]],data_tfs$receiver[[2]], data_tfs$receiver[[3]], sep = ","), origin_longitude = longs, origin_latitude=lats,stringsAsFactors=F))
+        return(data.frame(timestamp=as.POSIXct(t,origin="1970-01-01",tz="UTC"),angle=angle,antennas=nrow(data_tfs),Station=s,freq_tag=f,strength=max(data_tfs$max_signal), method="ignore_back", recs=paste(data_tfs$receiver[[1]],data_tfs$receiver[[2]], data_tfs$receiver[[3]], sep = ","),stringsAsFactors=F))
       }
       # use back antenna 
       if(nrow(data_tfs)==2 & use_back_antenna){
         angle<-data_tfs[1,"orientation"]
-        return(data.frame(timestamp=as.POSIXct(t,origin="1970-01-01",tz="UTC"),angle=angle,antennas=nrow(data_tfs),Station=s,freq_tag=f,strength=max(data_tfs$max_signal), method="frontback", recs=paste(data_tfs$receiver[[1]], data_tfs$receiver[[2]], sep = ","), origin_longitude = longs, origin_latitude=lats, stringsAsFactors=F))
+        return(data.frame(timestamp=as.POSIXct(t,origin="1970-01-01",tz="UTC"),angle=angle,antennas=nrow(data_tfs),Station=s,freq_tag=f,strength=max(data_tfs$max_signal), method="frontback", recs=paste(data_tfs$receiver[[1]], data_tfs$receiver[[2]], sep = ","), stringsAsFactors=F))
       }
     }
   }
   if(nrow(data_tfs)==1 & only_one_for_doa){
     if(anyNA(data_tfs[1,]))
-      return(data.frame(timestamp=as.POSIXct(character()), angle=numeric(), antennas=numeric(), Station=character(), freq_tag=character(), strength=numeric(), method=character(), recs=character(), origin_longitude = numeric(), origin_latitude=numeric()))
+      return(data.frame(timestamp=as.POSIXct(character()), angle=numeric(), antennas=numeric(), Station=character(), freq_tag=character(), strength=numeric(), method=character(), recs=character()))
     angle<-data_tfs[1,"orientation"]
-    return(data.frame(timestamp=as.POSIXct(t,origin="1970-01-01",tz="UTC"),angle=angle,antennas=nrow(data_tfs),Station=s,freq_tag=f,strength=max(data_tfs$max_signal), method="onlyone", recs=data_tfs$receiver[[1]], origin_longitude = longs, origin_latitude=lats, stringsAsFactors=F))
+    return(data.frame(timestamp=as.POSIXct(t,origin="1970-01-01",tz="UTC"),angle=angle,antennas=nrow(data_tfs),Station=s,freq_tag=f,strength=max(data_tfs$max_signal), method="onlyone", recs=data_tfs$receiver[[1]], stringsAsFactors=F))
   }
   return(data.frame())
 }
