@@ -61,6 +61,7 @@ observeEvent(input$add_data,{
         global$keepalives<-unique.data.frame(rbind(extract_keepalives(cbind(tmp,receiver = input$receiver_name_input, Name = input$station_name_input)), global$keepalives))
     }
     else {
+      # workhere
         global$signals<-unique.data.frame(rbind(tmp, global$signals))
         for (file in input$SQLite_filepath[, "datapath"]) {
           con <- dbConnect(RSQLite::SQLite(), file)
@@ -118,7 +119,7 @@ observe({
     global$keepalives <- NULL
 })
 
-js$mark_invalid("Frequencies")
+js$mark_invalid("Frequencies") 
 js$mark_invalid("Receivers")
 js$mark_invalid("Connections")
 js$mark_invalid("Logger data")
@@ -222,6 +223,16 @@ receiver_list <- reactive({
           tmp_data <- dbReadTable(con, "rteu_antenna")
           tmp <- rbind(tmp, tmp_data)
         }
+        #new db structure
+        else if (dbExistsTable(con, "runs")) {
+          tmp_data <- dbReadTable(con, "runs")
+          tmp_data$Name <- paste(tmp_data$hostname, tmp_data$device, tmp_data$orientation, sep = "_")
+          names(tmp_data)[names(tmp_data) == "hostname"] <- "Station"
+          names(tmp_data)[names(tmp_data) == "latitude"] <- "Latitude"
+          names(tmp_data)[names(tmp_data) == "longitude"] <- "Longitude"
+          names(tmp_data)[names(tmp_data) == "orientation"] <- "Orientation"
+          tmp <- rbind(tmp, tmp_data[c("id", "Name","Station","Latitude","Longitude","Orientation")])
+        }
         dbDisconnect(con)
       }
       tmp <- unique(tmp)
@@ -238,7 +249,9 @@ receiver_list <- reactive({
   )
   if (!is.null(tmp)) {
     setDT(tmp)
-    tmp[, Name:=trimws(Name, "right")]
+    if ("Name" %in% colnames(tmp_data)) {
+      tmp[, Name:=trimws(Name, "right")]
+    }
     tmp[, Station:=trimws(Station, "right")]
     if(nrow(tmp)>0){
       ### Steinkauz ###
@@ -347,7 +360,7 @@ local_logger_data <- reactive({
 ### read Signal data from files ###
 
 get_signals <- reactive({
-    switch (input$data_type_input,
+    switch(input$data_type_input,
             'Data folder' = {
                 read_logger_folder()
             },
@@ -365,8 +378,24 @@ get_signals <- reactive({
                 data <- NULL
                 for (file in input$SQLite_filepath[, "datapath"]) {
                     con <- dbConnect(RSQLite::SQLite(), file)
+                    # old data structure
                     if (dbExistsTable(con, "rteu_logger_data")) {
                         data <- rbindlist(list(data, dbReadTable(con, "rteu_logger_data")), fill=T)
+                    }
+                    # new data structure
+                    else if(dbExistsTable(con, "signals")){
+                      
+                      # signals needs geo information
+                      query <- "SELECT * FROM signals INNER JOIN runs ON signals.run = runs.id"
+                      tmp_data <- dbGetQuery(con, query)
+                      tmp_data$Name <- paste(tmp_data$hostname, tmp_data$device, tmp_data$orientation, sep = "_")
+                      # fix column names 
+                      names(tmp_data)[names(tmp_data) == "hostname"] <- "Station"
+                      names(tmp_data)[names(tmp_data) == "latitude"] <- "Latitude"
+                      names(tmp_data)[names(tmp_data) == "longitude"] <- "Longitude"
+                      names(tmp_data)[names(tmp_data) == "orientation"] <- "Orientation"
+                      
+                      data <- rbindlist(list(data, tmp_data), fill = T)
                     }
                     dbDisconnect(con)
                 }
