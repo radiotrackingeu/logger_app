@@ -370,10 +370,14 @@ signal_data<-function(){
   # tmp$signal_freq <- round((tmp$signal_freq), 2)
   tmp$receiver <- paste0(tmp$Name,"_",tmp$device,"_", tmp$orientation)#substrLeft(tmp$device,17)
 
-  global$signals <- unique.data.frame( 
-    rbind(
-      isolate(global$signals), 
-      tmp[, c("timestamp", "duration", "signal_freq", "Name", "receiver", "max_signal", "signal_bw", "longitude", "latitude", "orientation")]
+  global$signals <- as.data.frame(
+    unique( 
+      rbindlist(
+        list(
+          isolate(global$signals), 
+          tmp[, c("timestamp", "duration", "signal_freq", "Name", "receiver", "max_signal", "signal_bw", "longitude", "latitude", "orientation")]
+        ), fill=T
+      )
     )
   )
   setDT(tmp)
