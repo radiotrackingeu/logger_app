@@ -70,7 +70,7 @@ table_name <- reactive({
   else
     "signals"
 })
-
+# "Name", "running", "timestamp", "size","time"
 get_info_of_entries <- reactive({
   tmp<-data.table()
   if(!is.null(global$connections)){
@@ -78,48 +78,57 @@ get_info_of_entries <- reactive({
     withProgress(
       expr = {
         for(i in connect_to$Name){
-        setProgress(detail=i)
-            if (input$connect_mysql == 0 || is.null(open_connections()[[i]]$conn)) {
-          results<-data.table(Name=i,id=NA,timestamp="unknown",size="unknown",running="unknown",time="unknown",stringsAsFactors = FALSE)
-          tmp<-rbind(tmp,results, fill=TRUE)
-        }
-            else {
-          if(dbIsValid(open_connections()[[i]]$conn)) {
-            results<-suppressWarnings(dbGetQuery(open_connections()[[i]]$conn,paste0("SELECT timestamp FROM `",open_connections()[[i]]$table,"` ORDER BY timestamp DESC LIMIT 1;")))
-            results$timestamp <- as.character(results$timestamp)
-            if(nrow(results)>0){
-              results$size <- suppressWarnings(dbGetQuery(open_connections()[[i]]$conn, paste0('
-                                       SELECT ROUND(SUM(data_length + index_length) / 1024 / 1024, 1) "size"
-                                       FROM information_schema.tables WHERE table_schema = "', open_connections()[[i]]$database, '" AND table_name = "', open_connections()[[i]]$table, '";')
-                                       )$size)
-              results$time <- suppressWarnings(dbGetQuery(open_connections()[[i]]$conn, 'SELECT NOW();')$'NOW()')
-              if(abs(difftime(as.POSIXct(Sys.time(), tz="UTC"),as.POSIXct(results$timestamp, tz="UTC"),units="mins"))<6){
-                results$running<-"Recording"
-              }else{
-                results$running<-"Not recording"
+          setProgress(detail=i)
+          if (input$connect_mysql == 0) {
+            results<-data.table(Name=i, running="unknown", timestamp="unknown", size="unknown", time="unknown", stringsAsFactors = FALSE)
+            tmp<-rbind(tmp, results, fill=TRUE)
+          } else if (is.null(open_connections()[[i]]$conn)) {
+            results<-data.table(Name=i, running="unreachable", timestamp="unknown", size="unknown", time="unknown", stringsAsFactors = FALSE)
+            tmp<-rbind(tmp, results, fill=TRUE)
+          } else {
+            if(dbIsValid(open_connections()[[i]]$conn)) {
+              results<-data.table(Name=i, running="no data", timestamp="unknown", size="unknown", time="unknown", stringsAsFactors = FALSE)
+              q_timestamp <- paste0("SELECT timestamp FROM `",open_connections()[[i]]$table,"` ORDER BY timestamp DESC LIMIT 1;")
+              last_ts <- dbGetQuery(open_connections()[[i]]$conn, q_timestamp)$timestamp
+              if(length(last_ts) > 0){
+                q_size <- paste0(
+                  'SELECT ROUND(SUM(data_length + index_length) / 1024 / 1024, 1) "size" FROM information_schema.tables WHERE table_schema = "', 
+                  open_connections()[[i]]$database, 
+                  '" AND table_name = "', 
+                  open_connections()[[i]]$table, 
+                  '";'
+                )
+                results$timestamp <- format.POSIXct(last_ts, tz = "GMT", format = "%F %T UTC")
+                results$size <- as.character(
+                  dbGetQuery(open_connections()[[i]]$conn, q_size)$size
+                )
+                results$time <- format.POSIXct(
+                  dbGetQuery(open_connections()[[i]]$conn, 'SELECT NOW();')$'NOW()',
+                  tz = "GMT", 
+                  format = "%F %T UTC"
+                )
+                if(abs(difftime(as.POSIXct(Sys.time(), tz="UTC"), as.POSIXct(results$timestamp, tz="UTC"), units="mins")) < 6){
+                  results$running <- "Recording"
+                } else {
+                  results$running <- "Not recording"
+                }
               }
-              }
-            if(nrow(results)==0){
-              results<-data.table(timestamp="unknown",Name=i,id=NA,size="unknown",running="no data",time="unknown")
+              tmp <- rbind(tmp, results, fill=TRUE)
+            } else {
+              results <- data.table(Name=i, running="unreachable", timestamp="unknown", size="unknown", time="unknown", stringsAsFactors = FALSE)
+              tmp<-rbind(tmp, results, fill=TRUE)
             }
-            results$Name<-i
-            results$id <- NA
-            tmp<-rbind(as.data.frame(tmp),results)
-          }else{
-            results<-data.table(Name=i,id=NA,timestamp="offline")
-            tmp<-rbind(as.data.frame(tmp),results, fill=TRUE)
           }
-      }
-        incProgress(amount=1)
-      }
-  },
-  message = "Fetching additional informations: ",
-  max = nrow(connect_to),
-  value = 0
+          incProgress(amount=1)
+        }
+      },
+      message = "Fetching additional informations: ",
+      max = nrow(connect_to),
+      value = 0
     )
-      }else{
-        tmp<-NULL
-      }
+  } else {
+    tmp<-NULL
+  }
   return(tmp)
 })
 
@@ -189,9 +198,9 @@ get_mysql_data <- eventReactive(global$mysql_data_invalidator, {
                   signals<-RMariaDB::dbGetQuery(open_connections()[[i]]$conn, build_signals_query(open_connections()[[i]]$table))
                   signals<- signals %>% filter(signal_freq!=0)
                   if(input$global_db_hostname){
-                    mysql_query_runs<-paste("SELECT id, device, latitude, longitude, orientation, center_freq, hostname FROM `runs`")
+                    mysql_query_runs<-paste("SELECT id, device, latitude, longitude, orientation, center_freq, hostname as 'Name' FROM `runs`")
                   }else{
-                    mysql_query_runs<-paste("SELECT id, device, latitude, longitude, orientation, center_freq FROM `runs`")
+                    mysql_query_runs<-paste("SELECT id, device, latitude, longitude, orientation, center_freq, hostname as 'Name' FROM `runs`")
                   }
                   runs<-dbGetQuery(open_connections()[[i]]$conn,mysql_query_runs)
                 },
@@ -200,14 +209,9 @@ get_mysql_data <- eventReactive(global$mysql_data_invalidator, {
                 }
               )
                 if(nrow(signals)>0){
-                  results<-merge(signals,runs,by.x="run",by.y="id")
+                  results<-merge(signals, runs, by.x="run",by.y="id")
                   results$run <- NULL
                   results$id <- NULL
-                  if(input$global_db_hostname){
-                    results$Name<-results$hostname
-                  }else{
-                    results$Name<-i
-                  }
                   tmp<-rbind(tmp,results)
                 }
               }
@@ -374,22 +378,22 @@ signal_data<-function(){
   #tmp<-subset(get_mysql_data(),signal_freq!=0)
   tmp$timestamp <- as.POSIXct(tmp$timestamp,tz="UTC")
   # tmp$signal_freq <- round((tmp$signal_freq), 2)
-  tmp$receiver <- tmp$device#substrLeft(tmp$device,17)
-  if(nrow(tmp)>0){
-    #### Steinkauz ####
-    setDT(tmp)
-    if ("freq_tag" %in% names(tmp))
-      tmp[, freq_tag:=NULL]
-    tmp[Name %in% c("rteu-50","rteu-51"), Name:="rteu-50/51"]
-    tmp[Name %in% c("rteu-52","rteu-53"), Name:="rteu-52/53"]
-  }
-  signal_info <- tmp[, c("timestamp", "duration", "signal_freq", "Name", "receiver", "max_signal", "signal_bw")]
-  global$signals<-unique.data.frame(rbind(isolate(global$signals), signal_info))
+  tmp$receiver <- paste0(tmp$Name,"_",tmp$device,"_", tmp$orientation)#substrLeft(tmp$device,17)
 
-  receiver_info <- tmp[, c("receiver", "Name", "latitude", "longitude", "orientation")]
-  names(receiver_info) <- c("Name", "Station","Latitude","Longitude", "Orientation")
-  global$receivers<-unique.data.frame(rbind(isolate(global$receivers), receiver_info, fill=T))
-  tmp
+  global$signals <- as.data.frame(
+    unique( 
+      rbindlist(
+        list(
+          isolate(global$signals), 
+          tmp[, c("timestamp", "duration", "signal_freq", "Name", "receiver", "max_signal", "signal_bw", "longitude", "latitude", "orientation")]
+        ), fill=T
+      )
+    )
+  )
+  setDT(tmp)
+  receiver_info <- unique(tmp[, c("receiver", "Name", "latitude", "longitude", "orientation")])
+  setnames(receiver_info, c("receiver", "Name", "latitude", "longitude", "orientation"), c("Name", "Station","Latitude","Longitude", "Orientation"))
+  global$receivers<-unique(rbind(isolate(global$receivers), receiver_info, fill=T))
 }
 
 output$live_tab_remote_entries_table <- renderDataTable({
