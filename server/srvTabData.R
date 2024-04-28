@@ -14,6 +14,7 @@
 #global$triangulation is a data frame containing the trinagulated points
 #global$keepalices is a data frame containing all keepalive signals
 global$calibrated = FALSE
+global$extra_points <- list()
 
 
 ### observe and add data ###
@@ -25,7 +26,8 @@ observeEvent(input$add_data,{
   global$frequencies<-unique.data.frame(rbind(frequencies_list(),global$frequencies))
   global$calibration <- unique.data.frame(rbind(calibration_list(), global$calibration))
   global$map_markers <- unique.data.frame(rbind(map_markers(), global$map_markers))
-  global$extra_points <- gpx_data()
+  #global$extra_points <- list()
+  #global$extra_points <- NULL
   global$calibrated <- FALSE
 
   if(input$data_type_input == "Data folder" && !is.null(local_logger_data())) {
@@ -282,8 +284,24 @@ gpx_data <- reactive({
          "Miscellaneous" = {
            if(input$misc_type_input == "GPX" && !is.null(input$coordinates_filepath)) {
              mygpx <- readGPX(input$coordinates_filepath$datapath, waypoints = FALSE)
-             mytrack <- mygpx$tracks[[1]]$'NA'
-             mytrack$timestamp<-as.POSIXct(mytrack$time,format="%Y-%m-%dT%H:%M:%S.000Z")
+             
+             convert_timestamps <- function(track_segment) {
+               # Assuming 'time' is the column with the timestamps
+               if ("time" %in% names(track_segment)) {
+                 track_segment$timestamp <- as.POSIXct(track_segment$time, format="%Y-%m-%dT%H:%M:%OSZ", tz = "UTC")
+               } else {
+                 warning("Time column not found in the provided track segment.")
+               }
+               return(track_segment)
+             }
+             converted_tracks <- lapply(mygpx$tracks, function(track) {
+               lapply(track, convert_timestamps)
+             })
+             # Apply conversion to each segment of each track
+              
+             global$extra_points <- converted_tracks
+             mytrack <- mygpx$tracks[[1]][[1]]
+             mytrack <- convert_timestamps(mytrack)
              mytrack$extensions<-NULL
            }
            if(input$misc_type_input == "KML" && !is.null(input$coordinates_filepath)) {

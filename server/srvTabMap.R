@@ -18,15 +18,16 @@ output$map <- renderLeaflet({
   map()%>%addStations(global$receivers, color="black", radius=10, group="Stations")
 })
 
-# add extra spatial points
+##add extra spatial points
 # observeEvent(input$add_data,{
 #   req(gpx_data())
-#   #leafletProxy("map") %>% addMarkers(data=gpx_data(),label=~paste(time,session_start))
-#   #mytrack<-subset(gpx_data(),timestamp>=(selected_time()-30)&timestamp<=(selected_time()+30))
-#   #if(nrow(mytrack)>0){
-#   #  leafletProxy("map") %>% addCircles(lng = mytrack$lon, lat=mytrack$lat, radius=5, label=mytrack$timestamp, group = "GPX")
-#   #}
+#   leafletProxy("map") %>% addMarkers(data=gpx_data(),label=~paste(time,session_start))
+#   mytrack<-subset(gpx_data(),timestamp>=(selected_time()-30)&timestamp<=(selected_time()+30))
+#   if(nrow(mytrack)>0){
+#    leafletProxy("map") %>% addCircles(lng = mytrack$lon, lat=mytrack$lat, radius=5, label=mytrack$timestamp, group = "GPX")
+#   }
 # })
+
 
 
 # render data info text 
@@ -118,13 +119,78 @@ observeEvent(input$update_map,{
       title = title
       )
   if(!is.null(gpx_data())){
-    leafletProxy("map") %>% addCircles(lng = gpx_data()[[input$lng_to_compare]], lat=gpx_data()[[input$lat_to_compare]], 
-                                      #label = as.POSIXct(global$triangulation$timestamp, tz="UTC", origin="1970-01-01"),
-                                      radius=5, 
-                                      group = "triangulations",
-                                      color="red")
+    
+    #Add markers for extra points
+      leafletProxy("map") %>%
+        addMarkers(data = global$extra_points, ~lon, ~lat, popup = ~info, group = ~group)
+
+      # Update the layers control
+      leafletProxy("map") %>%
+        addLayersControl(
+          overlayGroups = c("GPS Data", unique(global$extra_points$group)),
+          options = layersControlOptions(collapsed = False)
+        )
+    
+    # leafletProxy("map") %>% addCircles(lng = gpx_data()[[input$lng_to_compare]], lat=gpx_data()[[input$lat_to_compare]], 
+    #                                   #label = as.POSIXct(global$triangulation$timestamp, tz="UTC", origin="1970-01-01"),
+    #                                   radius=5, 
+    #                                   group = "triangulations",
+    #                                   color="red")
   }
 })
+
+
+
+observeEvent(input$update_map, {
+  req(global$extra_points)  
+  # Clear previous markers to avoid duplication
+  leafletProxy("map") %>% clearMarkers()
+  # Variable to store group names for layer control
+  group_names <- vector("list", length(global$extra_points))
+  
+  # Iterate over each item in the list; each item is assumed to be a list of data frames
+  for(i in seq_along(global$extra_points)) {
+    track_list <- global$extra_points[[i]]
+    
+    # Now iterate over each data frame within this sub-list
+    for(df_name in names(track_list)) {
+      df <- track_list[[df_name]]  # Access the actual data frame by name
+      group_name <- paste("Track", i, "-", df_name)
+      
+      if ("lon" %in% names(df) && "lat" %in% names(df)) {
+        leafletProxy("map") %>% 
+          addMarkers(
+            lng = df$lon,
+            lat = df$lat,
+            popup = paste("Track:", df_name, "<br>Longitude:", df$lon, "<br>Latitude:", df$lat),
+            group = group_name
+          )
+        # Collect group names for layer control
+        group_names[[i]] <- append(group_names[[i]], group_name)
+      }
+    }
+  }
+  
+  group_names <- unlist(group_names)
+  
+  leafletProxy("map") %>% 
+    addLayersControl(
+      overlayGroups = group_names,
+      options = layersControlOptions(collapsed = FALSE)
+    )
+  
+  
+  # # Update layer controls to toggle tracks
+  # track_names <- unlist(lapply(global$extra_points, function(track_list) {
+  #   paste("Track", seq_along(track_list), "-", names(track_list), sep="")
+  # }))
+  # leafletProxy("map") %>% addLayersControl(
+  #   overlayGroups = track_names,
+  #   options = layersControlOptions(collapsed = FALSE)
+  # )
+})
+
+
 
 observe({
   req(leafletProxy("map"))
@@ -174,7 +240,10 @@ map <- reactive({
     return(l)
   l<-l %>%
     addCircleMarkers(lat=isolate(global$map_markers$Latitude), lng=isolate(global$map_markers$Longitude), group="user_markers", layerId=paste0("marker_",seq_len(nrow(isolate(global$map_markers)))), label = isolate(global$map_markers$Comment))
-})
+
+  
+  
+  })
 
 # add features to the basic map
 observe({
