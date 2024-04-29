@@ -118,25 +118,25 @@ observeEvent(input$update_map,{
       labFormat = labFormat,
       title = title
       )
-  if(!is.null(gpx_data())){
-    
-    #Add markers for extra points
-      leafletProxy("map") %>%
-        addMarkers(data = global$extra_points, ~lon, ~lat, popup = ~info, group = ~group)
-
-      # Update the layers control
-      leafletProxy("map") %>%
-        addLayersControl(
-          overlayGroups = c("GPS Data", unique(global$extra_points$group)),
-          options = layersControlOptions(collapsed = False)
-        )
-    
-    # leafletProxy("map") %>% addCircles(lng = gpx_data()[[input$lng_to_compare]], lat=gpx_data()[[input$lat_to_compare]], 
-    #                                   #label = as.POSIXct(global$triangulation$timestamp, tz="UTC", origin="1970-01-01"),
-    #                                   radius=5, 
-    #                                   group = "triangulations",
-    #                                   color="red")
-  }
+  # if(!is.null(gpx_data())){
+  #   
+  #   #Add markers for extra points
+  #     leafletProxy("map") %>%
+  #       addMarkers(data = global$extra_points, ~lon, ~lat, popup = ~info, group = ~group)
+  # 
+  #     # Update the layers control
+  #     leafletProxy("map") %>%
+  #       addLayersControl(
+  #         overlayGroups = c("GPS Data", unique(global$extra_points$group)),
+  #         options = layersControlOptions(collapsed = False)
+  #       )
+  #   
+  #   # leafletProxy("map") %>% addCircles(lng = gpx_data()[[input$lng_to_compare]], lat=gpx_data()[[input$lat_to_compare]], 
+  #   #                                   #label = as.POSIXct(global$triangulation$timestamp, tz="UTC", origin="1970-01-01"),
+  #   #                                   radius=5, 
+  #   #                                   group = "triangulations",
+  #   #                                   color="red")
+  # }
 })
 
 
