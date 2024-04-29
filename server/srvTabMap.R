@@ -41,6 +41,11 @@ observeEvent(global$receivers, ignoreNULL = T, ignoreInit = T, {
     addAntennaeCones(
       calculate_antennae_cones(global$receivers), 
       group="Antenna Cones"
+    ) %>% fitBounds(
+      lng1 = min(global$receivers$Longitude, na.rm = T),
+      lat1 = min(global$receivers$Latitude, na.rm = T),
+      lng2 = max(global$receivers$Longitude, na.rm = T),
+      lat2 = max(global$receivers$Latitude, na.rm = T)
     )
 })
 
