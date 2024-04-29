@@ -258,7 +258,7 @@ keepalive_data <- reactive({
                   query <- paste0(query, "LIMIT ", input$live_last_points, ";")
                 else 
                   query <- paste0(query,";")
-                print(query)
+                # print(query)
                 results<-suppressWarnings(dbGetQuery(open_connections()[[i]]$conn, query))
 
                 if(nrow(results)>0){
@@ -366,7 +366,8 @@ build_signals_query <- function(table) {
     
     #keepalive_filter <- paste(and, "max_signal != 0")
     
-    print(paste0("SELECT timestamp, duration, ", ifelse(input$check_sql_tag, "freq_tag, ", ""), "signal_freq, run, max_signal, signal_bw FROM `",table,"` s", inner_join, where, query_duration_filter,query_max_signal_filter,query_freq_filter, query_tag_filter," ORDER BY s.timestamp DESC", ifelse(input$live_last_points == 0,"", paste0(" LIMIT ",input$live_last_points)),";"))
+    # print(paste0("SELECT timestamp, duration, ", ifelse(input$check_sql_tag, "freq_tag, ", ""), "signal_freq, run, max_signal, signal_bw FROM `",table,"` s", inner_join, where, query_duration_filter,query_max_signal_filter,query_freq_filter, query_tag_filter," ORDER BY s.timestamp DESC", ifelse(input$live_last_points == 0,"", paste0(" LIMIT ",input$live_last_points)),";"))
+    paste0("SELECT timestamp, duration, ", ifelse(input$check_sql_tag, "freq_tag, ", ""), "signal_freq, run, max_signal, signal_bw FROM `",table,"` s", inner_join, where, query_duration_filter,query_max_signal_filter,query_freq_filter, query_tag_filter," ORDER BY s.timestamp DESC", ifelse(input$live_last_points == 0,"", paste0(" LIMIT ",input$live_last_points)),";")
 }
 
 signal_data<-function(){
