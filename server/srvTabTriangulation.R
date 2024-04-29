@@ -48,7 +48,7 @@ output$triangulation_points <- renderDataTable({
 output$tri_distance <- renderPlot({
   req(global$triangulation)
   distances<-distm(data.frame(global$triangulation$pos.X,global$triangulation$pos.Y))[,1]
-  ggplot()+geom_histogram(aes(x=distances))
+  ggplot()+geom_histogram(aes(x=distances), binwidth = 10)
 })
 
 # output$one_distance <- renderPlot({
