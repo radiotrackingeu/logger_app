@@ -40,22 +40,22 @@ tabPanel("Map",
                                
                                "))
     ),
-    leafletOutput("map", width="100%", height="100%"),
+    leafletOutput("map", width="100%", height="100%")
     
-    absolutePanel(id = "controls", class = "panel panel-default", fixed = TRUE,
-      draggable = F, top = 60, left = "auto", right = 20, bottom = "auto",
-      width = 330, height = "auto",
-      # checkboxInput("select_offline_map","Online Map",value=TRUE),
-      # selectInput("map_choose", "Choose Map", choices = unlist(providers)),
-      # checkboxInput("map_show_antennae_outline", "Show antennas outlines", value=TRUE),
-      checkboxInput("map_activate_single_data","Show Timeline",value = FALSE),
-      conditionalPanel(condition="input.map_activate_single_data==true",
-        sliderInput("map_choose_single_data_set","Data Steps", min=1, max =15,value = 1, animate = list(interval=400)),
-        plotOutput("map_miniplot", height = "150px")
-      ),
-      actionButton("update_map","Update map"),
-      
-      htmlOutput("map_signal_select_prop")
-    )
+    # absolutePanel(id = "controls", class = "panel panel-default", fixed = TRUE,
+    #   draggable = F, top = 60, left = "auto", right = 20, bottom = "auto",
+    #   width = 330, height = "auto",
+    #   # checkboxInput("select_offline_map","Online Map",value=TRUE),
+    #   # selectInput("map_choose", "Choose Map", choices = unlist(providers)),
+    #   # checkboxInput("map_show_antennae_outline", "Show antennas outlines", value=TRUE),
+    #   checkboxInput("map_activate_single_data","Show Timeline",value = FALSE),
+    #   conditionalPanel(condition="input.map_activate_single_data==true",
+    #     sliderInput("map_choose_single_data_set","Data Steps", min=1, max =15,value = 1, animate = list(interval=400)),
+    #     plotOutput("map_miniplot", height = "150px")
+    #   ),
+    #   actionButton("update_map","Update map"),
+    #   
+    #   htmlOutput("map_signal_select_prop")
+    # )
   )
 )

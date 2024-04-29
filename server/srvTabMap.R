@@ -1,15 +1,10 @@
 ############ srvTabMap.R ############
 
-antennae_cones<-reactive({
-  req(global$receivers)
-  calculate_antennae_cones(global$receivers)
-})
-
-#
-observe({
-  req(global$bearing)
-  updateSliderInput(session,"map_choose_single_data_set",min = 1,max = nrow(global$bearing))
-})
+# #
+# observe({
+#   req(global$bearing)
+#   updateSliderInput(session,"map_choose_single_data_set",min = 1,max = nrow(global$bearing))
+# })
 
 
 # render map and add stations
@@ -40,9 +35,13 @@ outputOptions(output, "map", suspendWhenHidden = FALSE)
 
 observeEvent(global$receivers, ignoreNULL = T, ignoreInit = T, {
   req(global$receivers)
+  
   leafletProxy("map") %>%
     addStations(global$receivers, color="black", radius=10, group="Stations") %>%
-    addAntennaeCones(antennae_cones(), group="Antenna Cones")
+    addAntennaeCones(
+      calculate_antennae_cones(global$receivers), 
+      group="Antenna Cones"
+    )
 })
 
 ##add extra spatial points
@@ -57,27 +56,27 @@ observeEvent(global$receivers, ignoreNULL = T, ignoreInit = T, {
 
 
 
-# render data info text 
-output$map_signal_select_prop<-renderText(
-  if(input$map_activate_single_data){
-    paste0("Date and Time: ", selected_time())
-  }
-)
-
-
-miniplot_base<-reactive({
-  req(global$bearing)
-  if(input$map_activate_single_data){
-    ggplot(global$bearing)+geom_point(aes(timestamp,angle,color=Station))
-  }
-})
-
-output$map_miniplot<-renderPlot({
-  req(selected_time())
-  if(input$map_activate_single_data){
-    miniplot_base() + geom_vline(xintercept=as.numeric(selected_time()))
-  }
-})
+# # render data info text 
+# output$map_signal_select_prop<-renderText(
+#   if(input$map_activate_single_data){
+#     paste0("Date and Time: ", selected_time())
+#   }
+# )
+# 
+# 
+# miniplot_base<-reactive({
+#   req(global$bearing)
+#   if(input$map_activate_single_data){
+#     ggplot(global$bearing)+geom_point(aes(timestamp,angle,color=Station))
+#   }
+# })
+# 
+# output$map_miniplot<-renderPlot({
+#   req(selected_time())
+#   if(input$map_activate_single_data){
+#     miniplot_base() + geom_vline(xintercept=as.numeric(selected_time()))
+#   }
+# })
 
 
 # observeEvent(input$update_map,{
@@ -103,18 +102,18 @@ color_palette <- reactive({
   pal
 })
 
-selected_time <- reactive({
-  req((input$map_choose_single_data_set))
-  req(tm_signal_data())
-  tmp<-unique(tm_signal_data()$timestamp)
-  rv<-NULL
-  if(!input$app_live_mode){
-    rv<-tmp[order(tmp)][input$map_choose_single_data_set]
-  }else{
-    rv<-tmp[order(tmp,decreasing = TRUE)][input$map_choose_single_data_set]
-  }
-  return(rv)
-})
+# selected_time <- reactive({
+#   req((input$map_choose_single_data_set))
+#   req(tm_signal_data())
+#   tmp<-unique(tm_signal_data()$timestamp)
+#   rv<-NULL
+#   if(!input$app_live_mode){
+#     rv<-tmp[order(tmp)][input$map_choose_single_data_set]
+#   }else{
+#     rv<-tmp[order(tmp,decreasing = TRUE)][input$map_choose_single_data_set]
+#   }
+#   return(rv)
+# })
 
 observeEvent(global$triangulation, ignoreNULL = T, ignoreInit = T, {
   leafletProxy("map") %>% clearGroup("triangulations")
@@ -253,36 +252,36 @@ observeEvent(global$extra_points, {
 
 
 
-observe({
-  req(leafletProxy("map"))
-  req(selected_time())
-  req(global$bearing)
-  leafletProxy("map") %>% clearGroup("bats") %>% clearGroup("Bearings")%>% clearGroup("triangulations") %>% clearGroup("GPX")
-  if(input$map_activate_single_data){
-    data_cones<-na.omit(subset(tm_signal_data(),timestamp == selected_time()))
-    leafletProxy("map") %>% addDetectionCones(data_cones)
-    if(nrow(tm_bearing_data())>0){
-      data<-na.omit(subset(tm_bearing_data(),timestamp == selected_time()))
-      if(nrow(data)>0){
-        data<-merge(data,global$receivers[!duplicated(global$receivers$Station),c("Station","Longitude","Latitude")],by.x="Station",by.y="Station")
-        data<-cbind(data,utm=wgstoutm(data[,"Longitude"],data[,"Latitude"]))
-        colnames(data)[which(colnames(data)=='Longitude')]<-"latitude"
-        colnames(data)[which(colnames(data)=='Latitude')]<-"longitude"
-        leafletProxy("map") %>% addBearings(data)
-      }
-    }
-    tmp_pos<-na.omit(subset(global$triangulation,timestamp==selected_time()))
-    if(nrow(tmp_pos)>0){
-      leafletProxy("map") %>% addCircles(lng = tmp_pos$pos.X, 
-                                         lat = tmp_pos$pos.Y, 
-                                         label = as.POSIXct(tmp_pos$timestamp, tz="UTC", origin="1970-01-01"),
-                                         radius=5, 
-                                         group = "triangulations",
-                                         color="blue"
-      ) 
-    }
-  }
-})
+# observe({
+#   req(leafletProxy("map"))
+#   req(selected_time())
+#   req(global$bearing)
+#   leafletProxy("map") %>% clearGroup("bats") %>% clearGroup("Bearings")%>% clearGroup("triangulations") %>% clearGroup("GPX")
+#   if(input$map_activate_single_data){
+#     data_cones<-na.omit(subset(tm_signal_data(),timestamp == selected_time()))
+#     leafletProxy("map") %>% addDetectionCones(data_cones)
+#     if(nrow(tm_bearing_data())>0){
+#       data<-na.omit(subset(tm_bearing_data(),timestamp == selected_time()))
+#       if(nrow(data)>0){
+#         data<-merge(data,global$receivers[!duplicated(global$receivers$Station),c("Station","Longitude","Latitude")],by.x="Station",by.y="Station")
+#         data<-cbind(data,utm=wgstoutm(data[,"Longitude"],data[,"Latitude"]))
+#         colnames(data)[which(colnames(data)=='Longitude')]<-"latitude"
+#         colnames(data)[which(colnames(data)=='Latitude')]<-"longitude"
+#         leafletProxy("map") %>% addBearings(data)
+#       }
+#     }
+#     tmp_pos<-na.omit(subset(global$triangulation,timestamp==selected_time()))
+#     if(nrow(tmp_pos)>0){
+#       leafletProxy("map") %>% addCircles(lng = tmp_pos$pos.X, 
+#                                          lat = tmp_pos$pos.Y, 
+#                                          label = as.POSIXct(tmp_pos$timestamp, tz="UTC", origin="1970-01-01"),
+#                                          radius=5, 
+#                                          group = "triangulations",
+#                                          color="blue"
+#       ) 
+#     }
+#   }
+# })
 
 
 # # creates basic map
@@ -329,15 +328,15 @@ observeEvent(global$map_markers, ignoreNULL = T, ignoreInit = T, {
 #     addAntennaeCones(antennae_cones())
 # })
 
-tm_signal_data<- eventReactive(input$map_activate_single_data,{
-  req(filtered_data())
-  tmp<-time_match_signals(filtered_data(),input$intra_station_time_error, F)
-  #no frequency tag included!!!
-  return(timematch_inter(tmp,input$time_error_inter_station))
-})
+# tm_signal_data<- eventReactive(input$map_activate_single_data,{
+#   req(filtered_data())
+#   tmp<-time_match_signals(filtered_data(),input$intra_station_time_error, F)
+#   #no frequency tag included!!!
+#   return(timematch_inter(tmp,input$time_error_inter_station))
+# })
 
-tm_bearing_data<- eventReactive(input$map_activate_single_data,{
-  req(global$bearing)
-  #no frequency tag included!!!
-  return(timematch_inter(global$bearing,input$time_error_inter_station))
-})
+# tm_bearing_data<- eventReactive(input$map_activate_single_data,{
+#   req(global$bearing)
+#   #no frequency tag included!!!
+#   return(timematch_inter(global$bearing,input$time_error_inter_station))
+# })
