@@ -159,9 +159,11 @@ observeEvent(input$update_map, {
       
       if ("lon" %in% names(df) && "lat" %in% names(df)) {
         leafletProxy("map") %>% 
-          addMarkers(
+          addCircles(
             lng = df$lon,
             lat = df$lat,
+            radius = 7,
+            weight = 7,
             popup = paste("Track:", df_name, "<br>Longitude:", df$lon, "<br>Latitude:", df$lat),
             group = group_name
           )
