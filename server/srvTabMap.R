@@ -27,7 +27,7 @@ output$map <- renderLeaflet({
       baseGroups = c("OSM", "Satellite"),
       overlayGroups = c("Antenna Cones"),
       options = layersControlOptions(collapsed = TRUE), 
-      position = c("bottomleft")
+      position = c("topright")
     )
 })
 
