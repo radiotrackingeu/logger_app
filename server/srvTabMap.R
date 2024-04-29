@@ -14,8 +14,33 @@ observe({
 
 # render map and add stations
 output$map <- renderLeaflet({
+  l<-leaflet() %>%
+    # addProviderTiles(providers[[input$map_choose]]) %>%
+    addTiles("", group = "Borders only") %>% 
+    addProviderTiles("OpenStreetMap.Mapnik", group ="OSM") %>%
+    addProviderTiles("Esri.WorldImagery", group = "Satellite") %>%
+    addMeasure(position = "bottomleft", 
+      primaryLengthUnit = "meters",  
+      primaryAreaUnit = "sqmeters",
+      activeColor = "blue",
+      completedColor = "red") %>% 
+    addEasyButton(easyButton(
+      icon="fa-crosshairs", title="Locate Me",
+      onClick=JS("function(btn, map){ map.locate({setView: true}); }"))) %>% 
+    addScaleBar(position="bottomright") %>% 
+    addLayersControl(
+      baseGroups = c("OSM", "Satellite"),
+      overlayGroups = c("Antenna Cones"),
+      options = layersControlOptions(collapsed = TRUE), 
+      position = c("bottomleft")
+    )
+})
+
+observeEvent(global$receivers, ignoreNULL = T, ignoreInit = T, {
   req(global$receivers)
-  map()%>%addStations(global$receivers, color="black", radius=10, group="Stations")
+  leafletProxy("map") %>%
+    addStations(global$receivers, color="black", radius=10, group="Stations") %>%
+    addAntennaeCones(antennae_cones(), group="Antenna Cones")
 })
 
 ##add extra spatial points
@@ -53,19 +78,19 @@ output$map_miniplot<-renderPlot({
 })
 
 
-observeEvent(input$update_map,{
-  leafletProxy("map") %>% addAntennaeCones(antennae_cones())
-  if(!input$select_offline_map){
-    print("Use offline Maps")
-    leafletProxy("map") %>% addTiles(
-      urlTemplate=paste0("http://localhost:", session$clientData$url_port,"/Tiles/{z}/{x}/{y}.png")
-    )
-  }
-  if(input$map_show_antennae_outline)
-    leafletProxy("map") %>% showGroup("antennae_cones")
-  else 
-    leafletProxy("map") %>% hideGroup("antennae_cones")
-})
+# observeEvent(input$update_map,{
+#   # leafletProxy("map") %>% addAntennaeCones(antennae_cones())
+#   # if(!input$select_offline_map){
+#   #   print("Use offline Maps")
+#   #   leafletProxy("map") %>% addTiles(
+#   #     urlTemplate=paste0("http://localhost:", session$clientData$url_port,"/Tiles/{z}/{x}/{y}.png")
+#   #   )
+#   # }
+#   # if(input$map_show_antennae_outline)
+#   #   leafletProxy("map") %>% showGroup("antennae_cones")
+#   # else 
+#   #   leafletProxy("map") %>% hideGroup("antennae_cones")
+# })
 
 color_palette <- reactive({
   req(filtered_data())
@@ -141,7 +166,7 @@ observeEvent(input$update_map,{
 
 
 
-observeEvent(input$update_map, {
+observeEvent(global$extra_points, {
   req(global$extra_points)  
   # Clear previous markers to avoid duplication
   leafletProxy("map") %>% clearMarkers()
@@ -176,8 +201,10 @@ observeEvent(input$update_map, {
   group_names <- unlist(group_names)
   
   leafletProxy("map") %>% 
+    removeLayersControl() %>%
     addLayersControl(
-      overlayGroups = group_names,
+      baseGroups = c("OSM", "Satellite"),
+      overlayGroups = c("Antenna Cones", group_names),
       options = layersControlOptions(collapsed = TRUE), 
       position = c("bottomleft")
     )
@@ -226,38 +253,50 @@ observe({
   }
 })
 
-# creates basic map
-map <- reactive({
-  l<-leaflet() %>%
-    addProviderTiles(providers[[input$map_choose]]) %>%
-    addMeasure(position = "bottomleft", 
-      primaryLengthUnit = "meters",  
-      primaryAreaUnit = "sqmeters",
-      activeColor = "blue",
-      completedColor = "red") %>% 
-    addEasyButton(easyButton(
-      icon="fa-crosshairs", title="Locate Me",
-      onClick=JS("function(btn, map){ map.locate({setView: true}); }"))) %>% 
-    addScaleBar(position="bottomright")
-  if (is.null(isolate(global$map_markers)))
-    return(l)
-  l<-l %>%
-    addCircleMarkers(lat=isolate(global$map_markers$Latitude), lng=isolate(global$map_markers$Longitude), group="user_markers", layerId=paste0("marker_",seq_len(nrow(isolate(global$map_markers)))), label = isolate(global$map_markers$Comment))
 
-  
-  
-  })
+# # creates basic map
+# map <- reactive({
+#   l<-leaflet() %>%
+#     addProviderTiles(providers[[input$map_choose]]) %>%
+#     addMeasure(position = "bottomleft", 
+#       primaryLengthUnit = "meters",  
+#       primaryAreaUnit = "sqmeters",
+#       activeColor = "blue",
+#       completedColor = "red") %>% 
+#     addEasyButton(easyButton(
+#       icon="fa-crosshairs", title="Locate Me",
+#       onClick=JS("function(btn, map){ map.locate({setView: true}); }"))) %>% 
+#     addScaleBar(position="bottomright")
+#   if (is.null(isolate(global$map_markers)))
+#     return(l)
+#   l<-l %>%
+#     addCircleMarkers(lat=isolate(global$map_markers$Latitude), lng=isolate(global$map_markers$Longitude), group="user_markers", layerId=paste0("marker_",seq_len(nrow(isolate(global$map_markers)))), label = isolate(global$map_markers$Comment))
+# 
+#   
+#   
+#   })
 
-# add features to the basic map
-observe({
-  req(leafletProxy("map"))
-  req((global$receivers))
-  req((filtered_data()))
-  req(antennae_cones())
-  leafletProxy("map") %>% 
-    clearControls() %>%
-    addAntennaeCones(antennae_cones())
+observeEvent(global$map_markers, ignoreNULL = T, ignoreInit = T, {
+  leafletProxy("map") %>%
+    addCircleMarkers(
+      lat=global$map_markers$Latitude,
+      lng=global$map_markers$Longitude, 
+      group="user_markers", 
+      layerId=paste0("marker_",seq_len(nrow(global$map_markers))), 
+      label = global$map_markers$Comment
+    )
 })
+
+# # add features to the basic map
+# observe({
+#   req(leafletProxy("map"))
+#   req((global$receivers))
+#   req((filtered_data()))
+#   req(antennae_cones())
+#   leafletProxy("map") %>%
+#     clearControls() %>%
+#     addAntennaeCones(antennae_cones())
+# })
 
 tm_signal_data<- eventReactive(input$map_activate_single_data,{
   req(filtered_data())
