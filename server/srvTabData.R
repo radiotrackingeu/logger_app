@@ -214,13 +214,24 @@ receiver_list <- reactive({
     input$data_type_input,
     "Data folder" = {
       tmp<-safe_read_excel_silent("data/Antennas.xlsx")
+      setDT(tmp)
     },
     "SQLite File" = {
       for (file in input$SQLite_filepath[, "datapath"]) {
         con <- dbConnect(RSQLite::SQLite(), file)
+        #old db structure
         if (dbExistsTable(con, "rteu_antenna")) {
           tmp_data <- dbReadTable(con, "rteu_antenna")
-          tmp <- rbind(tmp, tmp_data)
+          setDT(tmp_data)
+          tmp <- rbind(tmp, tmp_data, fill=T)
+        #new db structure
+        } else if (dbExistsTable(con, "runs")) {
+          tmp_data <- dbReadTable(con, "runs")
+          setDT(tmp_data)
+          tmp_data[, Name:=paste(hostname, device, orientation, sep = "_")]
+          setnames(tmp_data,c("hostname", "latitude", "longitude", "orientation"), c("Station", "Latitude", "Longitude", "Orientation"))
+          tmp_data <- unique(tmp_data, by = c("Name", "Station", "Latitude", "Longitude", "Orientation"))
+          tmp <- rbind(tmp, tmp_data[,.(Name, Station, Latitude, Longitude, Orientation)], fill=T)
         }
         dbDisconnect(con)
       }
@@ -233,13 +244,15 @@ receiver_list <- reactive({
           return(NULL)
         
         tmp<-safe_read_excel(input$excel_filepath_receivers$datapath)
+        setDT(tmp)
       }
     }
   )
   if (!is.null(tmp)) {
-    setDT(tmp)
-    tmp[, Name:=trimws(Name, "right")]
-    tmp[, Station:=trimws(Station, "right")]
+    if ("Name" %in% names(tmp))
+      tmp[, Name:=trimws(Name, "right")]
+    if ("Station" %in% names(tmp))
+      tmp[, Station:=trimws(Station, "right")]
   }
   return(tmp)
 })
@@ -342,7 +355,7 @@ local_logger_data <- reactive({
 ### read Signal data from files ###
 
 get_signals <- reactive({
-    switch (input$data_type_input,
+    switch(input$data_type_input,
             'Data folder' = {
                 read_logger_folder()
             },
@@ -360,8 +373,19 @@ get_signals <- reactive({
                 data <- NULL
                 for (file in input$SQLite_filepath[, "datapath"]) {
                     con <- dbConnect(RSQLite::SQLite(), file)
+                    # old data structure
                     if (dbExistsTable(con, "rteu_logger_data")) {
                         data <- rbindlist(list(data, dbReadTable(con, "rteu_logger_data")), fill=T)
+                    # new data structure
+                    } else if(dbExistsTable(con, "signals")){
+                      query <- "SELECT signals.*, hostname, device, orientation, latitude, longitude FROM signals INNER JOIN runs ON signals.run = runs.id"
+                      tmp_data <- dbGetQuery(con, query)
+                      setDT(tmp_data)
+                      tmp_data[, receiver := paste(hostname, device, orientation, sep = "_")]
+                      tmp_data[, device:=NULL]
+                      # fix column names 
+                      setnames(tmp_data,c("hostname"), c("Station"))
+                      data <- rbindlist(list(data, tmp_data), fill = T)
                     }
                     dbDisconnect(con)
                 }
