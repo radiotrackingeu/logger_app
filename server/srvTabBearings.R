@@ -146,38 +146,38 @@ observeEvent(input$change_manu,{
     global$calibration<-cali
 })
 
-observeEvent(input$calibrate_signal_strength,{
-  global$calibration<-calibrate_auto(filtered_data())
-  global$calibrated = TRUE
-  })
+# observeEvent(input$calibrate_signal_strength,{
+#   global$calibration<-calibrate_auto(filtered_data())
+#   global$calibrated = TRUE
+#   })
 
-#calculate automatic calibration factors
-calibrate_auto <- function(filtered_data) {
-  maxis<-NULL
+# #calculate automatic calibration factors
+# calibrate_auto <- function(filtered_data) {
+#   maxis<-NULL
+# 
+#   for(i in unique(as.character(filtered_data$receiver))){
+#     tmp<-subset(filtered_data,receiver == i)
+#     maxis<-rbind(maxis,tmp[which.max(tmp$max_signal),])
+#   }
+# 
+#   max_max<-maxis[which.max(maxis$max_signal),]
+#   maxis<-data.frame(correction = max_max$max_signal-maxis$max_signal, receiver=maxis$receiver, station = maxis$Name)
+#   return(maxis)
+# }
 
-  for(i in unique(as.character(filtered_data$receiver))){
-    tmp<-subset(filtered_data,receiver == i)
-    maxis<-rbind(maxis,tmp[which.max(tmp$max_signal),])
-  }
+# observeEvent(global$calibrated, {
+#   if (global$calibrated){
+#     output$calibration_state_warning <- renderUI({"This data has already been calibrated"})
+#   }
+#   else {
+#     output$calibration_state_warning <- renderUI({NULL})
+#   }
+# })
 
-  max_max<-maxis[which.max(maxis$max_signal),]
-  maxis<-data.frame(correction = max_max$max_signal-maxis$max_signal, receiver=maxis$receiver, station = maxis$Name)
-  return(maxis)
-}
-
-observeEvent(global$calibrated, {
-  if (global$calibrated){
-    output$calibration_state_warning <- renderUI({"This data has already been calibrated"})
-  }
-  else {
-    output$calibration_state_warning <- renderUI({NULL})
-  }
-})
-
-output$cal_factors <- renderDataTable({
-  shiny::validate(need(global$calibration, "No calibration data found"))
-  global$calibration
-}, rownames=F)
+# output$cal_factors <- renderDataTable({
+#   shiny::validate(need(global$calibration, "No calibration data found"))
+#   global$calibration
+# }, rownames=F)
 
 # calculate time match and DoA #1
 output$doa<- renderDataTable({

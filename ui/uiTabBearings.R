@@ -27,12 +27,12 @@ tabPanel("Bearings",
                     numericInput("angle_sep","angle between two neighbouring antennas",value=90),
                     sliderInput("min_doa_antennas","Choose minimum number of antennas",1,12,1)
            ),
-           tabPanel("Auto Calibration",
-                    uiOutput("calibration_state_warning"),
-                    actionButton("calibrate_signal_strength","Calibrate",style="margin:10px"),
-                    checkboxInput("correct_signal_strength_auto","Correct Signal Strengths"),
-                    dataTableOutput("cal_factors")
-                    ),
+           # tabPanel("Auto Calibration",
+           #          uiOutput("calibration_state_warning"),
+           #          actionButton("calibrate_signal_strength","Calibrate",style="margin:10px"),
+           #          checkboxInput("correct_signal_strength_auto","Correct Signal Strengths"),
+           #          dataTableOutput("cal_factors")
+           #          ),
            tabPanel("Manual Calibration",
                     checkboxInput("correct_signal_strength_manu","Correct Signal Strengths"),
                     uiOutput("correction_list"),
