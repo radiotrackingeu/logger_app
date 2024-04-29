@@ -30,9 +30,9 @@ tabPanel("Triangulation",
            #          selectInput("lat_to_compare","Choose Latitude Collumn",choices = NULL),
            #          selectInput("time_to_compare","Choose Time Collumn",choices = NULL)
            # ),
-           tabPanel("Distances",
-                    plotOutput("tri_distance")
-           ),
+           # tabPanel("Distances",
+           #          plotOutput("tri_distance")
+           # ),
            tabPanel("Table",
                     dataTableOutput("triangulation_points")
            )
