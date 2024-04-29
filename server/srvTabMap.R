@@ -178,7 +178,8 @@ observeEvent(input$update_map, {
   leafletProxy("map") %>% 
     addLayersControl(
       overlayGroups = group_names,
-      options = layersControlOptions(collapsed = TRUE)
+      options = layersControlOptions(collapsed = TRUE), 
+      position = c("bottomleft")
     )
   
   
