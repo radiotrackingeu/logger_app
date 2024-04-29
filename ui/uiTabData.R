@@ -100,6 +100,17 @@ tabPanel("File Input",
                  )
                )
              ),
+             tags$head(
+               tags$script(
+                 HTML("
+                    $(document).on('shiny:sessioninitialized', function(event) {
+                    $('#misc_type_input input[value=\"KML\"]').prop('disabled', true);
+                    $('#misc_type_input input[value=\"KMZ\"]').prop('disabled', true);
+                    $('#misc_type_input input[value=\"readOGR\"]').prop('disabled', true);
+                  });
+                ")
+               )
+             ),
              conditionalPanel(
                 condition = "input.data_type_input == 'Miscellaneous'",
                 radioButtons(

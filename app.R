@@ -10,7 +10,7 @@ required_packages<-c(
   "writexl",
   "ggplot2",
   "leaflet",
-  "rgdal",
+  #"rgdal",
   "DBI",
   "RSQLite",
   "shinyjs",
@@ -30,8 +30,9 @@ required_packages<-c(
   "plyr",
   "shinyWidgets",
   "dplyr",
-  "sp",
-  "sf"
+  #"sp",
+  "sf",
+  "purrr"
 )
 
 # try to load packages and install missing ones

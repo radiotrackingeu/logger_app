@@ -1,11 +1,30 @@
-# adds the cone outline to antennae on given map.
-addAntennaeCones<- function(m, cones) {
-  m<-m %>% clearGroup(group="antennae_cones")
-  for(name in names(cones)) {
-    if(length(cones[[name]])>1){
-      m<-m %>% addPolygons(lng=cones[[name]]$x, lat=cones[[name]]$y, group="antennae_cones", fill=FALSE, opacity=0.5, stroke=TRUE, weight=1)
-    }else{
-      m<-m %>% addCircles(lng=cones[[name]]$x, lat=cones[[name]]$y, fill=FALSE, opacity=0.5, stroke=TRUE, weight=1, radius =10)
+addAntennaeCones <- function(m, cones, group = "antennae_cones") {
+  m <- m %>% clearGroup(group)
+  for (name in names(cones)) {
+    if (length(cones[[name]]) > 1) {
+      m <-
+        m %>% addPolygons(
+          lng = cones[[name]]$x,
+          lat = cones[[name]]$y,
+          label = paste0(name, ": ", cones[[name]]$orientation, "°"),
+          group = group,
+          fill = FALSE,
+          opacity = 0.5,
+          stroke = TRUE,
+          weight = 1
+        )
+    } else{
+      m <-
+        m %>% addCircles(
+          lng = cones[[name]]$x,
+          lat = cones[[name]]$y,
+          fill = FALSE,
+          opacity = 0.5,
+          stroke = TRUE,
+          weight = 1,
+          radius = 10,
+          group = group
+        )
     }
   }
   return(m)
@@ -197,35 +216,95 @@ calculate_cone_corners<-function(x,y,dir,length,deg){
   return(wgs)
 }
 
-# WGS to UTM conversion
-# in 2 numeric
-# out data.frame
-wgstoutm<-function(x,y){
-  tmp<-data.frame(X = numeric(),Y= numeric(),zone= numeric())
-  for(i in 1:length(x)){
-    zone<-(floor((x[i] + 180)/6) %% 60) + 1
-    xy <- data.frame(cbind("X"=x[i],"Y"=y[i]))
-    sp::coordinates(xy) <- c("X", "Y")
-    proj4string(xy) <- CRS("+proj=longlat +datum=WGS84")  ## for example
-    result <- spTransform(xy, CRS(paste("+proj=utm +zone=",zone," ellps=WGS84",sep='')))
-    result <- as.data.frame(result)
-    names(result) <- c("X","Y")
-    tmp<-rbind(tmp,data.frame(cbind(X=result$X,Y=result$Y,zone)))
+##WGS to UTM conversion
+##in 2 numeric
+#out data.frame
+# wgstoutm<-function(x,y){
+#   start_time <- proc.time()  # Start timing
+#   tmp<-data.frame(X = numeric(),Y= numeric(),zone= numeric())
+#   for(i in 1:length(x)){
+#     zone<-(floor((x[i] + 180)/6) %% 60) + 1
+#     xy <- data.frame(cbind("X"=x[i],"Y"=y[i]))
+#     sp::coordinates(xy) <- c("X", "Y")
+#     proj4string(xy) <- CRS("+proj=longlat +datum=WGS84")  ## for example
+#     result <- spTransform(xy, CRS(paste("+proj=utm +zone=",zone," ellps=WGS84",sep='')))
+#     result <- as.data.frame(result)
+#     names(result) <- c("X","Y")
+#     tmp<-rbind(tmp,data.frame(cbind(X=result$X,Y=result$Y,zone)))
+#   }
+# 
+#   end_time <- proc.time() - start_time  # Calculate elapsed time
+#   print(end_time)  # Print the timing information
+#   return(tmp)
+# }
+
+wgstoutm <- function(x, y) {
+  # Create an sf object
+  data <- data.frame(X = x, Y = y)
+  sf_data <- st_as_sf(data, coords = c("X", "Y"), crs = 4326)  # WGS84 Lat Long
+
+  # Function to calculate UTM zone based on longitude
+  get_utm_zone <- function(longitude) {
+    (floor((longitude + 180) / 6) %% 60) + 1
   }
-  return(tmp)
+  # Create a data frame to store results
+  results <- data.frame(X = numeric(length(x)), Y = numeric(length(y)), zone = integer(length(x)))
+
+  # Loop through each row to calculate the UTM zone and transform
+  for (i in seq_along(x)) {
+    zone <- get_utm_zone(x[i])
+    crs_string <- sprintf("+proj=utm +zone=%d +ellps=WGS84 +datum=WGS84 +units=m +no_defs", zone)
+    transformed <- st_transform(sf_data[i, ], crs = crs_string)
+
+    # Extract transformed coordinates
+    coords <- st_coordinates(transformed)
+    results$X[i] <- coords[1, "X"]
+    results$Y[i] <- coords[1, "Y"]
+    results$zone[i] <- zone
+  }
+    
+
+  return(results)
 }
 
 # UTM to WGS conversion
 
-utmtowgs<-function(x,y,zone){
-  tmp<-data.frame()
-  for(i in 1:length(x)){
-    xy <- data.frame(cbind("X"=x[i],"Y"=y[i]))
-    coordinates(xy) <- c("X", "Y")
-    proj4string(xy) <- CRS(paste0("+proj=utm +zone=",zone[i]," +datum=WGS84"))  ## for example
-    res <- spTransform(xy, CRS("+proj=longlat +datum=WGS84"))
-    tmp<-rbind(tmp,as.data.frame(res))
+utmtowgs <- function(x,y, zone) {
+  # Create an sf object
+  data <- data.frame(X = x, Y = y, zone = zone)
+
+  # Initialize an empty data frame to store results
+  results <- data.frame(X = numeric(length(x)), Y = numeric(length(y)))
+  
+  #Process each point individually
+  for (i in 1:length(x)) {
+    #Define the CRS for the UTM coordinates based on the zone
+    utm_crs <- sprintf("+proj=utm +zone=%d +ellps=WGS84 +datum=WGS84 +units=m +no_defs", zone[i])
+    
+    #Create an sf object with the appropriate UTM CRS
+    xy_sf <- st_as_sf(data.frame(X = x[i], Y = y[i]), coords = c("X", "Y"), crs = utm_crs)
+    
+    # Transform the coordinates to WGS84
+    transformed <- st_transform(xy_sf, crs = "+proj=longlat +datum=WGS84")
+    
+    # Extract the longitude and latitude
+    coords <- st_coordinates(transformed)
+    results$X[i] <- coords[1, "X"]
+    results$Y[i] <- coords[1, "Y"]
   }
   
-  return(tmp)
+  return(results)
 }
+
+# utmtowgs<-function(x,y,zone){
+#   tmp<-data.frame()
+#   for(i in 1:length(x)){
+#     xy <- data.frame(cbind("X"=x[i],"Y"=y[i]))
+#     coordinates(xy) <- c("X", "Y")
+#     proj4string(xy) <- CRS(paste0("+proj=utm +zone=",zone[i]," +datum=WGS84"))  ## for example
+#     res <- spTransform(xy, CRS("+proj=longlat +datum=WGS84"))
+#     tmp<-rbind(tmp,as.data.frame(res))
+#   }
+# 
+#   return(tmp)
+# }
