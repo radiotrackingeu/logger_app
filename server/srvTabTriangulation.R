@@ -1,12 +1,12 @@
 ### srvTabTriangulations.R
 
 #observe 
-observe({
-  req(gpx_data())
-  updateSelectInput(session,"lng_to_compare",choices = names(gpx_data()))
-  updateSelectInput(session,"lat_to_compare",choices = names(gpx_data()))
-  updateSelectInput(session,"time_to_compare",choices = names(gpx_data()))
-})
+# observe({
+#   req(gpx_data())
+#   updateSelectInput(session,"lng_to_compare",choices = names(gpx_data()))
+#   updateSelectInput(session,"lat_to_compare",choices = names(gpx_data()))
+#   updateSelectInput(session,"time_to_compare",choices = names(gpx_data()))
+# })
 
 # upon button starts triangulations with a progress Bar
 observeEvent(input$calc_triangulations,{
@@ -30,15 +30,15 @@ observeEvent(input$calc_triangulations,{
 })
 
 # filters the data using the distance filter
-observeEvent(input$filter_speed,{
-  req(global$triangulation)
-  global$triangulation <- subset(global$triangulation,speed<=input$tri_speed_slider)
-})
+# observeEvent(input$filter_speed,{
+#   req(global$triangulation)
+#   global$triangulation <- subset(global$triangulation,speed<=input$tri_speed_slider)
+# })
 
-output$distance_btw_points <- renderPlot({
-  req(global$triangulation)
-  ggplot()+geom_point(aes(x=global$triangulation$timestamp,y=global$triangulation$speed))
-})
+# output$distance_btw_points <- renderPlot({
+#   req(global$triangulation)
+#   ggplot()+geom_point(aes(x=global$triangulation$timestamp,y=global$triangulation$speed))
+# })
 
 output$triangulation_points <- renderDataTable({
   req(global$triangulation)
@@ -51,30 +51,30 @@ output$tri_distance <- renderPlot({
   ggplot()+geom_histogram(aes(x=distances))
 })
 
-output$one_distance <- renderPlot({
-  req(global$triangulation)
-  global$triangulation$speed<-speed_between_triangulations(global$triangulation$timestamp,global$triangulation$pos.X,global$triangulation$pos.Y)
-  distances<-distm(data.frame(global$triangulation$pos.X,global$triangulation$pos.Y),data.frame(pos.X=input$compare_single_x,pos.Y=input$compare_single_y))[,1]
-  ggplot()+geom_histogram(aes(x=distances))
-})
+# output$one_distance <- renderPlot({
+#   req(global$triangulation)
+#   global$triangulation$speed<-speed_between_triangulations(global$triangulation$timestamp,global$triangulation$pos.X,global$triangulation$pos.Y)
+#   distances<-distm(data.frame(global$triangulation$pos.X,global$triangulation$pos.Y),data.frame(pos.X=input$compare_single_x,pos.Y=input$compare_single_y))[,1]
+#   ggplot()+geom_histogram(aes(x=distances))
+# })
 
-output$single_distance <- renderText({
-  req(global$triangulation)
-  distances<-distm(data.frame(global$triangulation$pos.X,global$triangulation$pos.Y),data.frame(pos.X=input$compare_single_x,pos.Y=input$compare_single_y))[,1]
-  x<-mean(global$triangulation$pos.utm.X,na.rm=T)
-  y<-mean(global$triangulation$pos.utm.Y,na.rm=T)
-  location_wgs<-utmtowgs(x,y,32)
-  distances_centroid<-distm(data.frame(pos=location_wgs),data.frame(pos.X=input$compare_single_x,pos.Y=input$compare_single_y))[,1]
-  return(paste("Arithmetic Mean:", mean(distances,na.rm=T),"Median:", median(distances,na.rm=T),"Distance to centroid:",distances_centroid))
-})
+# output$single_distance <- renderText({
+#   req(global$triangulation)
+#   distances<-distm(data.frame(global$triangulation$pos.X,global$triangulation$pos.Y),data.frame(pos.X=input$compare_single_x,pos.Y=input$compare_single_y))[,1]
+#   x<-mean(global$triangulation$pos.utm.X,na.rm=T)
+#   y<-mean(global$triangulation$pos.utm.Y,na.rm=T)
+#   location_wgs<-utmtowgs(x,y,32)
+#   distances_centroid<-distm(data.frame(pos=location_wgs),data.frame(pos.X=input$compare_single_x,pos.Y=input$compare_single_y))[,1]
+#   return(paste("Arithmetic Mean:", mean(distances,na.rm=T),"Median:", median(distances,na.rm=T),"Distance to centroid:",distances_centroid))
+# })
 
 
-output$tri_filter_map<-renderLeaflet({
-  cl <- parallel::makeCluster(detectCores())
-  registerDoSNOW(cl)
-  req(global$triangulation)
-  tmp<-centroid_fun(na.omit(global$triangulation),input$time_slot,input$time_to_smooth)
-  l<-leaflet()%>%addTiles()%>%addCircles(lng=tmp$pos.X,lat=tmp$pos.Y,col="blue")
-  stopCluster(cl)
-  return(l)
-})
+# output$tri_filter_map<-renderLeaflet({
+#   cl <- parallel::makeCluster(detectCores())
+#   registerDoSNOW(cl)
+#   req(global$triangulation)
+#   tmp<-centroid_fun(na.omit(global$triangulation),input$time_slot,input$time_to_smooth)
+#   l<-leaflet()%>%addTiles()%>%addCircles(lng=tmp$pos.X,lat=tmp$pos.Y,col="blue")
+#   stopCluster(cl)
+#   return(l)
+# })
