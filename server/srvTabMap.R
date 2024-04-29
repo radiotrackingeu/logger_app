@@ -36,6 +36,8 @@ output$map <- renderLeaflet({
     )
 })
 
+outputOptions(output, "map", suspendWhenHidden = FALSE)
+
 observeEvent(global$receivers, ignoreNULL = T, ignoreInit = T, {
   req(global$receivers)
   leafletProxy("map") %>%
