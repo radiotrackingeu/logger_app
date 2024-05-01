@@ -371,25 +371,24 @@ signal_data<-function(){
 
   if(is.null(tmp)) return(NULL)
   if(nrow(tmp)==0) return(NULL)
-  #tmp<-subset(get_mysql_data(),signal_freq!=0)
-  tmp$timestamp <- as.POSIXct(tmp$timestamp,tz="UTC")
-  # tmp$signal_freq <- round((tmp$signal_freq), 2)
-  tmp$receiver <- paste0(tmp$Name,"_",tmp$device,"_", tmp$orientation)#substrLeft(tmp$device,17)
+
+  tmp[, timestamp := as.POSIXct(tmp$timestamp, tz="UTC")]
+  tmp[, receiver := paste0(Name,"_",device,"_", orientation)]
 
   global$signals <- as.data.frame(
     unique( 
       rbindlist(
         list(
-          isolate(global$signals), 
+          global$signals, 
           tmp[, c("timestamp", "duration", "signal_freq", "Name", "receiver", "max_signal", "signal_bw", "longitude", "latitude", "orientation")]
-        ), fill=T
+        ), 
+        fill=T
       )
     )
   )
-  setDT(tmp)
   receiver_info <- unique(tmp[, c("receiver", "Name", "latitude", "longitude", "orientation")])
   setnames(receiver_info, c("receiver", "Name", "latitude", "longitude", "orientation"), c("Name", "Station","Latitude","Longitude", "Orientation"))
-  global$receivers<-unique(rbind(isolate(global$receivers), receiver_info, fill=T))
+  global$receivers<-unique(rbind(global$receivers, receiver_info, fill=T))
 }
 
 output$live_tab_remote_entries_table <- renderDataTable({
