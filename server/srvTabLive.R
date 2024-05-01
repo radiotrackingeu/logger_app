@@ -296,19 +296,17 @@ fake_keepalives <- function() {
 }
 
 build_signals_query <- function(table) {
-    query_duration_filter<-""
-    query_max_signal_filter<-""
-    query_tag_filter<-""
-    if(input$check_sql_duration){
-      query_duration_filter<-paste(" duration >",input$query_filter_duration[1],"AND duration <",input$query_filter_duration[2])
+  filters <- list()
+    if (!is.null(input$datetime_filter)) {
+      filters$timestamp <- paste0("(timestamp >= '", input$datetime_filter, "')")
     }
+
+    if(input$check_sql_duration){
+      filters$duration <- paste("(duration BETWEEN", input$query_filter_duration[1], "AND", input$query_filter_duration[2],")")
+    }
+    
     if(input$check_sql_strength){
-      if(any(input$check_sql_duration)){
-        and<-" AND"
-      }else{
-        and<-""
-      }
-      query_max_signal_filter<-paste(and, "max_signal >=",input$query_filter_strength[1],"AND max_signal <=",input$query_filter_strength[2])
+      filters$max_signal <- paste("(max_signal BETWEEN", input$query_filter_strength[1], "AND",input$query_filter_strength[2],")")
     }
     
     if(input$check_sql_tag) {
@@ -316,58 +314,55 @@ build_signals_query <- function(table) {
       if(any(input$check_sql_duration,input$check_sql_strength)) {
         and<-" AND "
       }
-      query_tag_filter <- paste0(and, " freq_tag IN ('", paste0(input$query_filter_tag, collapse = "', '"), "') ")
+      filters$tag <- paste0("(freq_tag IN ('", paste0(input$query_filter_tag, collapse = "', '"), "'))")
     }
 
-    query_freq_filter<-""
-    inner_join <- ""
     if (input$query_filter_freq){
-      error <- input$freq_error
-      and<-""
-      inner_join <- " INNER JOIN `runs` r ON s.run = r.id"
-      if (input$query_filter_frequency_type == "Multiple") {
-          for(k in global$frequencies$Frequency){
-            if(any(input$check_sql_duration,input$check_sql_strength)) {
-              and<-"AND("
-            }
-            if(nrow(global$frequencies)>1&&query_freq_filter!=""){
-              and<-"OR"
-            }
-            query_freq_filter<-paste(query_freq_filter, and, "(signal_freq between (", k,"-", error,") AND (", k, "+", error, "))")
-          }
-          if(any(input$check_sql_duration,input$check_sql_strength)){
-            query_freq_filter<-paste("",query_freq_filter,")")
-          }
-      }
-      else if (input$query_filter_frequency_type == "Single") {
-            k <- input$query_filter_single_frequency
-            if(any(input$check_sql_duration,input$check_sql_strength)) {
-              and<-"AND("
-            }
-            query_freq_filter<-paste(query_freq_filter, and, "(signal_freq between (", k,"-", error,") AND (", k, "+", error, "))")
-            if(any(input$check_sql_duration,input$check_sql_strength)){
-              query_freq_filter<-paste("",query_freq_filter,")")
-            }
+      if (input$query_filter_frequency_type == "Single") {
+        filters$frequency <- paste0(
+          "(signal_freq BETWEEN ", 
+          input$query_filter_single_frequency - input$query_filter_frequency_error, 
+          " AND ", 
+          input$query_filter_single_frequency + input$query_filter_frequency_error, 
+          ")"
+        )
+        
+      } else if (input$query_filter_frequency_type == "Multiple") {
+        freqs<-as.data.table(global$frequencies)[Name %in% input$query_filter_multiple_frequency, Frequency]
+        filters$frequency <- paste0("(", 
+          paste(
+            paste0(
+              "(signal_freq BETWEEN ", 
+              freqs - input$query_filter_frequency_error, 
+              " AND ", 
+              freqs + input$query_filter_frequency_error, 
+              ")"
+            ), 
+            collapse = " OR "
+          ), 
+          ")"
+        )
       }
     }
     
-    where<-""
+    query <- paste0(
+      # "SELECT * FROM (SELECT timestamp, duration, ", ifelse(input$check_sql_tag, "freq_tag, ", ""), "signal_freq, run, max_signal, signal_bw FROM `", table, "`"
+      "SELECT timestamp, duration, ", ifelse(input$check_sql_tag, "freq_tag, ", ""), "signal_freq, run, max_signal, signal_bw FROM `", table, "`"
+    )
     
-    if (!is.null(input$datetime_filter)) {
-      where <- paste0("  WHERE timestamp >= '", input$datetime_filter, "' ")
+    if (length(filters) > 0) {
+      query <- paste0(query, " WHERE ", paste(unlist(filters), collapse = " AND "))
     }
     
-    if(any(input$check_sql_duration,input$check_sql_strength,input$query_filter_freq, input$check_sql_tag)){
-      if (where!="")
-        where<-paste(where, " AND ")
-      else
-        where<-" WHERE "
-    }
+    query <- paste(query, "ORDER BY timestamp DESC")
+    if (!input$live_last_points == 0)
+      query <- paste0(query, " LIMIT ", input$live_last_points)
     
-    #keepalive_filter <- paste(and, "max_signal != 0")
+    # query <- paste0(query, ") s INNER JOIN `runs` r ON s.run = r.id;")
+    query <- paste0(query, ";")
     
-    # print(paste0("SELECT timestamp, duration, ", ifelse(input$check_sql_tag, "freq_tag, ", ""), "signal_freq, run, max_signal, signal_bw FROM `",table,"` s", inner_join, where, query_duration_filter,query_max_signal_filter,query_freq_filter, query_tag_filter," ORDER BY s.timestamp DESC", ifelse(input$live_last_points == 0,"", paste0(" LIMIT ",input$live_last_points)),";"))
-    paste0("SELECT timestamp, duration, ", ifelse(input$check_sql_tag, "freq_tag, ", ""), "signal_freq, run, max_signal, signal_bw FROM `",table,"` s", inner_join, where, query_duration_filter,query_max_signal_filter,query_freq_filter, query_tag_filter," ORDER BY s.timestamp DESC", ifelse(input$live_last_points == 0,"", paste0(" LIMIT ",input$live_last_points)),";")
+    print(query)
+    query
 }
 
 signal_data<-function(){
