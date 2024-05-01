@@ -420,4 +420,5 @@ output$live_tab_keepalive_plot <- renderPlot({
 
 observeEvent(global$frequencies, {
   updateSelectInput(session=session, "query_filter_tag", choices = global$frequencies$Name)
+  updateSelectInput(session=session, "query_filter_multiple_frequency", choices = global$frequencies$Name)
 })

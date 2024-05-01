@@ -12,27 +12,45 @@ tabPanel("Live Data",
                               ),
              tags$b("DBs-Filters:"),
              br(),
-             disabled(checkboxInput("check_sql_duration", "Duration", value = FALSE)),
-             conditionalPanel("input.check_sql_duration",
-                              sliderInput("query_filter_duration", "Duration",min=0.003,max = 0.04, value=c(0.01,0.025))
-                              ),
-             disabled(checkboxInput("check_sql_strength", "Strength", value = FALSE)),
-             conditionalPanel("input.check_sql_strength",
-                              sliderInput("query_filter_strength", "Strength",min=0,max = 100, value=c(15,90))
-             ),
-               disabled(checkboxInput("query_filter_freq", "Frequencies", value = FALSE)),
+               # disabled(
+                 checkboxInput("query_filter_freq", "Frequencies", value = FALSE#)
+                ),
              conditionalPanel(cond = "input.query_filter_freq",
                 radioButtons("query_filter_frequency_type",
-                    choices = c("Multiple", "Single"),
-                    label = "Frequencies selection: "
+                    choices = c("Single", "Multiple"),
+                    label = "Frequencies selection: ",
+                  selected = "Single"
                 ),
+               numericInput("query_filter_frequency_error", label="Max frequency deviation", value=5, min=0),
                 conditionalPanel(cond = "input.query_filter_frequency_type == 'Single'",
                     numericInput("query_filter_single_frequency",
                         label = "kHz",
                         value = 150175,
                         min = 0
                     )
-                )
+                ),
+               conditionalPanel(cond = "input.query_filter_frequency_type == 'Multiple'",
+                 # disabled(
+                   selectizeInput("query_filter_multiple_frequency", 
+                     multiple=TRUE, 
+                     label=strong("Choose tags"), 
+                     choices = NULL, 
+                     selected = NULL
+                    )
+                 # )
+               )
+             ),
+             # disabled(
+               checkboxInput("check_sql_duration", "Duration", value = FALSE#)
+             ),
+             conditionalPanel("input.check_sql_duration",
+                              sliderInput("query_filter_duration", "Duration [ms]",min=3,max = 40, value=c(1,25))
+                              ),
+             # disabled(
+               checkboxInput("check_sql_strength", "Strength", value = FALSE#)
+             ),
+             conditionalPanel("input.check_sql_strength",
+                              sliderInput("query_filter_strength", "Strength",min=-100,max = 0, value=c(-85,-10))
              ),
              disabled(checkboxInput("check_sql_tag", "Tags", value = FALSE)),
              conditionalPanel(cond = "input.check_sql_tag",
