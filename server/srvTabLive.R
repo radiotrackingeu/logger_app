@@ -182,7 +182,7 @@ live_invalidator <- observe({
 
 get_mysql_data <- eventReactive(global$mysql_data_invalidator, {
   if(!is.null(get_info_of_entries())){
-    tmp<-data.frame()
+    tmp<-data.table()
 
     if(!is.null(get_info_of_entries())){
       withProgress(
@@ -196,13 +196,15 @@ get_mysql_data <- eventReactive(global$mysql_data_invalidator, {
               if(dbIsValid(open_connections()[[i]]$conn)) {
                 tryCatch({
                   signals<-RMariaDB::dbGetQuery(open_connections()[[i]]$conn, build_signals_query(open_connections()[[i]]$table))
-                  signals<- signals %>% filter(signal_freq!=0)
-                  if(input$global_db_hostname){
+                  setDT(signals)
+                  # signals <- signals[signal_freq!=0] %>% filter(signal_freq!=0)
+                  # if(input$global_db_hostname){
+                    # mysql_query_runs<-paste("SELECT id, device, latitude, longitude, orientation, center_freq, hostname as 'Name' FROM `runs`")
+                  # }else{
                     mysql_query_runs<-paste("SELECT id, device, latitude, longitude, orientation, center_freq, hostname as 'Name' FROM `runs`")
-                  }else{
-                    mysql_query_runs<-paste("SELECT id, device, latitude, longitude, orientation, center_freq, hostname as 'Name' FROM `runs`")
-                  }
+                  # }
                   runs<-dbGetQuery(open_connections()[[i]]$conn,mysql_query_runs)
+                  setDT(runs)
                 },
                 error = function(err) {
                   showNotification(session, HTML("Error getting data:<br>", err[1]), type = "error")
@@ -210,14 +212,12 @@ get_mysql_data <- eventReactive(global$mysql_data_invalidator, {
               )
                 if(nrow(signals)>0){
                   results<-merge(signals, runs, by.x="run",by.y="id")
-                  results$run <- NULL
-                  results$id <- NULL
-                  tmp<-rbind(tmp,results)
+                  results[, run:= NULL]
+                  tmp <- rbind(tmp,results, fill=T)
                 }
               }
               else{
-                results<-data.frame(Name=i,id=NA,timestamp="offline")
-                tmp<-rbind(tmp,results)
+                show_error(paste("Failure to connect to", i))
               }
             }
             incProgress(amount=1)
