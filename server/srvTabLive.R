@@ -90,6 +90,8 @@ get_info_of_entries <- reactive({
               results<-data.table(Name=i, running="no data", timestamp="unknown", size="unknown", time="unknown", stringsAsFactors = FALSE)
               q_timestamp <- paste0("SELECT timestamp FROM `",open_connections()[[i]]$table,"` ORDER BY timestamp DESC LIMIT 1;")
               last_ts <- dbGetQuery(open_connections()[[i]]$conn, q_timestamp)$timestamp
+              q_keepalive <- paste0("SELECT timestamp FROM `keepalives` ORDER BY timestamp DESC LIMIT 1;")
+              last_ka <- as.POSIXct(dbGetQuery(open_connections()[[i]]$conn, q_keepalive)$timestamp, tz="UTC")
               if(length(last_ts) > 0){
                 q_size <- paste0(
                   'SELECT ROUND(SUM(data_length + index_length) / 1024 / 1024, 1) "size" FROM information_schema.tables WHERE table_schema = "', 
@@ -107,7 +109,7 @@ get_info_of_entries <- reactive({
                   tz = "GMT", 
                   format = "%F %T UTC"
                 )
-                if(abs(difftime(as.POSIXct(Sys.time(), tz="UTC"), as.POSIXct(results$timestamp, tz="UTC"), units="mins")) < 6){
+                if(abs(difftime(results$time, results$timestamp, units="mins")) < 6){
                   results$running <- "Recording"
                 } else {
                   results$running <- "Not recording"
