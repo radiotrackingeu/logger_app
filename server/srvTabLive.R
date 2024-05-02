@@ -404,7 +404,7 @@ output$live_tab_remote_entries_table <- renderDataTable({
     return (NULL)
   }
   tmp <- get_info_of_entries()[, c("Name", "running", "timestamp", "size","time")]
-  names(tmp) <- c("Name", "Reachable", "Latest timestamp", "Size","System Time")
+  names(tmp) <- c("Name", "Status", "Latest timestamp", "Size","System Time")
   tmp
 }, options = list(pageLength = 10), rownames=F)
 
