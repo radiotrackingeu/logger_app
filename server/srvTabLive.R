@@ -94,15 +94,19 @@ get_info_of_entries <- reactive({
               last_ka <- as.POSIXct(dbGetQuery(open_connections()[[i]]$conn, q_keepalive)$timestamp, tz="UTC")
               if(length(last_ts) > 0){
                 q_size <- paste0(
-                  'SELECT ROUND(SUM(data_length + index_length) / 1024 / 1024, 1) "size" FROM information_schema.tables WHERE table_schema = "', 
+                  'SELECT SUM(data_length + index_length) "size" FROM information_schema.tables WHERE table_schema = "', 
                   open_connections()[[i]]$database, 
                   '" AND table_name = "', 
                   open_connections()[[i]]$table, 
                   '";'
                 )
                 results$timestamp <- format.POSIXct(last_ts, tz = "GMT", format = "%F %T UTC")
-                results$size <- as.character(
-                  dbGetQuery(open_connections()[[i]]$conn, q_size)$size
+                results$size <- KMG(
+                  x = dbGetQuery(open_connections()[[i]]$conn, q_size)$size,
+                  standard = "IEC",
+                  digits = 2L,
+                  sep = " ",
+                  suffix = "B"
                 )
                 results$time <- format.POSIXct(
                   dbGetQuery(open_connections()[[i]]$conn, 'SELECT NOW();')$'NOW()',
@@ -400,7 +404,7 @@ output$live_tab_remote_entries_table <- renderDataTable({
     return (NULL)
   }
   tmp <- get_info_of_entries()[, c("Name", "running", "timestamp", "size","time")]
-  names(tmp) <- c("Name", "Reachable", "Latest timestamp", "Size (MB)","System Time")
+  names(tmp) <- c("Name", "Reachable", "Latest timestamp", "Size","System Time")
   tmp
 }, options = list(pageLength = 10), rownames=F)
 
