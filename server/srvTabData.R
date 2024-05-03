@@ -335,7 +335,12 @@ gpx_data <- reactive({
                return(track_segment)
              }
              converted_tracks <- lapply(mygpx$tracks, function(track) {
-               lapply(track, convert_timestamps)
+               tmp<-lapply(track, convert_timestamps)
+               names<-lapply(tmp, function(t) {
+                 format.POSIXct(x=min(t$timestamp, na.rm=T), format = "GPX %Y-%m-%d %H-%M", tz = "UTC")
+               })
+               names(tmp) <- names
+               tmp
              })
              mytrack <- converted_tracks
              mytrack$extensions<-NULL
