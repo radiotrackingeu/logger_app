@@ -556,19 +556,18 @@ preview_content <- reactive({
              extract_info <- function(tmp) {
                track_df <- bind_rows(tmp)
                data.frame(
-                 Start_Time = min(track_df$timestamp),
-                 End_Time = max(track_df$timestamp),
-                 Min_Lon = min(track_df$lon),
-                 Max_Lon = max(track_df$lon),
-                 Min_Lat = min(track_df$lat),
-                 Max_Lat = max(track_df$lat),
-                 Name = names(tmp)
+                 "Starts at" = min(track_df$timestamp),
+                 "Ends at" = max(track_df$timestamp),
+                 "Min longitude" = min(track_df$lon),
+                 "Max longitude" = max(track_df$lon),
+                 "Min latitude" = min(track_df$lat),
+                 "Max latitude" = max(track_df$lat),
+                 "Label" = names(track_df)
                )
              }
              track_info_df <- do.call(rbind, lapply(tmp, extract_info))
              track_info_unique <- unique(track_info_df)
              track_info_unique
-            
            }
         })
 })
