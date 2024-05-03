@@ -546,13 +546,7 @@ preview_content <- reactive({
           input_type <- isolate(input$misc_type_input)
            tmp <- NULL
            if (any(input$misc_type_input == c("GPX","KML","KMZ"))) {
-             
-             
-             if (!is.null(global$extra_points) && length(global$extra_points) > 0) {
-               tmp <- c(global$extra_points, gpx_data())
-             } else {
-               tmp <- gpx_data()  
-             } 
+             tmp <- gpx_data()  
              extract_info <- function(tmp) {
                track_df <- bind_rows(tmp)
                data.frame(
