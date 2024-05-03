@@ -34,12 +34,9 @@ observeEvent(input$add_data,{
     unique_data <- unique(combined_data)
     
     # Validate to ensure no duplicates are added
-    if (length(unique_data) == length(combined_data)) {
+    if (!length(unique_data) == length(combined_data)) {
       global$extra_points <- unique_data
-      shinyalert("Success", "New data added successfully.", type = "success")
-    } else {
-      global$extra_points <- unique_data
-      shinyalert("Warning", "Duplicate entries detected, duplicated Data deleted.", type = "error")
+      showNotification(ui="Duplicate track(s) uploaded, only unique track(s) were added.", type = "warning")
     }
     #global$extra_points <- unique_data
   } else {
