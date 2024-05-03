@@ -67,20 +67,20 @@ addStations <-function(m, data, ...) {
   stations<-data[!duplicated(data[,c("Station","Longitude","Latitude")]),]
   setorder(data, Orientation)
   for (i in 1:nrow(stations)) {
-    m<-m%>% addCircles(
-      lng = stations$Longitude[i], 
-      lat=stations$Latitude[i], 
-      label=stations$Station[i], 
+    m <- m %>% addMarkers(
+      lng = stations$Longitude[i],
+      lat = stations$Latitude[i], 
+      label = stations$Station[i],
+      icon = makeIcon(iconUrl = "icon_mast.png", iconWidth = 25, iconHeight = 25, iconAnchorX = 25*0.49, iconAnchorY = 25*0.95),
       popup = HTML(
         "<b>", stations$Station[i], "</b><br>", 
-        paste0(stations$Latitude[i],"°N ", stations$Longitude[i],"°E<br>"), 
-        data[Longitude==stations[i]$Longitude & Latitude==stations[i]$Latitude,paste0(Name, ": ",sprintf("%03d",Orientation),"°", collapse="<br>")]
+        paste0(round(stations$Latitude[i], 4), "°N ", round(stations$Longitude[i], 4), "°E<br>"), 
+        data[Name==stations[i]$Name & Longitude==stations[i]$Longitude & Latitude==stations[i]$Latitude, paste0(Name, ": ", sprintf("%03d", Orientation), "°", collapse = "<br>")]
       ),
       ...
     )
   }
   m
-    
 }
 
 #' Calculates triangulated positions and adds circles and dashed bearings to the map
