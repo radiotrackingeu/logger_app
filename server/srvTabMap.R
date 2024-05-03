@@ -198,8 +198,6 @@ observeEvent(global$triangulation, ignoreNULL = T, ignoreInit = T, {
 
 observeEvent(global$extra_points, {
   req(global$extra_points)  
-  # Clear previous markers to avoid duplication
-  leafletProxy("map") %>% clearMarkers()
   # Variable to store group names for layer control
   group_names <- vector("list", length(global$extra_points))
   
@@ -214,6 +212,7 @@ observeEvent(global$extra_points, {
       
       if ("lon" %in% names(df) && "lat" %in% names(df)) {
         leafletProxy("map") %>% 
+          clearGroup(group_name) %>% 
           addCircles(
             lng = df$lon,
             lat = df$lat,
