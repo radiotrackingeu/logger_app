@@ -124,8 +124,8 @@ color_palette <- reactive({
 
 observeEvent(global$triangulation, ignoreNULL = T, ignoreInit = T, {
   leafletProxy("map") %>% clearGroup("triangulations")
-  if (length(unique(global$triangulation$freq_tag))>1){
-    pal <- colorFactor("Dark2",domain=global$triangulation$freq_tag)
+  if (length(unique(global$triangulation$freq_tag)) > 1) {
+    pal <- colorFactor("Dark2", domain = global$triangulation$freq_tag)
     values <- global$triangulation$freq_tag
     labFormat <- labelFormat
     title <- "Tag"
@@ -136,19 +136,25 @@ observeEvent(global$triangulation, ignoreNULL = T, ignoreInit = T, {
     title <- "Timestamp"
   }
   req(any(!is.na(global$triangulation$pos.X)))
-  leafletProxy("map") %>% addCircles(lng = global$triangulation$pos.X, lat=global$triangulation$pos.Y, 
-    label = as.POSIXct(global$triangulation$timestamp, tz="UTC", origin="1970-01-01"),
-    radius=5, 
-    group = "triangulations",
-    color= pal(values)
-  ) %>%
-    addLegend(
-      position="bottomright", 
-      pal = pal, 
-      values = values, 
-      labFormat = labFormat,
-      title = title
-    )
+  leafletProxy("map") %>% 
+    addCircles(
+      lng = global$triangulation$pos.X, 
+      lat = global$triangulation$pos.Y, 
+      label = as.POSIXct(global$triangulation$timestamp, tz="UTC", origin="1970-01-01"),
+      radius = 6, 
+      group = "triangulations",
+      color = pal(values),
+      opacity = 0.9,
+      fillOpacity = 0.5,
+      stroke = 6
+    ) %>%
+      addLegend(
+        position="bottomright", 
+        pal = pal, 
+        values = values, 
+        labFormat = labFormat,
+        title = title
+      )
 })
 
 #add triangulations
