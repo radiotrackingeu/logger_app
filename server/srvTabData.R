@@ -14,7 +14,7 @@
 #global$triangulation is a data frame containing the trinagulated points
 #global$keepalices is a data frame containing all keepalive signals
 global$calibrated = FALSE
-global$extra_points <- list()
+#global$extra_points <- list()
 
 
 ### observe and add data ###
@@ -26,8 +26,26 @@ observeEvent(input$add_data,{
   global$frequencies<-unique.data.frame(rbind(frequencies_list(),global$frequencies))
   global$calibration <- unique.data.frame(rbind(calibration_list(), global$calibration))
   global$map_markers <- unique.data.frame(rbind(map_markers(), global$map_markers))
-  #global$extra_points <- list()
-  #global$extra_points <- NULL
+  
+  if (!is.null(global$extra_points) && length(global$extra_points) > 0) {
+    # Append new data
+    #global$extra_points <- unique(c(global$extra_points, gpx_data()))
+    combined_data <- c(global$extra_points, gpx_data())
+    unique_data <- unique(combined_data)
+    
+    # Validate to ensure no duplicates are added
+    if (length(unique_data) == length(combined_data)) {
+      global$extra_points <- unique_data
+      shinyalert("Success", "New data added successfully.", type = "success")
+    } else {
+      global$extra_points <- unique_data
+      shinyalert("Warning", "Duplicate entries detected, duplicated Data deleted.", type = "error")
+    }
+    #global$extra_points <- unique_data
+  } else {
+    # If no existing data, just add new data
+    global$extra_points <- gpx_data()
+  }
   global$calibrated <- FALSE
 
   if(input$data_type_input == "Data folder" && !is.null(local_logger_data())) {
