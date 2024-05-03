@@ -14,20 +14,34 @@
 #global$triangulation is a data frame containing the trinagulated points
 #global$keepalices is a data frame containing all keepalive signals
 global$calibrated = FALSE
-global$extra_points <- list()
+#global$extra_points <- list()
 
 
 ### observe and add data ###
 
 # Add Data Button is pressed
 observeEvent(input$add_data,{
-  global$connections<-unique.data.frame(rbind(remote_connections(),global$connections))
+  global$connections <- unique.data.frame(rbind(remote_connections(), global$connections))
   global$receivers<-unique(rbind(receiver_list(), global$receivers), fill=T)
-  global$frequencies<-unique.data.frame(rbind(frequencies_list(),global$frequencies))
+  global$frequencies <- unique.data.frame(rbind(frequencies_list(), global$frequencies))
   global$calibration <- unique.data.frame(rbind(calibration_list(), global$calibration))
   global$map_markers <- unique.data.frame(rbind(map_markers(), global$map_markers))
-  #global$extra_points <- list()
-  #global$extra_points <- NULL
+  
+  if (!is.null(global$extra_points) && length(global$extra_points) > 0) {
+    # Append new data
+    #global$extra_points <- unique(c(global$extra_points, gpx_data()))
+    combined_data <- c(global$extra_points, gpx_data())
+    unique_data <- unique(combined_data)
+    
+    # Validate to ensure no duplicates are added
+    if (!length(unique_data) == length(combined_data)) {
+      showNotification(ui="Duplicate track(s) uploaded, only unique track(s) were added.", type = "warning")
+    }
+    global$extra_points <- unique_data
+  } else {
+    # If no existing data, just add new data
+    global$extra_points <- gpx_data()
+  }
   global$calibrated <- FALSE
 
   if(input$data_type_input == "Data folder" && !is.null(local_logger_data())) {
@@ -291,8 +305,30 @@ gpx_data <- reactive({
   switch(input$data_type_input,
          "Miscellaneous" = {
            if(input$misc_type_input == "GPX" && !is.null(input$coordinates_filepath)) {
-             mygpx <- readGPX(input$coordinates_filepath$datapath, waypoints = FALSE)
-             
+             mygpx <- tryCatch({
+             readGPX(input$coordinates_filepath$datapath, waypoints = FALSE)
+             }, error = function(e){
+               
+               # Read the GPX file as text lines
+               gpx_lines <- readLines(input$coordinates_filepath$datapath)
+               
+               # Filter out lines with comments
+               clean_lines <- gpx_lines[!grepl("<!--|-->", gpx_lines)]
+               
+               # Combine cleaned lines
+               clean_gpx_string <- paste(clean_lines, collapse = "\n")
+               
+               # Temporarily save cleaned data to process it
+               temp_file <- tempfile(fileext = ".gpx")
+               writeLines(clean_gpx_string, temp_file)
+               mygpx_inner  <- tryCatch({
+                 readGPX(temp_file)
+               }, error = function(e) {
+                 return(NULL)
+               })
+               unlink(temp_file)
+               return(mygpx_inner)
+             })
              convert_timestamps <- function(track_segment) {
                # Assuming 'time' is the column with the timestamps
                if ("time" %in% names(track_segment)) {
@@ -302,15 +338,24 @@ gpx_data <- reactive({
                }
                return(track_segment)
              }
+             filename <- input$coordinates_filepath$name
              converted_tracks <- lapply(mygpx$tracks, function(track) {
-               lapply(track, convert_timestamps)
+               tmp<-lapply(track, convert_timestamps)
+               names<-lapply(tmp, function(t) {
+                 paste0(
+                   format.POSIXct(x=min(t$timestamp, na.rm=T), format = "%Y-%m-%d %H-%M", tz = "UTC"),
+                   " (",
+                   ifelse(nchar(filename) > 10, paste0(substring(filename, 1, 10), "..."), filename),
+                   ")"
+                 )
+               })
+               names(tmp) <- names
+               tmp
              })
-             # Apply conversion to each segment of each track
-              
-             global$extra_points <- converted_tracks
-             mytrack <- mygpx$tracks[[1]][[1]]
-             mytrack <- convert_timestamps(mytrack)
+             mytrack <- converted_tracks
              mytrack$extensions<-NULL
+             
+             
            }
            if(input$misc_type_input == "KML" && !is.null(input$coordinates_filepath)) {
              mytrack<-readOGR(input$coordinates_filepath$datapath)
@@ -517,10 +562,27 @@ preview_content <- reactive({
 
             tmp
         },
+        
         "Miscellaneous" = {
+          input_type <- isolate(input$misc_type_input)
            tmp <- NULL
            if (any(input$misc_type_input == c("GPX","KML","KMZ"))) {
-               tmp <- gpx_data()
+             tmp <- gpx_data()  
+             extract_info <- function(tmp) {
+               track_df <- bind_rows(tmp)
+               data.frame(
+                 "Starts at" = min(track_df$timestamp),
+                 "Ends at" = max(track_df$timestamp),
+                 "Min longitude" = min(track_df$lon),
+                 "Max longitude" = max(track_df$lon),
+                 "Min latitude" = min(track_df$lat),
+                 "Max latitude" = max(track_df$lat),
+                 "Label" = names(tmp)
+               )
+             }
+             track_info_df <- do.call(rbind, lapply(tmp, extract_info))
+             track_info_unique <- unique(track_info_df)
+             track_info_unique
            }
         })
 })
