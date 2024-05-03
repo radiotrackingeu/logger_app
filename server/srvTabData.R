@@ -35,10 +35,9 @@ observeEvent(input$add_data,{
     
     # Validate to ensure no duplicates are added
     if (!length(unique_data) == length(combined_data)) {
-      global$extra_points <- unique_data
       showNotification(ui="Duplicate track(s) uploaded, only unique track(s) were added.", type = "warning")
     }
-    #global$extra_points <- unique_data
+    global$extra_points <- unique_data
   } else {
     # If no existing data, just add new data
     global$extra_points <- gpx_data()
