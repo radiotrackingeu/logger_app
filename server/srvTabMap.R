@@ -37,6 +37,8 @@ observeEvent(global$receivers, ignoreNULL = T, ignoreInit = T, {
   req(global$receivers)
   
   leafletProxy("map") %>%
+    clearGroup("Stations") %>%
+    clearGroup("Antenna Cones") %>%
     addStations(data = global$receivers, group="Stations") %>%
     addAntennaeCones(
       calculate_antennae_cones(global$receivers), 
