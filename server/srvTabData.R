@@ -334,10 +334,16 @@ gpx_data <- reactive({
                }
                return(track_segment)
              }
+             filename <- input$coordinates_filepath$name
              converted_tracks <- lapply(mygpx$tracks, function(track) {
                tmp<-lapply(track, convert_timestamps)
                names<-lapply(tmp, function(t) {
-                 format.POSIXct(x=min(t$timestamp, na.rm=T), format = "GPX %Y-%m-%d %H-%M", tz = "UTC")
+                 paste0(
+                   format.POSIXct(x=min(t$timestamp, na.rm=T), format = "%Y-%m-%d %H-%M", tz = "UTC"),
+                   " (",
+                   ifelse(nchar(filename) > 10, paste0(substring(filename, 1, 10), "..."), filename),
+                   ")"
+                 )
                })
                names(tmp) <- names
                tmp
