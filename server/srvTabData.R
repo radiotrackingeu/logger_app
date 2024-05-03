@@ -283,8 +283,30 @@ gpx_data <- reactive({
   switch(input$data_type_input,
          "Miscellaneous" = {
            if(input$misc_type_input == "GPX" && !is.null(input$coordinates_filepath)) {
-             mygpx <- readGPX(input$coordinates_filepath$datapath, waypoints = FALSE)
-             
+             mygpx <- tryCatch({
+             readGPX(input$coordinates_filepath$datapath, waypoints = FALSE)
+             }, error = function(e){
+               
+               # Read the GPX file as text lines
+               gpx_lines <- readLines(input$coordinates_filepath$datapath)
+               
+               # Filter out lines with comments
+               clean_lines <- gpx_lines[!grepl("<!--|-->", gpx_lines)]
+               
+               # Combine cleaned lines
+               clean_gpx_string <- paste(clean_lines, collapse = "\n")
+               
+               # Temporarily save cleaned data to process it
+               temp_file <- tempfile(fileext = ".gpx")
+               writeLines(clean_gpx_string, temp_file)
+               mygpx_inner  <- tryCatch({
+                 readGPX(temp_file)
+               }, error = function(e) {
+                 return(NULL)
+               })
+               unlink(temp_file)
+               return(mygpx_inner)
+             })
              convert_timestamps <- function(track_segment) {
                # Assuming 'time' is the column with the timestamps
                if ("time" %in% names(track_segment)) {
@@ -297,12 +319,10 @@ gpx_data <- reactive({
              converted_tracks <- lapply(mygpx$tracks, function(track) {
                lapply(track, convert_timestamps)
              })
-             # Apply conversion to each segment of each track
-              
-             global$extra_points <- converted_tracks
-             mytrack <- mygpx$tracks[[1]][[1]]
-             mytrack <- convert_timestamps(mytrack)
+             mytrack <- converted_tracks
              mytrack$extensions<-NULL
+             
+             
            }
            if(input$misc_type_input == "KML" && !is.null(input$coordinates_filepath)) {
              mytrack<-readOGR(input$coordinates_filepath$datapath)
