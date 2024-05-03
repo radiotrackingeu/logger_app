@@ -21,23 +21,23 @@ tabPanel("File Input",
                  temp
                }
              ),
-             conditionalPanel(
-               condition = "input.data_type_input == 'Logger Files'",
-               h6("Add data stored in previous sessions"),
-               fileInput(
-                 "logger_filepath",
-                 "Upload data",
-                 multiple = TRUE,
-                 accept = NULL,
-                 width = NULL
-               )%>% {
-                 temp = .
-                 temp$children[[2]]$children[[1]]$children[[1]]$children[[2]]$attribs$onchange <- "document.getElementById('add_data').disabled = true;"
-                 temp
-               },
-               textInput("receiver_name_input","Please enter antenna name", value = "receiver_1"),
-               textInput("station_name_input","Please enter station name", value = "station_1")
-             ),
+             # conditionalPanel(
+             #   condition = "input.data_type_input == 'Logger Files'",
+             #   h6("Add data stored in previous sessions"),
+             #   fileInput(
+             #     "logger_filepath",
+             #     "Upload data",
+             #     multiple = TRUE,
+             #     accept = NULL,
+             #     width = NULL
+             #   )%>% {
+             #     temp = .
+             #     temp$children[[2]]$children[[1]]$children[[1]]$children[[2]]$attribs$onchange <- "document.getElementById('add_data').disabled = true;"
+             #     temp
+             #   },
+             #   textInput("receiver_name_input","Please enter antenna name", value = "receiver_1"),
+             #   textInput("station_name_input","Please enter station name", value = "station_1")
+             # ),
              conditionalPanel(
                condition = "input.data_type_input == 'Excel Files'",
                radioButtons("excel_data_content",
@@ -164,11 +164,11 @@ tabPanel("File Input",
              tabPanel("Keepalives",
                       dataTableOutput("data_tab_keepalive_table"),
                       actionButton("clear_keepalive_data", "Clear table")
-             ),
-             tabPanel("Help",
-                      "1) First select the data source on the right",
-                      br(),
-                      "2) Check the preview window if it is the correct data"
-                      )
+             # ),
+             # tabPanel("Help",
+             #          "1) First select the data source on the right",
+             #          br(),
+             #          "2) Check the preview window if it is the correct data"
+             )
            ))
          ))

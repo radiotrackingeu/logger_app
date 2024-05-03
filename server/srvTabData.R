@@ -10,7 +10,7 @@
 #global$signals is a the dataframe to store all received signals
 #global$map_markers is a dataframe containing positions and labels of markers added to the map
 #global$calibrated is a boolean indicating whether or not the currently loaded data has already been calibrated
-#global$bearing is a data frame containing the calculted bearings
+#global$bearing is a data frame containing the calculated bearings
 #global$triangulation is a data frame containing the trinagulated points
 #global$keepalices is a data frame containing all keepalive signals
 global$calibrated = FALSE
@@ -44,15 +44,16 @@ observeEvent(input$add_data,{
   }
   global$calibrated <- FALSE
 
-  if(input$data_type_input == "Data folder" && !is.null(local_logger_data())) {
-    tmp<-local_logger_data()
-    global$signals<-as.data.frame(unique(rbindlist(list(tmp,global$signals), fill=T)))
-    global$keepalives<-as.data.frame(unique(rbindlist(list(extract_keepalives(tmp), global$keepalives), fill=T)))
-    
-    print(paste("Added",nrow(local_logger_data()),"points of data from local files."))
-  }
+  # if(input$data_type_input == "Data folder" && !is.null(local_logger_data())) {
+  #   tmp<-local_logger_data()
+  #   global$signals<-as.data.frame(unique(rbindlist(list(tmp,global$signals), fill=T)))
+  #   global$keepalives<-as.data.frame(unique(rbindlist(list(extract_keepalives(tmp), global$keepalives), fill=T)))
+  #   
+  #   print(paste("Added",nrow(local_logger_data()),"points of data from local files."))
+  # }
   # add signal data if either SQLite or Logger Files has been selected
-  if(input$data_type_input=="Logger Files" || input$data_type_input=="SQLite File" && !input$data_type_input == "Data folder"){
+  # if(input$data_type_input=="Logger Files" || input$data_type_input=="SQLite File" && !input$data_type_input == "Data folder"){
+  if(input$data_type_input=="SQLite File"){
     tmp<-get_signals()
     if(is.null(tmp$freq_tag)){
       tmp$freq_tag<-as.character(NA)
@@ -419,19 +420,19 @@ local_logger_data <- reactive({
 
 get_signals <- reactive({
     switch(input$data_type_input,
-            'Data folder' = {
-                read_logger_folder()
-            },
-            'Logger Files' = {
-              data <- NULL
-              for (file in input$logger_filepath[, "datapath"]) {
-                tmp <- read_logger_data(file)
-                if(!is.null(tmp)){
-                  data <- rbind(data, read_logger_data(file))
-                }
-              }
-              data
-            },
+            # 'Data folder' = {
+            #     read_logger_folder()
+            # },
+            # 'Logger Files' = {
+            #   data <- NULL
+            #   for (file in input$logger_filepath[, "datapath"]) {
+            #     tmp <- read_logger_data(file)
+            #     if(!is.null(tmp)){
+            #       data <- rbind(data, read_logger_data(file))
+            #     }
+            #   }
+            #   data
+            # },
             'SQLite File' = {
                 data <- NULL
                 for (file in input$SQLite_filepath[, "datapath"]) {
@@ -486,9 +487,9 @@ preview_content <- reactive({
                 }
             )
         },
-        "Logger Files" = {
-            tmp <- get_signals()
-        },
+        # "Logger Files" = {
+        #     tmp <- get_signals()
+        # },
         "SQLite File" = {
             files_count <- nrow(input$SQLite_filepath)
 
@@ -545,16 +546,16 @@ preview_content <- reactive({
                 tmp <- rbind(tmp, row)
             }
 
-            logger_files <- get_logger_files()
+            # logger_files <- get_logger_files()
 
-            if (length(logger_files) > 0) {
-                row <- c("Logger data", "yes", length(logger_files), "/data/logger/")
-            }
-            else {
-                row <- c("Logger data", "no", 0, "/data/logger/")
-            }
-
-            tmp <- rbind(tmp, row)
+            # if (length(logger_files) > 0) {
+            #     row <- c("Logger data", "yes", length(logger_files), "/data/logger/")
+            # }
+            # else {
+            #     row <- c("Logger data", "no", 0, "/data/logger/")
+            # }
+            # 
+            # tmp <- rbind(tmp, row)
 
             if (!is.null(tmp)) {
                 colnames(tmp) <- c("Information type", "Found", "Count", "Filepath")
@@ -594,7 +595,7 @@ output$data_tab_preview <- renderDataTable({
 }, options = list(pageLength = 10), rownames=F)
 
 output$data_tab_logger_table <- renderDataTable({
-  shiny::validate(need(global$signals, "Please provide logger data file."))
+  shiny::validate(need(global$signals, "Please provide signals data."))
   global$signals
 }, options = list(pageLength = 10), colnames=c("antenna"="receiver"), rownames=F)
 
@@ -624,7 +625,7 @@ output$data_tab_remote_con_table <- renderDataTable({
 }, options = list(pageLength = 10), rownames=F)
 
 output$data_tab_keepalive_table <- renderDataTable({
-  shiny::validate(need(global$keepalives, "Please provide logger data file."))
+  shiny::validate(need(global$keepalives, "Please provide keepalive data."))
   global$keepalives
 }, options = list(pageLength = 10), rownames=F)
 
@@ -633,7 +634,7 @@ observeEvent(input$SQLite_filepath, ignoreNULL = T, {
     enable(id='add_data')
 })
 
-observeEvent(input$logger_filepath, ignoreNULL = T, {
-  if (!is.null(input$logger_filepath$datapath))
-    enable(id='add_data')
-})
+# observeEvent(input$logger_filepath, ignoreNULL = T, {
+#   if (!is.null(input$logger_filepath$datapath))
+#     enable(id='add_data')
+# })
