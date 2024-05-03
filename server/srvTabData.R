@@ -518,10 +518,34 @@ preview_content <- reactive({
 
             tmp
         },
+        
         "Miscellaneous" = {
+          input_type <- isolate(input$misc_type_input)
            tmp <- NULL
            if (any(input$misc_type_input == c("GPX","KML","KMZ"))) {
-               tmp <- gpx_data()
+             
+             
+             if (!is.null(global$extra_points) && length(global$extra_points) > 0) {
+               tmp <- c(global$extra_points, gpx_data())
+             } else {
+               tmp <- gpx_data()  
+             } 
+             extract_info <- function(tmp) {
+               track_df <- bind_rows(tmp)
+               data.frame(
+                 Start_Time = min(track_df$timestamp),
+                 End_Time = max(track_df$timestamp),
+                 Min_Lon = min(track_df$lon),
+                 Max_Lon = max(track_df$lon),
+                 Min_Lat = min(track_df$lat),
+                 Max_Lat = max(track_df$lat),
+                 Name = names(tmp)
+               )
+             }
+             track_info_df <- do.call(rbind, lapply(tmp, extract_info))
+             track_info_unique <- unique(track_info_df)
+             track_info_unique
+            
            }
         })
 })
