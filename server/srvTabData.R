@@ -562,7 +562,7 @@ preview_content <- reactive({
                  "Max longitude" = max(track_df$lon),
                  "Min latitude" = min(track_df$lat),
                  "Max latitude" = max(track_df$lat),
-                 "Label" = names(track_df)
+                 "Label" = names(tmp)
                )
              }
              track_info_df <- do.call(rbind, lapply(tmp, extract_info))
