@@ -98,6 +98,17 @@ observeEvent(input$add_data,{
   }
 })
 
+observeEvent(global$signals, ignoreNULL = T, ignoreInit = F, priority = 10, {
+  isolate({
+    if (!"sId" %in% names(global$signals))
+      global$signals$sId <- as.numeric(NA)
+    maxId <- max(global$signals$sId, na.rm=T)
+    if (maxId < 0 )
+      maxId <- 0
+    global$signals$sId[is.na(global$signals$sId)] <- maxId + seq_along(global$signals$sId[is.na(global$signals$sId)])
+  })
+})
+
 observe({
     input$clear_logger_data
     input$clear_logger_data_from_live
