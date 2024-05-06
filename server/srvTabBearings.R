@@ -66,7 +66,7 @@ calculate_bearings_time_window <- function(filtered_data, receivers, window_size
 doa_fast <- function(signals, receivers, dBLoss=14, doa_approx="automatic") {
   # data<-as.data.table(receivers)[as.data.table(signals), on=c(Name="receiver", Station="Name")]
   # data<-data[,.(max_signal=mean(max_signal)), by=.(time_matched,freq_tag, Station, Name, longitude, latitude, Orientation)]
-  data<-signals[,.(max_signal=mean(max_signal)), by=.(time_matched, freq_tag, Name, receiver, longitude, latitude, orientation)]
+  data <- signals[, .(max_signal = mean(max_signal), sIds = paste0(sId, collapse = "\\")), by=.(time_matched, freq_tag, Name, receiver, longitude, latitude, orientation)]
   setnames(data, c("Name"), c("station"))
   result <- ddply(
     .data = data, 
@@ -120,10 +120,11 @@ observeEvent(input$start_doa,{
            tmp <- calculate_bearings_time_window(filtered_data(), global$receivers, input$bearings_window_size, global$live_mode, global$live_update_interval)
          }
          )
+  setDT(tmp)
+  tmp[, bId:=seq_len(.N)]
   global$bearing<-subset(tmp, antennas>=input$min_doa_antennas)
   stopCluster(cl)
 })
-
 
 
 output$correction_list <- renderUI({

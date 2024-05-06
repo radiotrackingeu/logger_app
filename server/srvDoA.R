@@ -267,7 +267,22 @@ calc_doa <- function(data_tfs, dBLoss, doa_approx, use_back_antenna=FALSE, only_
         dBLoss,
         doa_approx
       )
-      return(data.frame(timestamp=as.POSIXct(t,origin="1970-01-01",tz="UTC"),angle=angle,antennas=nrow(data_tfs),Station=s,freq_tag=f,strength=max(data_tfs$max_signal),method="neighbours",recs=paste(data_tfs$receiver[[1]], data_tfs$receiver[[2]], sep = ","), stringsAsFactors=F))
+      return(
+        data.frame(
+          timestamp = as.POSIXct(t, origin="1970-01-01", tz="UTC"),
+          angle = angle,
+          antennas = nrow(data_tfs),
+          Station = s,
+          freq_tag = f,
+          strength = max(data_tfs$max_signal),
+          method="neighbours",
+          recs = paste0(data_tfs$receiver[1:2], collapse = "/"),
+          recs_all = paste0(data_tfs$receiver, collapse = "/"),
+          sIds = paste0(data_tfs$sId, collapse = "/"),
+          strengths = paste0(data_tfs$max_signal, collapse = "/"),
+          stringsAsFactors=F
+        )
+      )
     }else{
       # ignore back antenna and use third-strongest instead
       if(nrow(data_tfs) > 2){
@@ -283,21 +298,80 @@ calc_doa <- function(data_tfs, dBLoss, doa_approx, use_back_antenna=FALSE, only_
           dBLoss,
           "linear"
         )
-        return(data.frame(timestamp=as.POSIXct(t,origin="1970-01-01",tz="UTC"),angle=angle,antennas=nrow(data_tfs),Station=s,freq_tag=f,strength=max(data_tfs$max_signal), method="ignore_back", recs=paste(data_tfs$receiver[[1]],data_tfs$receiver[[2]], data_tfs$receiver[[3]], sep = ","),stringsAsFactors=F))
+        return(
+          data.frame(
+            timestamp = as.POSIXct(t, origin = "1970-01-01", tz = "UTC"),
+            angle = angle,
+            antennas = nrow(data_tfs),
+            Station = s,
+            freq_tag = f,
+            strength = max(data_tfs$max_signal),
+            method = "ignore_back",
+            recs = paste0(data_tfs$receiver[1:3], collapse = "/"),
+            recs_all = paste0(data_tfs$receiver, collapse = "/"),
+            sIds = paste0(data_tfs$sId, collapse = "/"),
+            strengths = paste0(data_tfs$max_signal, collapse = "/"),
+            stringsAsFactors = F
+          )
+        )
       }
       # "frontback": There are only two, and they are not neighbours. They must be opposite each other and the tag must be more or less straight ahead.
       if(nrow(data_tfs)==2 && use_back_antenna){
         angle <- data_tfs[1, "orientation"]
-        return(data.frame(timestamp=as.POSIXct(t,origin="1970-01-01",tz="UTC"),angle=angle,antennas=nrow(data_tfs),Station=s,freq_tag=f,strength=max(data_tfs$max_signal), method="frontback", recs=paste(data_tfs$receiver[[1]], data_tfs$receiver[[2]], sep = ","), stringsAsFactors=F))
+        return(
+          data.frame(
+            timestamp = as.POSIXct(t, origin = "1970-01-01", tz = "UTC"),
+            angle = angle,
+            antennas = nrow(data_tfs),
+            Station = s,
+            freq_tag = f,
+            strength = max(data_tfs$max_signal),
+            method = "frontback",
+            recs = paste0(data_tfs$receiver[1:2], collapse = "/"),
+            recs_all = paste0(data_tfs$receiver, collapse = "/"),
+            sIds = paste0(data_tfs$sId, collapse = "/"),
+            strengths = paste0(data_tfs$max_signal, collapse = "/"),
+            stringsAsFactors = F
+          )
+        )
       }
     }
   }
   # "onlyone": Only one antenna received the tag, so we can assume it must be in that direction. However this is not very reliable.
   if(nrow(data_tfs) == 1 && only_one_for_doa){
     if(anyNA(data_tfs[1, ]))
-      return(data.frame(timestamp=as.POSIXct(character()), angle=numeric(), antennas=numeric(), Station=character(), freq_tag=character(), strength=numeric(), method=character(), recs=character()))
-    return(data.frame(timestamp=as.POSIXct(t,origin="1970-01-01",tz="UTC"),angle=angle,antennas=nrow(data_tfs),Station=s,freq_tag=f,strength=max(data_tfs$max_signal), method="onlyone", recs=data_tfs$receiver[[1]], stringsAsFactors=F))
+      return(
+        data.frame(
+          timestamp = as.POSIXct(character()),
+          angle = numeric(),
+          antennas = numeric(),
+          Station = character(),
+          freq_tag = character(),
+          strength = numeric(),
+          method = character(),
+          recs = character(),
+          recs_all = character(),
+          sIds = character(),
+          strengths = character()
+        )
+      )
     angle <- data_tfs[1, "orientation"]
+    return(
+      data.frame(
+        timestamp = as.POSIXct(t, origin = "1970-01-01", tz = "UTC"),
+        angle = angle,
+        antennas = nrow(data_tfs),
+        Station = s,
+        freq_tag = f,
+        strength = max(data_tfs$max_signal),
+        method = "onlyone",
+        recs = data_tfs$receiver[[1]],
+        recs_all = data_tfs$receiver[[1]],
+        sIds = data_tfs$sId[[1]],
+        strengths = as.character(data_tfs$max_signal[[1]]),
+        stringsAsFactors = F
+      )
+    )
   }
   return(data.frame())
 }
