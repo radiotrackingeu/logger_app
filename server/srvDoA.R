@@ -2,6 +2,8 @@
 
 #angle in between two angles
 angle_between <- function(angle_a,angle_b){
+  if (is.null(angle_a) || is.null(angle_b))
+    return(NULL)
   ((((angle_b - angle_a) %% 360) + 540) %% 360) - 180
 }
 
@@ -9,14 +11,18 @@ angle_between <- function(angle_a,angle_b){
 calc_angle <- function(sig_a, sig_b, angle_a, angle_b, dbLoss, option){
   #options: linear, arcos, lookup, automatic, old_linear
   #lookup still to be implemented
+  alpha <- angle_between(angle_a, angle_b)
+  #if the the angle between orientations is 0 or invalid.
+  if(is.null(alpha) || alpha == 0) 
+    return(NA)
+  
   if(option=="automatic"){
-    if(abs(angle_between(angle_a,angle_b))==90){
+    if(abs(alpha)==90){
       option<-"arccos"
     }else{
       option<-"linear"
     }
   }
-  alpha<-angle_between(angle_a,angle_b)
   #if the left antenna is the left one
   if(alpha>0){
     sig_l<-sig_a
@@ -32,8 +38,6 @@ calc_angle <- function(sig_a, sig_b, angle_a, angle_b, dbLoss, option){
     angle_r<-angle_a
     alpha<-angle_between(angle_l,angle_r)
   }
-  #if the the angle is the same
-  if(alpha==0) return(NA)
   
   if(length(dbLoss)==1) { # normal operation
     delta_m<-(sig_l-sig_r)/dbLoss
