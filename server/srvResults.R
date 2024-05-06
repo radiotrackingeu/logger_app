@@ -55,8 +55,6 @@ calculate_temperature <- function(td,a=19.449,b=0.0398) {
 
 
 get_base_plot <- function(signal_data, signal_aes=aes(), style="none") {
-  require(ggplot2)
-  require(data.table)
   p<-ggplot(signal_data, signal_aes)
 
   if(

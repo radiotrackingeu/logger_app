@@ -337,7 +337,6 @@ countCharOccurrences <- function(char, s) {
 }
 
 extract_keepalives <- function(signals, updown_threshold=10) {
-  require(data.table)
   keepalives<-as.data.table(subset(signals, subset = is.na(signals$signal_freq)))[,.(timestamp, Name, receiver)]
   setorder(keepalives, timestamp)
   # keepalives[,c("samples", "duration", "signal_freq", "signal_bw", "noise", "max_signal", "freq_tag"):=NULL]

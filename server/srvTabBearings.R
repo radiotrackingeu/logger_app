@@ -46,7 +46,6 @@ calculate_bearings_time_match <- function(filtered_data, receivers, station_time
 
 # wrapper for calculating berings via time windows
 calculate_bearings_time_window <- function(filtered_data, receivers, window_size, live_mode, live_update_interval, progress=F) {
-  require(data.table)
   data<-copy(filtered_data)
   setDT(data)
   setorder(data, timestamp)
@@ -65,7 +64,6 @@ calculate_bearings_time_window <- function(filtered_data, receivers, window_size
 }
 
 doa_fast <- function(signals, receivers, dBLoss=14, doa_approx="automatic") {
-  require(plyr)
   # data<-as.data.table(receivers)[as.data.table(signals), on=c(Name="receiver", Station="Name")]
   # data<-data[,.(max_signal=mean(max_signal)), by=.(time_matched,freq_tag, Station, Name, longitude, latitude, Orientation)]
   data<-signals[,.(max_signal=mean(max_signal)), by=.(time_matched, freq_tag, Name, receiver, longitude, latitude, orientation)]
