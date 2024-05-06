@@ -234,51 +234,66 @@ doa_internal <- function(data, time_to_look_for, dBLoss=14, doa_approx="automati
 }
 
 # adapted version of doa_internal used by fast_doa method
-calc_doa <- function(data_tfs, dBLoss, doa_approx,use_back_antenna=FALSE,only_one_for_doa=FALSE) {
+calc_doa <- function(data_tfs, dBLoss, doa_approx, use_back_antenna=FALSE, only_one_for_doa=FALSE) {
   #sort using signal_strength
-  data_tfs<-unique(data_tfs[order(data_tfs$max_signal, decreasing = TRUE, na.last=NA),])
-  t<-data_tfs$time_matched[[1]]
-  s<-data_tfs$station[[1]]
-  f<-data_tfs$freq_tag[[1]]
+  data_tfs <- unique(data_tfs[order(data_tfs$max_signal, decreasing = TRUE, na.last=NA), ])
+  t <- data_tfs$time_matched[[1]]
+  s <- data_tfs$station[[1]]
+  f <- data_tfs$freq_tag[[1]]
   
-  runs<-unique(as.data.table(data_tfs)[, .(station, latitude, longitude)], by=c("station","longitude","latitude"))
+  runs <- unique(as.data.table(data_tfs)[, .(station, latitude, longitude)], by=c("station","longitude","latitude"))
   
-  longs<-unique(runs$longitude)
-  lats<-unique(runs$latitude)
-  if (length(longs)>1 || length(lats)>1) {
+  longs <- unique(runs$longitude)
+  lats <- unique(runs$latitude)
+  if (length(longs) > 1 || length(lats) > 1) {
     warning("calc_doa: Multiple station positions for station '", s, "' within one time slot '", t, "'!")
-    longs<-sort(table(longs), decreasing = T)[1] # most common long in table
-    lats<-sort(table(lats), decreasing = T)[1] # most common long in table
+    longs <- sort(table(longs), decreasing = T)[1] # most common long in table
+    lats <- sort(table(lats), decreasing = T)[1] # most common long in table
   }
-  if(nrow(data_tfs)>1){
-    if(anyNA(data_tfs[1:2,]))
+  if(nrow(data_tfs) > 1){
+    if(anyNA(data_tfs[1:2, ]))
       return(data.frame())
     #check angle between strongest and second strongest and if it is smaller then 120 degree, calc it linearly
-    if(abs(angle_between(data_tfs[1,"orientation"],data_tfs[2,"orientation"]))<=120){
-      angle<-calc_angle(data_tfs[1,"max_signal"],data_tfs[2,"max_signal"],data_tfs[1,"orientation"],data_tfs[2,"orientation"],dBLoss,doa_approx)
+    if(abs(angle_between(data_tfs[1, "orientation"], data_tfs[2, "orientation"])) <= 120){
+      angle <- calc_angle(
+        data_tfs[1, "max_signal"],
+        data_tfs[2, "max_signal"],
+        data_tfs[1, "orientation"],
+        data_tfs[2, "orientation"],
+        dBLoss,
+        doa_approx
+      )
       return(data.frame(timestamp=as.POSIXct(t,origin="1970-01-01",tz="UTC"),angle=angle,antennas=nrow(data_tfs),Station=s,freq_tag=f,strength=max(data_tfs$max_signal),method="neighbours",recs=paste(data_tfs$receiver[[1]], data_tfs$receiver[[2]], sep = ","), stringsAsFactors=F))
     }else{
       # ignore back antenna and use third-strongest instead
-      if(nrow(data_tfs)>2){
-        num_angle_2<-2
-        if ((data_tfs[1,"orientation"]+180)%%360==data_tfs[2,"orientation"]){
-          num_angle_2<-3
+      if(nrow(data_tfs) > 2){
+        num_angle_2 <- 2
+        if ((data_tfs[1, "orientation"] + 180) %% 360 == data_tfs[2, "orientation"]) {
+          num_angle_2 <- 3
         }
-        angle<-calc_angle(data_tfs[1,"max_signal"],data_tfs[num_angle_2,"max_signal"],data_tfs[1,"orientation"],data_tfs[num_angle_2,"orientation"],dBLoss,"linear")
+        angle <- calc_angle(
+          data_tfs[1, "max_signal"],
+          data_tfs[num_angle_2, "max_signal"],
+          data_tfs[1, "orientation"],
+          data_tfs[num_angle_2, "orientation"],
+          dBLoss,
+          "linear"
+        )
         return(data.frame(timestamp=as.POSIXct(t,origin="1970-01-01",tz="UTC"),angle=angle,antennas=nrow(data_tfs),Station=s,freq_tag=f,strength=max(data_tfs$max_signal), method="ignore_back", recs=paste(data_tfs$receiver[[1]],data_tfs$receiver[[2]], data_tfs$receiver[[3]], sep = ","),stringsAsFactors=F))
       }
-      # use back antenna 
-      if(nrow(data_tfs)==2 & use_back_antenna){
-        angle<-data_tfs[1,"orientation"]
+      # "frontback": There are only two, and they are not neighbours. They must be opposite each other and the tag must be more or less straight ahead.
+      if(nrow(data_tfs)==2 && use_back_antenna){
+        angle <- data_tfs[1, "orientation"]
         return(data.frame(timestamp=as.POSIXct(t,origin="1970-01-01",tz="UTC"),angle=angle,antennas=nrow(data_tfs),Station=s,freq_tag=f,strength=max(data_tfs$max_signal), method="frontback", recs=paste(data_tfs$receiver[[1]], data_tfs$receiver[[2]], sep = ","), stringsAsFactors=F))
       }
     }
   }
-  if(nrow(data_tfs)==1 & only_one_for_doa){
-    if(anyNA(data_tfs[1,]))
+  # "onlyone": Only one antenna received the tag, so we can assume it must be in that direction. However this is not very reliable.
+  if(nrow(data_tfs) == 1 && only_one_for_doa){
+    if(anyNA(data_tfs[1, ]))
       return(data.frame(timestamp=as.POSIXct(character()), angle=numeric(), antennas=numeric(), Station=character(), freq_tag=character(), strength=numeric(), method=character(), recs=character()))
-    angle<-data_tfs[1,"orientation"]
     return(data.frame(timestamp=as.POSIXct(t,origin="1970-01-01",tz="UTC"),angle=angle,antennas=nrow(data_tfs),Station=s,freq_tag=f,strength=max(data_tfs$max_signal), method="onlyone", recs=data_tfs$receiver[[1]], stringsAsFactors=F))
+    angle <- data_tfs[1, "orientation"]
   }
   return(data.frame())
 }

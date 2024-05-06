@@ -70,7 +70,15 @@ doa_fast <- function(signals, receivers, dBLoss=14, doa_approx="automatic") {
   # data<-data[,.(max_signal=mean(max_signal)), by=.(time_matched,freq_tag, Station, Name, longitude, latitude, Orientation)]
   data<-signals[,.(max_signal=mean(max_signal)), by=.(time_matched, freq_tag, Name, receiver, longitude, latitude, orientation)]
   setnames(data, c("Name"), c("station"))
-  result<-ddply(.data = data, .variables = .(time_matched, freq_tag, station, longitude, latitude), .fun = calc_doa, dBLoss=dBLoss, doa_approx="automatic", use_back_antenna=input$use_back_antenna, only_one_for_doa=input$only_one_for_doa)
+  result <- ddply(
+    .data = data, 
+    .variables = .(time_matched, freq_tag, station, longitude, latitude), 
+    .fun = calc_doa, 
+    dBLoss=dBLoss, 
+    doa_approx="automatic", 
+    use_back_antenna=input$use_back_antenna, 
+    only_one_for_doa=input$only_one_for_doa
+  )
   return(result)
 }
 
@@ -182,7 +190,7 @@ observeEvent(input$change_manu,{
 # calculate time match and DoA #1
 output$doa<- renderDataTable({
   shiny::validate(need(global$bearing, "No data found"))
-  global$bearing[order(global$bearing$timestamp,decreasing=TRUE),]
+  global$bearing[order(global$bearing$timestamp, decreasing=TRUE), ]
 }, rownames=F)
 
 # output DoA plot
