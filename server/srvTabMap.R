@@ -57,7 +57,7 @@ color_palette <- reactive({
 
 
 observeEvent(global$triangulation, ignoreNULL = T, ignoreInit = T, {
-  leafletProxy("map") %>% clearGroup("triangulations")
+  leafletProxy("map") %>% clearGroup("triangulations") %>% removeControl("legend_tri")
   if (length(unique(global$triangulation$freq_tag)) > 1) {
     pal <- colorFactor("Dark2", domain = global$triangulation$freq_tag)
     values <- global$triangulation$freq_tag
@@ -87,7 +87,8 @@ observeEvent(global$triangulation, ignoreNULL = T, ignoreInit = T, {
         pal = pal, 
         values = values, 
         labFormat = labFormat,
-        title = title
+        title = title,
+        layerId = "legend_tri"
       )
 })
 
