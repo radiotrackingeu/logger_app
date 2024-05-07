@@ -4,7 +4,25 @@
 # progress: TRUE if function is wrapped in withProgress() call
 triangulate <- function(receivers, bearings, only_one = F, time_error_inter_station = 0.6, angles_allowed, tri_option, tm_method = "spline", spar = 0.01, progress = F) {
   progress <- F
-  positions <- data.frame()
+  # positions <- data.frame()
+  
+  result <- data.table(
+    timestamp = as.POSIXct(character(), tz = "GMT"),
+    freq_tag = character(),
+    pos.utm.X = numeric(),
+    pos.utm.Y = numeric(),
+    pos.X = numeric(),
+    pos.Y = numeric(),
+    bearing_method = character(),
+    bearing_recs = character(),
+    bearing_bIds = character(),
+    tri_method = character(),
+    tri_stations = character()
+  )
+  
+  if (is.null(bearings) | nrow(bearings) < 1)
+    return(result)
+  
   # Calc UTM of Stations and add them
   # stations<-as.data.frame(na.omit(unique(receivers[,c("Station","Longitude","Latitude")])))
   # stations<-stations[!duplicated(stations$Station),]
@@ -20,7 +38,7 @@ triangulate <- function(receivers, bearings, only_one = F, time_error_inter_stat
   freq_names <- unique(bearings$freq_tag)
   num_freq_names <- length(freq_names)
   cnt_freq_names <- 0
-  result <- NULL
+  
   for (i in freq_names) {
     tmp_f <- subset(bearings, freq_tag == i)
     tmp_f <- switch(tm_method,
@@ -32,57 +50,50 @@ triangulate <- function(receivers, bearings, only_one = F, time_error_inter_stat
     # for each times interval
     setDT(tmp_f)
     tmp_f <- tmp_f[stations_utm, on = c("Station", "longitude", "latitude")]
-    split <- ldply(.data = timestamps_unique, .id = NULL, .fun = function(ts) {
-      tmp_fts <- tmp_f[timestamp == ts]
-      if (nrow(tmp_fts == 1 & only_one)) {
-        positions <- cbind(timestamp = ts, freq_tag = i, pos = tri_one(tmp_fts), bearings = nrow(tmp_fts))
-      }
-      if (nrow(tmp_fts) >= 2) {
-        positions <- cbind(
+    split <- ddply(
+      .data = tmp_f, 
+      .variables = c("timestamp"), 
+      .fun = function(tmp_fts) {
+      ts <- unique(tmp_fts$timestamp)
+      if (length(ts)>1)
+        warning("multiple timestamps in ddply subset")
+      if (only_one && nrow(tmp_fts) == 1) {
+        data.table(
+          timestamp = ts, 
+          freq_tag = i, 
+          pos = tri_one(tmp_fts), 
+          bearing_method = tmp_fts$method,
+          bearing_recs = tmp_fts$recs,
+          bearing_bIds = paste(tmp_fts$bId),
+          tri_method = "tri_one",
+          tri_stations = tmp_fts$Station
+        )
+      } else if (nrow(tmp_fts) >= 2) {
+        data.table(
           timestamp = ts,
           freq_tag = i,
           pos = switch(tri_option,
             centroid = tri_centroid(tmp_fts, angles_allowed),
             two_strongest = tri_two(tmp_fts, angles_allowed)
           ),
-          bearings = nrow(tmp_fts)
+          bearing_method = paste(tmp_fts$method, collapse="/"),
+          bearing_recs = paste(tmp_fts$recs, collapse="/"),
+          bearing_bIds = paste(tmp_fts$bId, collapse="/"),
+          tri_method = tri_option,
+          tri_stations = paste0(tmp_fts$Station, collapse = "/")
         )
+      } else {
+        NULL
       }
     })
-    # split<-foreach(j=timestamps_unique,
-    #                .export=c("tri_one","tri_two","tri_centroid","utmtowgs","coordinates","angle_between","triang"),
-    #                .packages=c("sp"),
-    #                # .combine=rbind,
-    #                .inorder=F) %dopar% {
-    #                  if(progress)
-    #                    setProgress(value=cnt_freq_names)
-    #                  tmp_ft <- subset(tmp_f,timestamp==j)
-    #                  tmp_fts <- merge(tmp_ft,stations_utm,by.x="Station",by.y="Station")
-    #                  #calculate positions for two or more bearings in one slot
-    #                  if(nrow(tmp_fts)==1&only_one){
-    #                    positions<-cbind(timestamp=j,freq_tag=i,pos=tri_one(tmp_fts),bearings=nrow(tmp_fts))
-    #                  }
-    #                  if(nrow(tmp_fts)>=2){
-    #                    positions<-cbind(
-    #                      timestamp=j,
-    #                      freq_tag=i,
-    #                      pos=switch(tri_option,
-    #                                 centroid =  tri_centroid(tmp_fts,angles_allowed),
-    #                                 two_strongest = tri_two(tmp_fts,angles_allowed)
-    #                      ),
-    #                      bearings=nrow(tmp_fts)
-    #                    )
-    #                  }
-    #                  positions
-    #                }
-    result <- rbind(split, result)
-    cnt_freq_names <- cnt_freq_names + 1
+    result <- rbindlist(list(split, result), fill=T)
   }
   if (nrow(result) > 0) {
-    return(result[order(result$timestamp), ])
-  } else {
-    return(data.frame(timestamp = as.POSIXct(character()), freq_tag = factor(character()), pos.X = numeric(), pos.Y = numeric(), pos.utm.X = numeric(), pos.utm.Y = numeric(), bearings = numeric()))
-  }
+    setorder(result, timestamp)
+  } 
+  attr(result$timestamp, "tzone") <- "GMT"
+  setDF(result)
+  return(result)
 }
 
 # function to match times between two or more station
