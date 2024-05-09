@@ -274,8 +274,8 @@ observeEvent(input$map_marker_click, ignoreNULL = T, ignoreInit = T, {
       clearGroup("st_bearings") %>%
       clearGroup("cones") %>%
       removeControl("legend_bearings_color")
+    req(global$bearing)
     if (!selected_station == input$map_marker_click$id) {
-      browser()
       # TODO Deal with stations of same name and different positions.
       clicked_station <- unique(global$receivers[Station == input$map_marker_click$id], by = c("Station"))
       bearings <- global$bearing[Station == clicked_station$Station][!is.na(angle)]
