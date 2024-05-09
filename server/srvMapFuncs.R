@@ -308,3 +308,15 @@ utmtowgs <- function(x,y, zone) {
 # 
 #   return(tmp)
 # }
+
+estimateDist <- function(max_signal, negativeSigStrength = TRUE, minLength = NULL, maxLength = NULL, gain = 49, tagStrength = 600, magicNumber = 15) {
+  if(negativeSigStrength)
+    max_signal <- max_signal + 100
+  consts <- gain + 10*log(tagStrength) + magicNumber - 20*log10(150000000) - 20*log10(4*pi/300000000)
+  result <- 10 ^ ((consts - max_signal) / 20)
+  if(!is.null(minLength))
+    result[result < minLength] <- minLength
+  if(!is.null(maxLength))
+    result[result > maxLength] <- maxLength
+  return(result)
+}
