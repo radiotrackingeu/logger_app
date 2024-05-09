@@ -70,12 +70,11 @@ addStations <-function(m, data, ...) {
     m <- m %>% addMarkers(
       lng = stations$Longitude[i],
       lat = stations$Latitude[i], 
-      label = stations$Station[i],
       icon = makeIcon(iconUrl = "icon_mast.png", iconWidth = 25, iconHeight = 25, iconAnchorX = 25*0.49, iconAnchorY = 25*0.95),
-      popup = HTML(
+      label = HTML(
         "<b>", stations$Station[i], "</b><br>", 
         paste0(round(stations$Latitude[i], 4), "°N ", round(stations$Longitude[i], 4), "°E<br>"), 
-        data[Name==stations[i]$Name & Longitude==stations[i]$Longitude & Latitude==stations[i]$Latitude, paste0(Name, ": ", sprintf("%03d", Orientation), "°", collapse = "<br>")]
+        data[Station==stations[i]$Station & Longitude==stations[i]$Longitude & Latitude==stations[i]$Latitude, paste0(Name, ": ", sprintf("%03d", Orientation), "°", collapse = "<br>")]
       ),
       layerId = stations$Station[i],
       ...
