@@ -55,21 +55,37 @@ color_palette <- reactive({
   pal
 })
 
+tri_palette <- reactive({
+  pal <- list()
+  if (length(unique(global$triangulation$freq_tag)) > 1) {
+    pal$values <- global$triangulation$freq_tag
+    pal$pal <- colorFactor("Dark2", domain = pal$values)
+    pal$labFormat <- labelFormat
+    pal$title <- "Tag"
+  } else {
+    pal$values <- as.numeric(global$triangulation$timestamp)
+    pal$pal <- colorNumeric(palette = "Spectral", domain = pal$values)
+    pal$labFormat <- function(type, x) {format(as.POSIXct(x, origin="1970-01-01"), tz="UTC", format="%F %T" )}
+    pal$title <- "Timestamp"
+  }
+  pal
+})
 
 observeEvent(global$triangulation, ignoreNULL = T, ignoreInit = T, {
   leafletProxy("map") %>% clearGroup("triangulations") %>% removeControl("legend_tri")
-  if (length(unique(global$triangulation$freq_tag)) > 1) {
-    pal <- colorFactor("Dark2", domain = global$triangulation$freq_tag)
-    values <- global$triangulation$freq_tag
-    labFormat <- labelFormat
-    title <- "Tag"
-  } else {
-    values <- as.numeric(global$triangulation$timestamp)
-    pal <- colorNumeric(palette = "Spectral", domain = values)
-    labFormat <- function(type, x) {format(as.POSIXct(x, origin="1970-01-01"), tz="UTC", format="%F %T" )}
-    title <- "Timestamp"
-  }
+  # if (length(unique(global$triangulation$freq_tag)) > 1) {
+  #   pal <- colorFactor("Dark2", domain = global$triangulation$freq_tag)
+  #   values <- global$triangulation$freq_tag
+  #   labFormat <- labelFormat
+  #   title <- "Tag"
+  # } else {
+  #   values <- as.numeric(global$triangulation$timestamp)
+  #   pal <- colorNumeric(palette = "Spectral", domain = values)
+  #   labFormat <- function(type, x) {format(as.POSIXct(x, origin="1970-01-01"), tz="UTC", format="%F %T" )}
+  #   title <- "Timestamp"
+  # }
   req(any(!is.na(global$triangulation$pos.X)))
+  
   leafletProxy("map") %>% 
     addCircles(
       lng = global$triangulation$pos.X, 
@@ -77,17 +93,18 @@ observeEvent(global$triangulation, ignoreNULL = T, ignoreInit = T, {
       label = as.POSIXct(global$triangulation$timestamp, tz="UTC", origin="1970-01-01"),
       radius = 6, 
       group = "triangulations",
-      color = pal(values),
+      color = tri_palette()$pal(tri_palette()$values),
       opacity = 0.9,
       fillOpacity = 0.5,
-      stroke = 6
+      stroke = 6,
+      layerId = global$triangulation$tId
     ) %>%
       addLegend(
         position="bottomright", 
-        pal = pal, 
-        values = values, 
-        labFormat = labFormat,
-        title = title,
+        pal = tri_palette()$pal, 
+        values = tri_palette()$values, 
+        labFormat = tri_palette()$labFormat,
+        title = tri_palette()$title,
         layerId = "legend_tri"
       )
 })
