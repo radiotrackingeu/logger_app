@@ -25,6 +25,7 @@ observeEvent(input$calc_triangulations,{
                                       progress=T
                                       )
   })
+  global$triangulation$tId <- seq_len(nrow(global$triangulation))
   #global$triangulation <- cbind(global$triangulation,speed_between_triangulations(global$triangulation$timestamp,global$triangulation$pos.X,global$triangulation$pos.Y))
   # stopCluster(cl)
 })
