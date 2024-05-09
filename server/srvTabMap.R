@@ -1,6 +1,7 @@
 ############ srvTabMap.R ############
 
 selected_tri <- ""
+selected_station <- ""
 
 # render map and add stations
 output$map <- renderLeaflet({
@@ -263,6 +264,67 @@ observeEvent(input$map_shape_click, ignoreNULL = T, ignoreInit = T, {
       leafletProxy("map") %>%
         clearGroup("active_tri")
       selected_tri <<- ""
+    }
+  }
+})
+
+observeEvent(input$map_marker_click, ignoreNULL = T, ignoreInit = T, {
+  if (input$map_marker_click$group == "Stations") {
+    leafletProxy("map") %>%
+      clearGroup("st_bearings") %>%
+      clearGroup("cones") %>%
+      removeControl("legend_bearings_color")
+    if (!selected_station == input$map_marker_click$id) {
+      browser()
+      # TODO Deal with stations of same name and different positions.
+      clicked_station <- unique(global$receivers[Station == input$map_marker_click$id], by = c("Station"))
+      bearings <- global$bearing[Station == clicked_station$Station][!is.na(angle)]
+      if (bearings[, .N] > 0) {
+        col_bear <- list()
+        col_bear$pal <- colorNumeric(palette = rainbow(bearings[,.N]), domain = as.numeric(bearings$timestamp))
+        col_bear$values <- as.numeric(bearings$timestamp)
+        col_bear$labFormat <- function(type, x) {
+          format(as.POSIXct(x, origin = "1970-01-01", tz = "GMT"), "%d.%m. %H:%M", tz = "GMT")
+        }
+        bearings[, c("dest_lon", "dest_lat") := as.data.table(destPoint(clicked_station[,.(Longitude, Latitude)], bearings$angle, estimateDist(.SD[,strength], minLength=100)))]
+        a_ply(.data = bearings, .margins = 1, .expand = F, .fun = function(b) {
+          leafletProxy("map") %>%
+            addPolylines(
+              lng = c(
+                clicked_station$Longitude,
+                b$dest_lon
+              ),
+              lat = c(
+                clicked_station$Latitude,
+                b$dest_lat
+              ),
+              color =  col_bear$pal(as.numeric(b$timestamp)),
+              group="st_bearings",
+              weight = 1,
+              opacity = 0.4,
+              label = HTML(
+                "Time: ", format(as.POSIXct(b$timestamp, origin = "1970-01-01", tz = "GMT"), "%d.%m. %H:%M:%S", tz = "GMT"), "<br>",
+                "Timeslot: ", format(as.POSIXct(b$time_matched, origin = "1970-01-01", tz = "GMT"), "%d.%m. %H:%M:%S", tz = "GMT"),"<br>",
+                "Angle: ", b$angle, "<br>",
+                "Strength: ", b$strength
+              )
+            )
+        })
+        leafletProxy("map") %>%
+          addLegend(
+            pal = col_bear$pal,
+            values = col_bear$values,
+            labFormat = col_bear$labFormat,
+            layerId = "legend_bearings_color",
+            position = "bottomright",
+            title = "Bearings"
+          )
+      } else {
+        showNotification(HTML("No bearings on ", clicked_station$Station, "<br> Adjust filters date, time or bearing method to see more."), type="message", duration = 3)
+      }
+      selected_station <<- clicked_station$Station
+    } else {
+      selected_station <<- ""
     }
   }
 })

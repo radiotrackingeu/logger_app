@@ -77,6 +77,7 @@ addStations <-function(m, data, ...) {
         paste0(round(stations$Latitude[i], 4), "°N ", round(stations$Longitude[i], 4), "°E<br>"), 
         data[Name==stations[i]$Name & Longitude==stations[i]$Longitude & Latitude==stations[i]$Latitude, paste0(Name, ": ", sprintf("%03d", Orientation), "°", collapse = "<br>")]
       ),
+      layerId = stations$Station[i],
       ...
     )
   }
