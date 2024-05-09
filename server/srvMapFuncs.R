@@ -141,35 +141,60 @@ addStations <-function(m, data, ...) {
 #'   m <- m %>% addCircles(lng=triangulations$pos.X, lat=triangulations$pos.Y,label=paste("time:",triangulations$timestamp),color=pal(triangulations$timestamp), ...)#as.POSIXct(triangulations$timestamp,tz="UTC")
 #' }
 
-#' Draws a filled cone for every antenna, that has detected a bat
-#'
-#' @param m the map to add to
-#'
-#' @return the map with added cone
-addDetectionCones<-function(m,data) {
-  # print(paste("total", nrow(sorted_data()),"unique",length(unique(sorted_data()$timestamp)),"antennas",length(unique(sorted_data()$receiver))))
-  #data<-subset(data_in,timestamp==timestamp[input$map_choose_single_data_set])
-  if(nrow(data)==0) 
-    return(NULL)
-  shiny::validate(
-    need(data, "Please have a look at the filter settings.")
-  )
-  for(p in 1:nrow(data)){
-    if(!(data$receiver[p] %in% global$receivers$Name)) {
-      next
+#' #' Draws a filled cone for every antenna, that has detected a bat
+#' #'
+#' #' @param m the map to add to
+#' #'
+#' #' @return the map with added cone
+#' addDetectionCones<-function(m, data) {
+#'   # print(paste("total", nrow(sorted_data()),"unique",length(unique(sorted_data()$timestamp)),"antennas",length(unique(sorted_data()$receiver))))
+#'   #data<-subset(data_in,timestamp==timestamp[input$map_choose_single_data_set])
+#'   if(nrow(data)==0) 
+#'     return(NULL)
+#'   shiny::validate(
+#'     need(data, "Please have a look at the filter settings.")
+#'   )
+#'   for(p in 1:nrow(data)){
+#'     if(!(data$receiver[p] %in% global$receivers$Name)) {
+#'       next
+#'     }
+#'     a<-antennae_cones()[[data$receiver[p]]]
+#'     label_kegel <- paste0("Signal Properties:",br(),
+#'       "Antenna: ",data$receiver[p], br(),
+#'       "Date and Time: ", data$time[p],br(),
+#'       "Strength: ", data$max_signal[p],br(),
+#'       "Length: ", data$duration[p],br(),
+#'       "Bandwidth: ", data$signal_bw[p],br(),
+#'       "Frequency: ",data$freq_tag[p]
+#'     )
+#'     m<- m %>% addPolygons(lng=a$x, lat=a$y, fillColor = color_palette()(data$max_signal[p]), fillOpacity=0.8, stroke=FALSE, popup=label_kegel, group="bats")
+#'   }
+#'   return(m)
+#' }
+
+addDetectionCones <- function(m, cones, bearings, zIndex=300) {
+  a_ply(.data = bearings, .margins = 1, .fun = function(b) {
+    receivers <- tstrsplit(b$recs_all, "/")
+    strengths <- tstrsplit(b$strengths,"/", type.convert = T)
+    num_signals <- str_count(tstrsplit(b$sIds, "/"), "\\\\")+1
+    for (r in seq_len(length(receivers))) {
+      cone<-cones[[receivers[[r]]]]
+      if (!is.null(cone)) {
+        label_cone <- paste0(
+          "Signal Properties:",br(),
+          "Receiver: ",receivers[r], br(),
+          "Date and Timeslot: ",as.POSIXct(b$time_matched, origin="1970-01-01", tz= "GMT"),br(),
+          "Number of signals in Timeslot: ", num_signals[1], br() ,
+          "Average Strength: ", round(strengths[[r]],4)," dB"
+        )
+        m <<- m %>%
+          addPolygons(
+            lng=cone$x, lat=cone$y, fillColor = color_palette()(strengths[[r]]), fillOpacity=0.8, stroke=FALSE, popup=label_cone, group="cones", options = tileOptions(zIndex = zIndex)
+          )
+      }
     }
-    a<-antennae_cones()[[data$receiver[p]]]
-    label_kegel <- paste0("Signal Properties:",br(),
-      "Antenna: ",data$receiver[p], br(),
-      "Date and Time: ", data$time[p],br(),
-      "Strength: ", data$max_signal[p],br(),
-      "Length: ", data$duration[p],br(),
-      "Bandwidth: ", data$signal_bw[p],br(),
-      "Frequency: ",data$freq_tag[p]
-    )
-    m<- m %>% addPolygons(lng=a$x, lat=a$y, fillColor = color_palette()(data$max_signal[p]), fillOpacity=0.8, stroke=FALSE, popup=label_kegel, group="bats")
-  }
-  return(m)
+  })
+  return(m )
 }
 
 # calculates cone shapes

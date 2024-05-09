@@ -1,5 +1,6 @@
 ############ srvTabMap.R ############
 
+selected_tri <- ""
 
 # render map and add stations
 output$map <- renderLeaflet({
@@ -174,6 +175,98 @@ observeEvent(global$map_markers, ignoreNULL = T, ignoreInit = T, {
       label = global$map_markers$Comment
     )
 })
+
+observeEvent(input$map_shape_click, ignoreNULL = T, ignoreInit = T, {
+  # print(input$map_shape_click)
+  # clicked on triangulation?
+  if (input$map_shape_click$group %in% c("triangulations", "active_tri")) {
+    leafletProxy("map") %>%
+      clearGroup("bearings") %>%
+      clearGroup("cones")
+    # clicked on currently not selected triangulation?
+    if (!selected_tri == input$map_shape_click$id) {
+      tri <- global$triangulation[global$triangulation$tId == input$map_shape_click$id,]
+      # highlight selected triangulation
+      leafletProxy("map") %>%
+        clearGroup("active_tri") %>%
+        addCircles(        
+          data = tri, 
+          lng = ~pos.X, 
+          lat = ~pos.Y, 
+          label = paste0(tri$timestamp),
+          group = "active_tri",
+          radius = 11,
+          weight = 7,
+          fill = T,
+          fillOpacity = 0,
+          fillColor = tri_palette()$pal(as.numeric(tri$timestamp)),
+          color = "white",
+          opacity = 1,
+          layerId = ~tId
+        )
+      
+      bearings <- global$bearing[bId %in% tstrsplit(tri$bearing_bIds,"/")]
+      # print(bearings)
+      # only two bearings? Draw lines from tri to stations.
+      if (bearings[,.N]==2){
+        by (bearings, seq_len(bearings[,.N]), function(b) {
+          leafletProxy("map") %>%
+            addPolylines(
+              lng=c(tri$pos.X, b$longitude), 
+              lat=c(tri$pos.Y, b$latitude), 
+              color = "#f542da", 
+              group="bearings",
+              weight = 3,
+              opacity = 1,
+              label = HTML(
+                "Time: ", format(as.POSIXct(b$timestamp, origin = "1970-01-01", tz = "GMT"), "%d.%m. %H:%M:%S", tz = "GMT"), "<br>",
+                "Timeslot: ", format(as.POSIXct(b$time_matched, origin = "1970-01-01", tz = "GMT"), "%d.%m. %H:%M:%S", tz = "GMT"),"<br>",
+                "Station:", b$station, "<br>", 
+                "Angle: ", b$angle, "<br>", 
+                "Strength: ", b$strength
+              )
+            )
+        })
+      # more than 2 bearings? Draw lines from all involved stations. Length defined by signal strength.
+      } else {
+        bearings[, c("dest_lon", "dest_lat") := as.data.table(destPoint(.SD[,.(longitude, latitude)], angle, estimateDist(.SD[, strength], minLength = 1200)))]
+        a_ply(.data = bearings, .margins = 1, .expand = F, .fun = function(b) {
+          leafletProxy("map") %>%
+            addPolylines(
+              lng = c(
+                b$longitude, 
+                b$dest_lon
+              ),
+              lat = c(
+                b$latitude, 
+                b$dest_lat
+              ),
+              color = "#f542da", 
+              group="bearings",
+              weight = 3,
+              opacity = 1,
+              label = HTML(
+                "Time: ", format(as.POSIXct(b$timestamp, origin = "1970-01-01", tz = "GMT"), "%d.%m. %H:%M:%S", tz = "GMT"), "<br>",
+                "Timeslot: ", format(as.POSIXct(b$time_matched, origin = "1970-01-01", tz = "GMT"), "%d.%m. %H:%M:%S", tz = "GMT"),"<br>",
+                "Station:", b$station, "<br>", 
+                "Angle: ", b$angle, "<br>", 
+                "Strength: ", b$strength
+              )
+            )
+        })
+      }
+      leafletProxy("map") %>%
+        addDetectionCones(cones(), bearings)
+      selected_tri <<- input$map_shape_click$id
+    } else {
+      # tri<-global$triangulation[tId==selected_tri]
+      leafletProxy("map") %>%
+        clearGroup("active_tri")
+      selected_tri <<- ""
+    }
+  }
+})
+
 
 ################################# deactivated code ################################################
 # #

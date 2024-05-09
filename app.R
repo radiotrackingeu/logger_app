@@ -32,7 +32,8 @@ required_packages<-c(
   "dplyr",
   #"sp",
   "sf",
-  "purrr"
+  "purrr",
+  "stringr"
 )
 
 # try to load packages and install missing ones
