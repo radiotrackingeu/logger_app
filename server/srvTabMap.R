@@ -27,24 +27,36 @@ output$map <- renderLeaflet({
 
 outputOptions(output, "map", suspendWhenHidden = FALSE)
 
-observeEvent(global$receivers, ignoreNULL = T, ignoreInit = T, {
-  req(global$receivers)
-  
+observeEvent(global$receivers, ignoreNULL = F, ignoreInit = T, {
   leafletProxy("map") %>%
-    clearGroup("Stations") %>%
-    clearGroup("Antenna Cones") %>%
-    addStations(data = global$receivers, group="Stations") %>%
-    addAntennaeCones(
-      calculate_antennae_cones(global$receivers), 
-      group="Antenna Cones"
-    ) %>% fitBounds(
-      lng1 = min(global$receivers$Longitude, na.rm = T),
-      lat1 = min(global$receivers$Latitude, na.rm = T),
-      lng2 = max(global$receivers$Longitude, na.rm = T),
-      lat2 = max(global$receivers$Latitude, na.rm = T)
-    )
+    clearGroup("Stations") 
+  if (!is.null(global$receivers) && nrow(global$receivers) > 0)
+    leafletProxy("map") %>%
+      addStations(data = global$receivers, group="Stations") %>%
+      fitBounds(
+        lng1 = min(global$receivers$Longitude, na.rm = T),
+        lat1 = min(global$receivers$Latitude, na.rm = T),
+        lng2 = max(global$receivers$Longitude, na.rm = T),
+        lat2 = max(global$receivers$Latitude, na.rm = T)
+      )
 })
 
+observeEvent(cones(), ignoreNULL = F, {
+  leafletProxy("map") %>%
+    clearGroup("Antenna Cones") 
+  if (!is.null(cones()) && length(cones()) > 0)
+    leafletProxy("map") %>%
+      addAntennaeCones(
+        cones(), 
+        group="Antenna Cones"
+      )
+})
+
+cones <- eventReactive(global$receivers, ignoreNULL = F, {
+  if (is.null(global$receivers) || nrow(global$receivers) == 0)
+    return(NULL)
+  return(calculate_antennae_cones(global$receivers))
+})
 
 color_palette <- reactive({
   req(filtered_data())
