@@ -101,7 +101,18 @@ observeEvent(global$triangulation, ignoreNULL = T, ignoreInit = T, {
     addCircles(
       lng = global$triangulation$pos.X, 
       lat = global$triangulation$pos.Y, 
-      label = as.POSIXct(global$triangulation$timestamp, tz="UTC", origin="1970-01-01"),
+      label = lapply(
+        paste0(
+          "Time: ", format(as.POSIXct(global$triangulation$timestamp, origin = "1970-01-01", tz = "GMT"), "%d.%m. %H:%M:%S", tz = "GMT"), "<br>",
+          "Tag: ", global$triangulation$freq_tag, "<br>",
+          "Longitude: ", global$triangulation$pos.X, "<br>",
+          "Latitude: ", global$triangulation$pos.Y, "<br>",
+          "bIds: ", global$triangulation$bearing_bIds, "<br>",
+          "Stations: ", global$triangulation$tri_stations, "<br>",
+          "tId: ", global$triangulation$tId
+        ), 
+        HTML
+      ),
       radius = 6, 
       group = "triangulations",
       color = tri_palette()$pal(global$triangulation$timestamp),
@@ -191,7 +202,15 @@ observeEvent(input$map_shape_click, ignoreNULL = T, ignoreInit = T, {
           data = tri, 
           lng = ~pos.X, 
           lat = ~pos.Y, 
-          label = paste0(tri$timestamp),
+          label = HTML(
+            "Time: ", format(as.POSIXct(tri$timestamp, origin = "1970-01-01", tz = "GMT"), "%d.%m. %H:%M:%S", tz = "GMT"), "<br>",
+            "Tag: ", tri$freq_tag, "<br>",
+            "Longitude: ", tri$pos.X, "<br>",
+            "Latitude: ", tri$pos.Y, "<br>",
+            "bIds: ", tri$bearing_bIds, "<br>",
+            "Stations: ", tri$tri_stations, "<br>",
+            "tId: ", tri$tId
+          ), 
           group = "active_tri",
           radius = 11,
           weight = 7,
@@ -219,8 +238,8 @@ observeEvent(input$map_shape_click, ignoreNULL = T, ignoreInit = T, {
               label = HTML(
                 "Time: ", format(as.POSIXct(b$timestamp, origin = "1970-01-01", tz = "GMT"), "%d.%m. %H:%M:%S", tz = "GMT"), "<br>",
                 "Timeslot: ", format(as.POSIXct(b$time_matched, origin = "1970-01-01", tz = "GMT"), "%d.%m. %H:%M:%S", tz = "GMT"),"<br>",
-                "Station:", b$station, "<br>", 
-                "Angle: ", b$angle, "<br>", 
+                "Station:", b$station, "<br>",
+                "Angle: ", b$angle, "<br>",
                 "Strength: ", b$strength
               )
             )
@@ -248,7 +267,8 @@ observeEvent(input$map_shape_click, ignoreNULL = T, ignoreInit = T, {
                 "Timeslot: ", format(as.POSIXct(b$time_matched, origin = "1970-01-01", tz = "GMT"), "%d.%m. %H:%M:%S", tz = "GMT"),"<br>",
                 "Station:", b$station, "<br>", 
                 "Angle: ", b$angle, "<br>", 
-                "Strength: ", b$strength
+                "Strength: ", b$strength, "<br>",
+                "bIds: ", b$bId
               )
             )
         })
@@ -303,7 +323,8 @@ observeEvent(input$map_marker_click, ignoreNULL = T, ignoreInit = T, {
                 "Time: ", format(as.POSIXct(b$timestamp, origin = "1970-01-01", tz = "GMT"), "%d.%m. %H:%M:%S", tz = "GMT"), "<br>",
                 "Timeslot: ", format(as.POSIXct(b$time_matched, origin = "1970-01-01", tz = "GMT"), "%d.%m. %H:%M:%S", tz = "GMT"),"<br>",
                 "Angle: ", b$angle, "<br>",
-                "Strength: ", b$strength
+                "Strength: ", b$strength, "<br>",
+                "bIds: ", b$bId
               )
             )
         })
