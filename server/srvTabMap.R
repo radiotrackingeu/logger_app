@@ -186,7 +186,6 @@ observeEvent(global$map_markers, ignoreNULL = T, ignoreInit = T, {
 })
 
 observeEvent(input$map_shape_click, ignoreNULL = T, ignoreInit = T, {
-  # print(input$map_shape_click)
   # clicked on triangulation?
   if (input$map_shape_click$group %in% c("triangulations", "active_tri")) {
     leafletProxy("map") %>%
@@ -223,7 +222,6 @@ observeEvent(input$map_shape_click, ignoreNULL = T, ignoreInit = T, {
         )
       
       bearings <- global$bearing[bId %in% tstrsplit(tri$bearing_bIds,"/")]
-      # print(bearings)
       # only two bearings? Draw lines from tri to stations.
       if (bearings[,.N]==2){
         by (bearings, seq_len(bearings[,.N]), function(b) {
@@ -279,7 +277,6 @@ observeEvent(input$map_shape_click, ignoreNULL = T, ignoreInit = T, {
         addDetectionCones(cones(), bearings)
       selected_tri <<- input$map_shape_click$id
     } else {
-      # tri<-global$triangulation[tId==selected_tri]
       leafletProxy("map") %>%
         clearGroup("active_tri")
       selected_tri <<- ""
