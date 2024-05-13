@@ -77,27 +77,24 @@ tri_palette <- reactive({
     pal$labFormat <- labelFormat
     pal$title <- "Tag"
   } else {
-    pal$values <- as.numeric(global$triangulation$timestamp)
-    pal$pal <- colorNumeric(palette = "Spectral", domain = pal$values)
-    pal$labFormat <- function(type, x) {format(as.POSIXct(x, origin="1970-01-01"), tz="UTC", format="%F %T" )}
-    pal$title <- "Timestamp"
+    pal$values <- sort(unique(as.numeric(global$bearing$time_matched), as.numeric(global$triangulation$timestamp)))
+    pal$pal <- colorNumeric(
+      palette = rainbow(
+        n = ceiling(as.numeric(max(global$bearing$time_matched, global$signals$timestamp))) - trunc(as.numeric(min(global$bearing$time_matched, global$signals$timestamp)))
+      ), 
+      domain = pal$values
+    )
+    pal$labFormat <- function(type, x) {
+      format(as.POSIXct(x, origin = "1970-01-01", tz = "GMT"), "%F %H:%M", tz = "GMT")
+    }
+    pal$title <- "Timestamp" 
   }
   pal
 })
 
 observeEvent(global$triangulation, ignoreNULL = T, ignoreInit = T, {
   leafletProxy("map") %>% clearGroup("triangulations") %>% removeControl("legend_tri")
-  # if (length(unique(global$triangulation$freq_tag)) > 1) {
-  #   pal <- colorFactor("Dark2", domain = global$triangulation$freq_tag)
-  #   values <- global$triangulation$freq_tag
-  #   labFormat <- labelFormat
-  #   title <- "Tag"
-  # } else {
-  #   values <- as.numeric(global$triangulation$timestamp)
-  #   pal <- colorNumeric(palette = "Spectral", domain = values)
-  #   labFormat <- function(type, x) {format(as.POSIXct(x, origin="1970-01-01"), tz="UTC", format="%F %T" )}
-  #   title <- "Timestamp"
-  # }
+  
   req(any(!is.na(global$triangulation$pos.X)))
   
   leafletProxy("map") %>% 
@@ -107,7 +104,7 @@ observeEvent(global$triangulation, ignoreNULL = T, ignoreInit = T, {
       label = as.POSIXct(global$triangulation$timestamp, tz="UTC", origin="1970-01-01"),
       radius = 6, 
       group = "triangulations",
-      color = tri_palette()$pal(tri_palette()$values),
+      color = tri_palette()$pal(global$triangulation$timestamp),
       opacity = 0.9,
       fillOpacity = 0.5,
       stroke = 6,
@@ -298,7 +295,7 @@ observeEvent(input$map_marker_click, ignoreNULL = T, ignoreInit = T, {
                 clicked_station$Latitude,
                 b$dest_lat
               ),
-              color =  col_bear$pal(as.numeric(b$timestamp)),
+              color =  tri_palette()$pal(as.numeric(b$time_matched)),
               group="st_bearings",
               weight = 1,
               opacity = 0.4,
@@ -310,15 +307,6 @@ observeEvent(input$map_marker_click, ignoreNULL = T, ignoreInit = T, {
               )
             )
         })
-        leafletProxy("map") %>%
-          addLegend(
-            pal = col_bear$pal,
-            values = col_bear$values,
-            labFormat = col_bear$labFormat,
-            layerId = "legend_bearings_color",
-            position = "bottomright",
-            title = "Bearings"
-          )
       } else {
         showNotification(HTML("No bearings on ", clicked_station$Station, "<br> Adjust filters date, time or bearing method to see more."), type="message", duration = 3)
       }
