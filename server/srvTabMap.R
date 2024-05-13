@@ -229,9 +229,10 @@ observeEvent(input$map_shape_click, ignoreNULL = T, ignoreInit = T, {
         by (bearings, seq_len(bearings[,.N]), function(b) {
           leafletProxy("map") %>%
             addPolylines(
-              lng=c(tri$pos.X, b$longitude), 
-              lat=c(tri$pos.Y, b$latitude), 
-              color = "#f542da", 
+              lng=c(tri$pos.X, b$longitude),
+              lat=c(tri$pos.Y, b$latitude),
+              color = "#f542da",
+              dashArray = "4 6",
               group="bearings",
               weight = 3,
               opacity = 1,
@@ -258,7 +259,8 @@ observeEvent(input$map_shape_click, ignoreNULL = T, ignoreInit = T, {
                 b$latitude, 
                 b$dest_lat
               ),
-              color = "#f542da", 
+              color = "#f542da",
+              dashArray = "4 6", 
               group="bearings",
               weight = 3,
               opacity = 1,
