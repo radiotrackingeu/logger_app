@@ -297,17 +297,18 @@ wgstoutm <- function(x, y) {
 utmtowgs <- function(x,y, zone) {
   # Create an sf object
   data <- data.frame(X = x, Y = y, zone = zone)
+  data <- data[complete.cases(data),]
 
   # Initialize an empty data frame to store results
-  results <- data.frame(X = numeric(length(x)), Y = numeric(length(y)))
+  results <- data.frame(X = numeric(nrow(data)), Y = numeric(nrow(data)))
   
   #Process each point individually
-  for (i in 1:length(x)) {
+  for (i in seq_len(nrow(data))) {
     #Define the CRS for the UTM coordinates based on the zone
-    utm_crs <- sprintf("+proj=utm +zone=%d +ellps=WGS84 +datum=WGS84 +units=m +no_defs", zone[i])
+    utm_crs <- sprintf("+proj=utm +zone=%d +ellps=WGS84 +datum=WGS84 +units=m +no_defs", data$zone[i])
     
     #Create an sf object with the appropriate UTM CRS
-    xy_sf <- st_as_sf(data.frame(X = x[i], Y = y[i]), coords = c("X", "Y"), crs = utm_crs)
+    xy_sf <- st_as_sf(data.frame(X = data$X[i], Y = data$Y[i]), coords = c("X", "Y"), crs = utm_crs)
     
     # Transform the coordinates to WGS84
     transformed <- st_transform(xy_sf, crs = "+proj=longlat +datum=WGS84")
@@ -354,3 +355,4 @@ getHeadingCoords <- function(lng, lat, a, r) {
     utm$zone
   )
   return(wgs)
+}
