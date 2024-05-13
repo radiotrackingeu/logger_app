@@ -230,7 +230,7 @@ observeEvent(input$map_shape_click, ignoreNULL = T, ignoreInit = T, {
         })
       # more than 2 bearings? Draw lines from all involved stations. Length defined by signal strength.
       } else {
-        bearings[, c("dest_lon", "dest_lat") := as.data.table(destPoint(.SD[,.(longitude, latitude)], angle, estimateDist(.SD[, strength], minLength = 1200)))]
+        bearings[, c("dest_lon", "dest_lat") := as.data.table(getHeadingCoords(bearings$longitude, bearings$latitude, angle, estimateDist(bearings$strength, minLength = 1200)))]
         a_ply(.data = bearings, .margins = 1, .expand = F, .fun = function(b) {
           leafletProxy("map") %>%
             addPolylines(
@@ -286,7 +286,7 @@ observeEvent(input$map_marker_click, ignoreNULL = T, ignoreInit = T, {
         col_bear$labFormat <- function(type, x) {
           format(as.POSIXct(x, origin = "1970-01-01", tz = "GMT"), "%d.%m. %H:%M", tz = "GMT")
         }
-        bearings[, c("dest_lon", "dest_lat") := as.data.table(destPoint(clicked_station[,.(Longitude, Latitude)], bearings$angle, estimateDist(.SD[,strength], minLength=100)))]
+        bearings[, c("dest_lon", "dest_lat") := as.data.table(getHeadingCoords(clicked_station$Longitude, clicked_station$Latitude, bearings$angle, estimateDist(.SD[, strength], minLength = 100)))]
         a_ply(.data = bearings, .margins = 1, .expand = F, .fun = function(b) {
           leafletProxy("map") %>%
             addPolylines(

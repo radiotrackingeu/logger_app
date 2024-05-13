@@ -345,3 +345,12 @@ estimateDist <- function(max_signal, negativeSigStrength = TRUE, minLength = NUL
     result[result > maxLength] <- maxLength
   return(result)
 }
+
+getHeadingCoords <- function(lng, lat, a, r) {
+  utm <- wgstoutm(lng, lat)
+  wgs <- utmtowgs(
+    utm$X+r*cos((90-a)/180*pi),
+    utm$Y+r*sin((90-a)/180*pi),
+    utm$zone
+  )
+  return(wgs)
