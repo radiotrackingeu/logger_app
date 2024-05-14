@@ -8,6 +8,16 @@
 #   updateSelectInput(session,"time_to_compare",choices = names(gpx_data()))
 # })
 
+observeEvent(global$bearing, ignoreNULL = F, {
+  if (!is.null(global$bearing) && nrow(global$bearing) > 0) {
+    shinyjs::removeClass(id="tri_tooltip", class = "vis")
+    enable(id="calc_triangulations")
+  } else {
+    shinyjs::addClass(id="tri_tooltip", class = "vis")
+    disable(id="calc_triangulations")
+  }
+})
+
 # upon button starts triangulations with a progress Bar
 observeEvent(input$calc_triangulations,{
   req(global$bearing)

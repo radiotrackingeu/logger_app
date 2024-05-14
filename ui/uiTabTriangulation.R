@@ -1,5 +1,11 @@
 tabPanel("Triangulation",
-         actionButton("calc_triangulations","Calc Triangulations", style="margin-bottom:25px"),
+         tags$div(
+           style="display:inline-block", id="tri_tooltip", class="tooltip vis",
+           disabled(
+             actionButton("calc_triangulations","Calc Triangulations", style="margin-bottom:25px")
+           ),
+           tags$span(class="tooltiptext", "No bearings available.")
+         ),
          br(),
          tabsetPanel(
            tabPanel("Settings",
