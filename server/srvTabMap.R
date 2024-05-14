@@ -70,14 +70,15 @@ color_palette <- reactive({
 })
 
 tri_palette <- reactive({
+  req(!is.null(global$triangulation) || !is.null(global$bearing))
   pal <- list()
-  if (length(unique(global$triangulation$freq_tag)) > 1) {
-    pal$values <- global$triangulation$freq_tag
+  if ((!is.null(global$triangulation) || !is.null(global$bearing)) && uniqueN(c(global$triangulation$freq_tag, global$bearing$freq_tag)) > 1) {
+    pal$values <- sort(unique(c(global$triangulation$freq_tag, global$bearing$freq_tag)))
     pal$pal <- colorFactor("Dark2", domain = pal$values)
-    pal$labFormat <- labelFormat
+    pal$labFormat <- function(type, x) {sprintf(x)}
     pal$title <- "Tag"
   } else {
-    pal$values <- sort(unique(as.numeric(global$bearing$time_matched), as.numeric(global$triangulation$timestamp)))
+    pal$values <- sort(unique(c(as.numeric(global$bearing$time_matched), as.numeric(global$triangulation$timestamp))))
     pal$pal <- colorNumeric(
       palette = rainbow(
         n = ceiling(as.numeric(max(global$bearing$time_matched, global$signals$timestamp))) - trunc(as.numeric(min(global$bearing$time_matched, global$signals$timestamp)))
@@ -96,7 +97,11 @@ observeEvent(global$triangulation, ignoreNULL = T, ignoreInit = T, {
   leafletProxy("map") %>% clearGroup("triangulations") %>% removeControl("legend_tri")
   
   req(any(!is.na(global$triangulation$pos.X)))
-  
+  if (length(unique(global$triangulation$freq_tag))>1){
+    fColor <- global$triangulation$freq_tag
+  } else{
+    fColor <- global$triangulation$timestamp
+  }
   leafletProxy("map") %>% 
     addCircles(
       lng = global$triangulation$pos.X, 
@@ -115,20 +120,24 @@ observeEvent(global$triangulation, ignoreNULL = T, ignoreInit = T, {
       ),
       radius = 6, 
       group = "triangulations",
-      color = tri_palette()$pal(global$triangulation$timestamp),
+      color = tri_palette()$pal(fColor),
       opacity = 0.9,
       fillOpacity = 0.5,
       stroke = 6,
       layerId = global$triangulation$tId
-    ) %>%
-      addLegend(
-        position="bottomright", 
-        pal = tri_palette()$pal, 
-        values = tri_palette()$values, 
-        labFormat = tri_palette()$labFormat,
-        title = tri_palette()$title,
-        layerId = "legend_tri"
-      )
+    )
+})
+
+observeEvent(tri_palette(), ignoreNULL = T, {
+  leafletProxy("map") %>%
+    addLegend(
+      position="bottomright", 
+      pal = tri_palette()$pal, 
+      values = tri_palette()$values, 
+      labFormat = tri_palette()$labFormat,
+      title = tri_palette()$title,
+      layerId = "legend_tri"
+    )
 })
 
 observeEvent(global$extra_points, {
@@ -194,6 +203,12 @@ observeEvent(input$map_shape_click, ignoreNULL = T, ignoreInit = T, {
     # clicked on currently not selected triangulation?
     if (!selected_tri == input$map_shape_click$id) {
       tri <- global$triangulation[global$triangulation$tId == input$map_shape_click$id,]
+      fColor <- ifelse(length(unique(global$triangulation$freq_tag))>1, tri$freq_tag, as.numeric(tri$timestamp))
+      if (length(unique(global$triangulation$freq_tag))>1){
+        fColor <- tri$freq_tag
+      } else{
+        fColor <- tri$timestamp
+      }
       # highlight selected triangulation
       leafletProxy("map") %>%
         clearGroup("active_tri") %>%
@@ -215,7 +230,7 @@ observeEvent(input$map_shape_click, ignoreNULL = T, ignoreInit = T, {
           weight = 7,
           fill = T,
           fillOpacity = 0,
-          fillColor = tri_palette()$pal(as.numeric(tri$timestamp)),
+          fillColor = tri_palette()$pal(fColor),
           color = "white",
           opacity = 1,
           layerId = ~tId
@@ -287,22 +302,21 @@ observeEvent(input$map_shape_click, ignoreNULL = T, ignoreInit = T, {
 observeEvent(input$map_marker_click, ignoreNULL = T, ignoreInit = T, {
   if (input$map_marker_click$group == "Stations") {
     leafletProxy("map") %>%
-      clearGroup("st_bearings") %>%
-      clearGroup("cones") %>%
-      removeControl("legend_bearings_color")
+      clearGroup("st_bearings")
+    
     req(global$bearing)
     if (!selected_station == input$map_marker_click$id) {
       # TODO Deal with stations of same name and different positions.
       clicked_station <- unique(global$receivers[Station == input$map_marker_click$id], by = c("Station"))
       bearings <- global$bearing[Station == clicked_station$Station][!is.na(angle)]
       if (bearings[, .N] > 0) {
-        col_bear <- list()
-        col_bear$pal <- colorNumeric(palette = rainbow(bearings[,.N]), domain = as.numeric(bearings$timestamp))
-        col_bear$values <- as.numeric(bearings$timestamp)
-        col_bear$labFormat <- function(type, x) {
-          format(as.POSIXct(x, origin = "1970-01-01", tz = "GMT"), "%d.%m. %H:%M", tz = "GMT")
+        if (uniqueN(global$bearing$freq_tag) > 1){
+          bColor <- bearings$freq_tag
+        } else{
+          bColor <- bearings$timestamp
         }
         bearings[, c("dest_lon", "dest_lat") := as.data.table(getHeadingCoords(clicked_station$Longitude, clicked_station$Latitude, bearings$angle, estimateDist(.SD[, strength], minLength = 100)))]
+        bearings[, color := tri_palette()$pal(bColor)]
         a_ply(.data = bearings, .margins = 1, .expand = F, .fun = function(b) {
           leafletProxy("map") %>%
             addPolylines(
@@ -314,7 +328,7 @@ observeEvent(input$map_marker_click, ignoreNULL = T, ignoreInit = T, {
                 clicked_station$Latitude,
                 b$dest_lat
               ),
-              color =  tri_palette()$pal(as.numeric(b$time_matched)),
+              color =  b$color,
               group="st_bearings",
               weight = 1,
               opacity = 0.4,
