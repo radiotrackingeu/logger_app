@@ -9,7 +9,7 @@ tabPanel("Filter",
         sliderInput(
           "signal_length",
           "",
-          min = 5,
+          min = 1,
           max = 50,
           value = c(10, 30)
         )
