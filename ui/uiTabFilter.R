@@ -5,7 +5,7 @@ tabPanel("Filter",
       9,
       column(
         4,
-        checkboxInput("filter_length", strong("Signal length [ms]"), value = FALSE),
+        checkboxInput("filter_length", strong("Signal Length [ms]"), value = FALSE),
         sliderInput(
           "signal_length",
           "",
@@ -45,7 +45,7 @@ tabPanel("Filter",
             style="height: calc(100vh - 280px)",
             plotOutput("histo", hover = "plot_freq_hover", height="100%"))
         ),
-        tabPanel("Duration",
+        tabPanel("Signal Length",
           div(
             style="height: calc(100vh - 280px)",
             plotOutput("histo_length", hover = "histo_length_hover", height="100%")

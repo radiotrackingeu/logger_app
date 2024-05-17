@@ -41,10 +41,10 @@ tabPanel("Live Data",
                )
              ),
              # disabled(
-               checkboxInput("check_sql_duration", "Duration", value = FALSE#)
+               checkboxInput("check_sql_duration", "Signal Length", value = FALSE#)
              ),
              conditionalPanel("input.check_sql_duration",
-                              sliderInput("query_filter_duration", "Duration [ms]",min=3,max = 40, value=c(1,25))
+                              sliderInput("query_filter_duration", "Signal Length [ms]", min=1, max = 40, value=c(1,25))
                               ),
              # disabled(
                checkboxInput("check_sql_strength", "Strength", value = FALSE#)

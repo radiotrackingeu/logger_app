@@ -177,11 +177,11 @@ output$freq_hover<-renderText({
       else
         return(paste("Freq:", round(input$plot_freq_hover$x,2), "kHz"))
     },
-    "Duration" = {
+    "Signal Length" = {
       if(is.null((input$histo_length_hover))) 
         return(NULL)
       else
-        return(paste("Duration:", round(input$histo_length_hover$x,2), "ms"))
+        return(paste("Signal Length:", round(input$histo_length_hover$x,2), "ms"))
     },
     "Signal Strength" = {
       if(is.null((input$histo_strength_hover))) 
