@@ -303,11 +303,10 @@ observeEvent(input$map_marker_click, ignoreNULL = T, ignoreInit = T, {
   if (input$map_marker_click$group == "Stations") {
     leafletProxy("map") %>%
       clearGroup("st_bearings")
-    
+
     req(global$bearing)
     if (!selected_station == input$map_marker_click$id) {
-      # TODO Deal with stations of same name and different positions.
-      clicked_station <- unique(global$receivers[Station == input$map_marker_click$id], by = c("Station"))
+      clicked_station <- unique(global$receivers[Station == strsplit(x=input$map_marker_click$id, split = "%", fixed = T)[[1]][1]], by = c("Station"))
       bearings <- global$bearing[Station == clicked_station$Station][!is.na(angle)]
       if (bearings[, .N] > 0) {
         if (uniqueN(global$bearing$freq_tag) > 1){
@@ -344,7 +343,7 @@ observeEvent(input$map_marker_click, ignoreNULL = T, ignoreInit = T, {
       } else {
         showNotification(HTML("No bearings on ", clicked_station$Station, "<br> Adjust filters date, time or bearing method to see more."), type="message", duration = 3)
       }
-      selected_station <<- clicked_station$Station
+      selected_station <<- paste0(clicked_station$Station, "_", format(clicked_station$Longitude, scientific=F), "_", format(clicked_station$Latitude, scientific=F))
     } else {
       selected_station <<- ""
     }
