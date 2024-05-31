@@ -40,7 +40,27 @@ tabPanel("Map",
                                
                                "))
     ),
-    leafletOutput("map", width="100%", height="100%")
+    leafletOutput("map", width="100%", height="100%"),
+    
+    hidden(
+      absolutePanel(
+        id = "panel_bearings_time", 
+        class= "panel panel-default", 
+        fixed = T,
+        draggable = F, 
+        sliderInput(
+          "slider_bearings_time", 
+          label = "Filter bearings by time", 
+          min=as.POSIXct(Sys.Date()), 
+          max=as.POSIXct(Sys.Date()+1)-1, 
+          value=c(as.POSIXct(Sys.Date()), as.POSIXct(Sys.Date()+1)-1), 
+          timezone = "+0000", 
+          step = 60, 
+          timeFormat = "%Y-%m-%d %H:%M",
+          width = "100%"
+        )
+      )
+    )
     
     # absolutePanel(id = "controls", class = "panel panel-default", fixed = TRUE,
     #   draggable = F, top = 60, left = "auto", right = 20, bottom = "auto",

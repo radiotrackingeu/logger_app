@@ -21,13 +21,23 @@ output$map <- renderLeaflet({
     addScaleBar(position="bottomright") %>% 
     addLayersControl(
       baseGroups = c("OSM", "Satellite"),
-      overlayGroups = c("Antenna Cones"),
+      overlayGroups = c("Antenna Cones", "Bearings"),
       options = layersControlOptions(collapsed = TRUE), 
       position = c("topright")
-    )
+    ) %>% hideGroup("Bearings")
 })
 
 outputOptions(output, "map", suspendWhenHidden = FALSE)
+
+observeEvent(global$bearing, ignoreNULL = T, ignoreInit = T, {
+  updateSliderInput(
+    inputId = "slider_bearings_time", 
+    min = min(global$bearing$timestamp, na.rm = T), 
+    max = max(global$bearing$timestamp, na.rm = T), 
+    value = c(min(global$bearing$timestamp, na.rm = T), max(global$bearing$timestamp, na.rm = T)), 
+    timeFormat = "%Y-%m-%d %H:%M"
+  )
+})
 
 observeEvent(global$receivers, ignoreNULL = F, ignoreInit = T, {
   leafletProxy("map") %>%
@@ -70,27 +80,51 @@ color_palette <- reactive({
 })
 
 tri_palette <- reactive({
-  req(!is.null(global$triangulation) || !is.null(global$bearing))
-  pal <- list()
-  if ((!is.null(global$triangulation) || !is.null(global$bearing)) && uniqueN(c(global$triangulation$freq_tag, global$bearing$freq_tag)) > 1) {
-    pal$values <- sort(unique(c(global$triangulation$freq_tag, global$bearing$freq_tag)))
-    pal$pal <- colorFactor("Dark2", domain = pal$values)
-    pal$labFormat <- function(type, x) {sprintf(x)}
-    pal$title <- "Tag"
-  } else {
-    pal$values <- sort(unique(c(as.numeric(global$bearing$time_matched), as.numeric(global$triangulation$timestamp))))
-    pal$pal <- colorNumeric(
-      palette = rainbow(
-        n = ceiling(as.numeric(max(global$bearing$time_matched, global$signals$timestamp))) - trunc(as.numeric(min(global$bearing$time_matched, global$signals$timestamp)))
-      ), 
-      domain = pal$values
-    )
-    pal$labFormat <- function(type, x) {
-      format(as.POSIXct(x, origin = "1970-01-01", tz = "GMT"), "%F %H:%M", tz = "GMT")
+  if (!"Bearings" %in% input$map_groups){
+    req(!is.null(global$triangulation) || !is.null(global$bearing))
+    pal <- list()
+    if ((!is.null(global$triangulation) || !is.null(global$bearing)) && uniqueN(c(global$triangulation$freq_tag, global$bearing$freq_tag)) > 1) {
+      pal$values <- sort(unique(c(global$triangulation$freq_tag, global$bearing$freq_tag)))
+      pal$pal <- colorFactor("Dark2", domain = pal$values)
+      pal$labFormat <- function(type, x) {sprintf(x)}
+      pal$title <- "Tag"
+    } else {
+      pal$values <- sort(unique(c(as.numeric(global$bearing$timestamp), as.numeric(global$triangulation$timestamp))))
+      pal$pal <- colorNumeric(
+        palette = rainbow(
+          n = ceiling(as.numeric(max(global$bearing$timestamp, global$signals$timestamp))) - trunc(as.numeric(min(global$bearing$timestamp, global$signals$timestamp)))
+        ), 
+        domain = pal$values
+      )
+      pal$labFormat <- function(type, x) {
+        format(as.POSIXct(x, origin = "1970-01-01", tz = "GMT"), "%F %H:%M", tz = "GMT")
+      }
+      pal$title <- "Timestamp" 
     }
-    pal$title <- "Timestamp" 
+    pal
+  } else {
+    req(!is.null(filtered_bearings()) && nrow(filtered_bearings())>0)
+    pal <- list()
+    if (uniqueN(global$bearing$freq_tag) > 1) {
+      pal$values <- sort(unique(global$bearing$freq_tag))
+      pal$pal <- colorFactor("Dark2", domain = pal$values)
+      pal$labFormat <- function(type, x) {sprintf(x)}
+      pal$title <- "Tag (time-filtered)"
+    } else {
+      pal$values <- sort(unique(as.numeric(filtered_bearings()$timestamp)))
+      pal$pal <- colorNumeric(
+        palette = rainbow(
+          n = ceiling(max(as.numeric(filtered_bearings()$timestamp), na.rm = T)) - trunc(min(as.numeric(filtered_bearings()$timestamp), na.rm = T))
+        ), 
+        domain = pal$values
+      )
+      pal$labFormat <- function(type, x) {
+        format(as.POSIXct(x, origin = "1970-01-01", tz = "GMT"), "%F %H:%M", tz = "GMT")
+      }
+      pal$title <- "Timestamp (filtered)" 
+    }
+    pal
   }
-  pal
 })
 
 observeEvent(global$triangulation, ignoreNULL = T, ignoreInit = T, {
@@ -177,10 +211,10 @@ observeEvent(global$extra_points, {
     removeLayersControl() %>%
     addLayersControl(
       baseGroups = c("OSM", "Satellite"),
-      overlayGroups = c("Antenna Cones", group_names),
+      overlayGroups = c("Antenna Cones", "Bearings", group_names),
       options = layersControlOptions(collapsed = TRUE), 
       position = c("bottomleft")
-    )
+    ) %>% hideGroup("Bearings")
 })
 
 observeEvent(global$map_markers, ignoreNULL = T, ignoreInit = T, {
@@ -343,10 +377,65 @@ observeEvent(input$map_marker_click, ignoreNULL = T, ignoreInit = T, {
       } else {
         showNotification(HTML("No bearings on ", clicked_station$Station, "<br> Adjust filters date, time or bearing method to see more."), type="message", duration = 3)
       }
-      selected_station <<- paste0(clicked_station$Station, "_", format(clicked_station$Longitude, scientific=F), "_", format(clicked_station$Latitude, scientific=F))
+      selected_station <<- paste0(clicked_station$Station, "%", format(clicked_station$Longitude, scientific=F), "%", format(clicked_station$Latitude, scientific=F))
     } else {
       selected_station <<- ""
     }
+  }
+})
+
+filtered_bearings <- reactive({
+  req(global$bearing)
+  req("Bearings" %in% input$map_groups)
+  global$bearing[timestamp %between% input$slider_bearings_time]
+}) %>% debounce(millis = 750)
+
+observeEvent(filtered_bearings(), ignoreNULL = T, ignoreInit = F, {
+  leafletProxy("map") %>%
+    clearGroup("Bearings") %>%
+    clearGroup("st_bearings")
+  
+  bearings <- filtered_bearings()[!is.na(angle)]
+  if (bearings[, .N] > 0) {
+    if (uniqueN(global$bearing$freq_tag) > 1){
+      bColor <- bearings$freq_tag
+    } else{
+      bColor <- bearings$timestamp
+    }
+    bearings[, c("dest_lon", "dest_lat") := as.data.table(getHeadingCoords(longitude, latitude, bearings$angle, estimateDist(.SD[, strength], minLength = 100)))]
+    bearings[, color := tri_palette()$pal(bColor)]
+    a_ply(.data = bearings, .margins = 1, .expand = F, .fun = function(b) {
+      leafletProxy("map") %>%
+        addPolylines(
+          lng = c(
+            b$longitude,
+            b$dest_lon
+          ),
+          lat = c(
+            b$latitude,
+            b$dest_lat
+          ),
+          color =  b$color,
+          group="Bearings",
+          weight = 1,
+          opacity = 0.4,
+          label = HTML(
+            "Time: ", format(as.POSIXct(b$timestamp, origin = "1970-01-01", tz = "GMT"), "%d.%m. %H:%M:%S", tz = "GMT"), "<br>",
+            "Timeslot: ", format(as.POSIXct(b$time_matched, origin = "1970-01-01", tz = "GMT"), "%d.%m. %H:%M:%S", tz = "GMT"),"<br>",
+            "Angle: ", b$angle, "<br>",
+            "Strength: ", b$strength, "<br>",
+            "bIds: ", b$bId
+          )
+        )
+    })
+  }
+})
+
+observeEvent(input$map_groups, ignoreInit = T, {
+  if ("Bearings" %in% input$map_groups) {
+    showElement(id="panel_bearings_time")
+  } else{
+    hideElement(id="panel_bearings_time")
   }
 })
 

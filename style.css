@@ -42,3 +42,15 @@
     cursor: not-allowed !important;
     border-color: #f8f8f8 !important;
 }
+
+#panel_bearings_time {
+  left: 55px;
+  right: 70px;
+  top: 61px;
+  position: fixed;
+  cursor: inherit;
+  border: 2px solid rgba(0,0,0,0.2);
+  padding: 5px 30px 0px 30px;
+  background-color: #fff;
+  border-radius: 5px;
+}
