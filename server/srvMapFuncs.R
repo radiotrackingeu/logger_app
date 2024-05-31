@@ -262,39 +262,97 @@ calculate_cone_corners<-function(x,y,dir,length,deg){
 #   print(end_time)  # Print the timing information
 #   return(tmp)
 # }
+# 
+# wgstoutm_old <- function(x, y) {
+#   # Create an sf object
+#   data <- data.frame(X = x, Y = y)
+#   sf_data <- st_as_sf(data, coords = c("X", "Y"), crs = 4326)  # WGS84 Lat Long
+# 
+#   # Function to calculate UTM zone based on longitude
+#   get_utm_zone <- function(longitude) {
+#     (floor((longitude + 180) / 6) %% 60) + 1
+#   }
+#   # Create a data frame to store results
+#   results <- data.frame(X = numeric(length(x)), Y = numeric(length(y)), zone = integer(length(x)))
+# 
+#   # Loop through each row to calculate the UTM zone and transform
+#   for (i in seq_along(x)) {
+#     zone <- get_utm_zone(x[i])
+#     crs_string <- sprintf("+proj=utm +zone=%d +ellps=WGS84 +datum=WGS84 +units=m +no_defs", zone)
+#     transformed <- st_transform(sf_data[i, ], crs = crs_string)
+# 
+#     # Extract transformed coordinates
+#     coords <- st_coordinates(transformed)
+#     results$X[i] <- coords[1, "X"]
+#     results$Y[i] <- coords[1, "Y"]
+#     results$zone[i] <- zone
+#   }
+#     
+# 
+#   return(results)
+# }
 
-wgstoutm <- function(x, y) {
-  # Create an sf object
-  data <- data.frame(X = x, Y = y)
-  sf_data <- st_as_sf(data, coords = c("X", "Y"), crs = 4326)  # WGS84 Lat Long
-
+wgstoutm_plyr <- function(x, y) {
   # Function to calculate UTM zone based on longitude
   get_utm_zone <- function(longitude) {
     (floor((longitude + 180) / 6) %% 60) + 1
   }
+  
   # Create a data frame to store results
   results <- data.frame(X = numeric(length(x)), Y = numeric(length(y)), zone = integer(length(x)))
-
-  # Loop through each row to calculate the UTM zone and transform
-  for (i in seq_along(x)) {
-    zone <- get_utm_zone(x[i])
+  
+  # Create an sf object
+  data <- data.table(X = x, Y = y, zone=get_utm_zone(x))
+  
+  results <- ddply(.data = data, .variables = "zone", .fun = function(dta) {
+    zone = unique(dta$zone)
+    sf_data <- st_as_sf(dta, coords = c("X", "Y"), crs = 4326)  # WGS84 Lat Long
     crs_string <- sprintf("+proj=utm +zone=%d +ellps=WGS84 +datum=WGS84 +units=m +no_defs", zone)
-    transformed <- st_transform(sf_data[i, ], crs = crs_string)
-
+    transformed <- st_transform(sf_data, crs = crs_string)
+    
     # Extract transformed coordinates
     coords <- st_coordinates(transformed)
-    results$X[i] <- coords[1, "X"]
-    results$Y[i] <- coords[1, "Y"]
-    results$zone[i] <- zone
+    data.frame(
+      X = coords[, "X"],
+      Y = coords[, "Y"],
+      zone = zone
+    )
+  })
+
+  return(results)
+}
+
+wgstoutm <- function(x, y) {
+  # Function to calculate UTM zone based on longitude
+  get_utm_zone <- function(longitude) {
+    (floor((longitude + 180) / 6) %% 60) + 1
   }
+  
+  data <- data.table(X = x, Y = y, zone=get_utm_zone(x))
+  data <- data[complete.cases(data),]
+  
+  transform_wgs <- function(dta, zone) {
+    sf_data <- st_as_sf(dta, coords = c("X", "Y"), crs = 4326)  # WGS84 Lat Long
+    crs_string <- sprintf("+proj=utm +zone=%d +ellps=WGS84 +datum=WGS84 +units=m +no_defs", zone)
+    transformed <- st_transform(sf_data, crs = crs_string)
     
+    # Extract transformed coordinates
+    coords <- st_coordinates(transformed)
+    data.table(
+      X = coords[, "X"],
+      Y = coords[, "Y"],
+      zone = zone
+    )
+  }
+  setDT(data)
+  results <- data[, transform_wgs(.SD, zone), by=zone]
 
   return(results)
 }
 
 # UTM to WGS conversion
 
-utmtowgs <- function(x,y, zone) {
+utmtowgs_for <- function(x,y, zone) {
   # Create an sf object
   data <- data.frame(X = x, Y = y, zone = zone)
   data <- data[complete.cases(data),]
@@ -318,6 +376,61 @@ utmtowgs <- function(x,y, zone) {
     results$X[i] <- coords[1, "X"]
     results$Y[i] <- coords[1, "Y"]
   }
+  
+  return(results)
+}
+# UTM to WGS conversion
+
+utmtowgs_plyr <- function(x, y, zone) {
+  # Create an sf object
+  data <- data.frame(X = x, Y = y, zone = zone)
+  data <- data[complete.cases(data),]
+  
+  results <- ddply(.data = data, .variables = "zone", .fun = function(dta) {
+    utm_crs <- sprintf("+proj=utm +zone=%d +ellps=WGS84 +datum=WGS84 +units=m +no_defs", unique(dta$zone))
+  
+    #Create an sf object with the appropriate UTM CRS
+    xy_sf <- st_as_sf(data.frame(X = dta$X, Y = dta$Y), coords = c("X", "Y"), crs = utm_crs)
+    
+    # Transform the coordinates to WGS84
+    transformed <- st_transform(xy_sf, crs = "+proj=longlat +datum=WGS84")
+    
+    # Extract the longitude and latitude
+    coords <- st_coordinates(transformed)
+    data.frame(
+      X = coords[, "X"],
+      Y = coords[, "Y"]
+    )
+  #Process each point individually
+  })
+  
+  return(results)
+}
+
+utmtowgs <- function(x, y, zone) {
+  # Create an sf object
+  data <- data.frame(X = x, Y = y, zone = zone)
+  data <- data[complete.cases(data),]
+  
+  # results <- ddply(.data = data, .variables = "zone", .fun = function(dta) {
+  transform_utm <- function(dta, zone) { 
+    utm_crs <- sprintf("+proj=utm +zone=%d +ellps=WGS84 +datum=WGS84 +units=m +no_defs", zone)
+  
+    #Create an sf object with the appropriate UTM CRS
+    xy_sf <- st_as_sf(data.frame(X = dta$X, Y = dta$Y), coords = c("X", "Y"), crs = utm_crs)
+    
+    # Transform the coordinates to WGS84
+    transformed <- st_transform(xy_sf, crs = "+proj=longlat +datum=WGS84")
+    
+    # Extract the longitude and latitude
+    coords <- st_coordinates(transformed)
+    data.table(
+      X = coords[, "X"],
+      Y = coords[, "Y"]
+    )
+  }
+  setDT(data)
+  results <- data[, transform_utm(.SD, zone), by=zone][, zone:=NULL]
   
   return(results)
 }
