@@ -286,6 +286,7 @@ observeEvent(input$map_shape_click, ignoreNULL = T, ignoreInit = T, {
               label = HTML(
                 "Time: ", format(as.POSIXct(b$timestamp, origin = "1970-01-01", tz = "GMT"), "%d.%m. %H:%M:%S", tz = "GMT"), "<br>",
                 "Timeslot: ", format(as.POSIXct(b$time_matched, origin = "1970-01-01", tz = "GMT"), "%d.%m. %H:%M:%S", tz = "GMT"),"<br>",
+                "Tag: ", b$freq_tag, "<br>",
                 "Station:", b$station, "<br>",
                 "Angle: ", b$angle, "<br>",
                 "Strength: ", b$strength
@@ -314,6 +315,7 @@ observeEvent(input$map_shape_click, ignoreNULL = T, ignoreInit = T, {
               label = HTML(
                 "Time: ", format(as.POSIXct(b$timestamp, origin = "1970-01-01", tz = "GMT"), "%d.%m. %H:%M:%S", tz = "GMT"), "<br>",
                 "Timeslot: ", format(as.POSIXct(b$time_matched, origin = "1970-01-01", tz = "GMT"), "%d.%m. %H:%M:%S", tz = "GMT"),"<br>",
+                "Tag: ", b$freq_tag, "<br>",
                 "Station:", b$station, "<br>", 
                 "Angle: ", b$angle, "<br>", 
                 "Strength: ", b$strength, "<br>",
@@ -363,11 +365,12 @@ observeEvent(input$map_marker_click, ignoreNULL = T, ignoreInit = T, {
               ),
               color =  b$color,
               group="st_bearings",
-              weight = 1,
-              opacity = 0.4,
+              weight = 1.5,
+              opacity = 0.6,
               label = HTML(
                 "Time: ", format(as.POSIXct(b$timestamp, origin = "1970-01-01", tz = "GMT"), "%d.%m. %H:%M:%S", tz = "GMT"), "<br>",
                 "Timeslot: ", format(as.POSIXct(b$time_matched, origin = "1970-01-01", tz = "GMT"), "%d.%m. %H:%M:%S", tz = "GMT"),"<br>",
+                "Tag: ", b$freq_tag, "<br>",
                 "Angle: ", b$angle, "<br>",
                 "Strength: ", b$strength, "<br>",
                 "bIds: ", b$bId
@@ -417,11 +420,12 @@ observeEvent(filtered_bearings(), ignoreNULL = T, ignoreInit = F, {
           ),
           color =  b$color,
           group="Bearings",
-          weight = 1,
-          opacity = 0.4,
+          weight = 1.5,
+          opacity = 0.6,
           label = HTML(
             "Time: ", format(as.POSIXct(b$timestamp, origin = "1970-01-01", tz = "GMT"), "%d.%m. %H:%M:%S", tz = "GMT"), "<br>",
             "Timeslot: ", format(as.POSIXct(b$time_matched, origin = "1970-01-01", tz = "GMT"), "%d.%m. %H:%M:%S", tz = "GMT"),"<br>",
+            "Tag: ", b$freq_tag, "<br>",
             "Angle: ", b$angle, "<br>",
             "Strength: ", b$strength, "<br>",
             "bIds: ", b$bId
