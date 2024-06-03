@@ -135,7 +135,7 @@ output$correction_list <- renderUI({
 output$polar_output <- renderPlot({
   shiny::validate(need(global$bearing, "No data found"))
   p<-ggplot(global$bearing)+
-    geom_bar(aes(x=round(angle),fill=Station, group=Station),width=10)+
+    geom_bar(aes(x=round(angle), fill=station, group=station), width=10)+
     xlab("DoA")+ylab("Number of signals")+
     facet_wrap(~freq_tag)+
     coord_polar()+theme_minimal()+
@@ -195,7 +195,7 @@ output$doa<- renderDataTable({
 # output DoA plot
 output$doa_plot <- renderPlot({
   shiny::validate(need(global$bearing, "No data found - first do calculation"))
-  ggplot(global$bearing) + geom_point(mapping=aes(x=timestamp,y=angle,col=Station)) + facet_wrap(~freq_tag)+
+  ggplot(global$bearing) + geom_point(mapping=aes(x=timestamp,y=angle,col=station)) + facet_wrap(~freq_tag)+
     scale_x_datetime(labels = function(x) format(x, "%d-%m \n %H:%M:%S"))
 })
 

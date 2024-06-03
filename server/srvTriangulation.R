@@ -27,7 +27,7 @@ triangulate <- function(receivers, bearings, only_one = F, time_error_inter_stat
   # stations<-as.data.frame(na.omit(unique(receivers[,c("Station","Longitude","Latitude")])))
   # stations<-stations[!duplicated(stations$Station),]
   # stations_utm<-cbind(stations,utm=wgstoutm(stations[,"Longitude"],stations[,"Latitude"]))
-  stations <- na.omit(unique(bearings[, c("Station", "longitude", "latitude")]))
+  stations <- na.omit(unique(bearings[, c("station", "longitude", "latitude")]))
   # setDF(stations)
   # stations<-stations[!duplicated(stations$Station),]
   stations_utm <- cbind(stations, utm = wgstoutm(stations$longitude, stations$latitude))
@@ -49,7 +49,7 @@ triangulate <- function(receivers, bearings, only_one = F, time_error_inter_stat
     num_timestamps_unique <- length(timestamps_unique)
     # for each times interval
     setDT(tmp_f)
-    tmp_f <- tmp_f[stations_utm, on = c("Station", "longitude", "latitude")]
+    tmp_f <- tmp_f[stations_utm, on = c("station", "longitude", "latitude")]
     split <- ddply(
       .data = tmp_f, 
       .variables = c("timestamp"), 
@@ -66,7 +66,7 @@ triangulate <- function(receivers, bearings, only_one = F, time_error_inter_stat
           bearing_recs = tmp_fts$recs,
           bearing_bIds = paste(tmp_fts$bId),
           tri_method = "tri_one",
-          tri_stations = tmp_fts$Station
+          tri_stations = tmp_fts$station
         )
       } else if (nrow(tmp_fts) >= 2) {
         data.table(
@@ -80,7 +80,7 @@ triangulate <- function(receivers, bearings, only_one = F, time_error_inter_stat
           bearing_recs = paste(tmp_fts$recs, collapse="/"),
           bearing_bIds = paste(tmp_fts$bId, collapse="/"),
           tri_method = tri_option,
-          tri_stations = paste0(tmp_fts$Station, collapse = "/")
+          tri_stations = paste0(tmp_fts$station, collapse = "/")
         )
       } else {
         NULL
@@ -110,7 +110,7 @@ timematch_inter <- function(data, inter_error = 0.6) {
   for (i in 2:nrow(tmp_s)) {
     if (sum(tmp_s$td[(i - gc):i]) <= inter_error) {
       tmp_s$ti[i] <- tmp_s$timestamp[i - gc - 1]
-      if (any(duplicated(tmp_s$Station[(i - gc - 1):i]))) {
+      if (any(duplicated(tmp_s$station[(i - gc - 1):i]))) {
         tmp_s$ti[i] <- tmp_s$timestamp[i]
         gc <- -1
       }
@@ -238,12 +238,12 @@ smooth_to_time_match_bearings <- function(data, receivers, spar_value = 0.01, pr
   smoothed_data <- NULL
   cnt_recs <- 0
   # for each receiver
-  for (i in unique(data$Station)) {
+  for (i in unique(data$station)) {
     if (progress) {
       setProgress(value = cnt_recs)
       incProgress(amount = 0, detail = paste0("Station: ", i))
     }
-    tmp_r <- subset(data, Station == i)
+    tmp_r <- subset(data, station == i)
     num_tags <- length(unique(tmp_r$freq_tag))
     # for each frequency tag
     for (l in unique(tmp_r$freq_tag)) {
@@ -259,7 +259,7 @@ smooth_to_time_match_bearings <- function(data, receivers, spar_value = 0.01, pr
           as.numeric(time_seq)
         )$y,
         timestamp = time_seq,
-        Station = i,
+        station = i,
         strength = predict(
           smooth.spline(tmp_rf$timestamp, tmp_rf$strength, spar = spar_value),
           as.numeric(time_seq)

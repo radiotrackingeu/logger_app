@@ -343,7 +343,7 @@ observeEvent(input$map_marker_click, ignoreNULL = T, ignoreInit = T, {
     req(global$bearing)
     if (!selected_station == input$map_marker_click$id) {
       clicked_station <- unique(global$receivers[Station == strsplit(x=input$map_marker_click$id, split = "%", fixed = T)[[1]][1]], by = c("Station"))
-      bearings <- global$bearing[Station == clicked_station$Station][!is.na(angle)]
+      bearings <- global$bearing[station == clicked_station$Station][!is.na(angle)]
       if (bearings[, .N] > 0) {
         if (uniqueN(global$bearing$freq_tag) > 1){
           bColor <- bearings$freq_tag
