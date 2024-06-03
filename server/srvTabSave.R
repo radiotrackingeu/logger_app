@@ -1,31 +1,110 @@
 #srvTabSave.R
 
+
+sqlite_export_tables <- c(
+  "Filtered Signals" = "rteu_logger_data", 
+  "Frequencies" = "rteu_freqs", 
+  "Receivers" = "rteu_antenna", 
+  "Remote Connections" = "rteu_connections", 
+  # "Calibration Data" = "rteu_calibration", 
+  "Calculated Bearings" = "rteu_bearings", 
+  "Calculated Triangulations" = "rteu_triangulations"#, 
+  # "Manual Map Markers" = "rteu_manual_markers"
+)
+
+output$download_ui_tables <- renderUI(
+  awesomeCheckboxGroup(
+    inputId = "download_checkbox_tables",
+    label = "Select tables to be included",
+    choices = sqlite_export_tables,
+    selected = NULL
+  )
+)
+
+outputOptions(output, "download_ui_tables", suspendWhenHidden = FALSE)
+
+observeEvent(input$navbar, {
+  req(input$navbar == "Save Data")
+  enabled <- NULL
+  
+  if ("rteu_logger_data" %in% sqlite_export_tables && !is.null(filtered_data()) && nrow(filtered_data()) > 0) {
+    enabled <- c(enabled, "rteu_logger_data")
+  }
+  
+  if ("rteu_freqs" %in% sqlite_export_tables && !is.null(global$frequencies) && nrow(global$frequencies) > 0) {
+    enabled <- c(enabled, "rteu_freqs")
+  }
+  
+  if ("rteu_antenna" %in% sqlite_export_tables && !is.null(global$receivers) && nrow(global$receivers) > 0) {
+    enabled <- c(enabled, "rteu_antenna")
+  }
+  
+  if ("rteu_connections" %in% sqlite_export_tables && !is.null(global$connections) && nrow(global$connections) > 0) {
+    enabled <- c(enabled, "rteu_connections")
+  }
+
+  if ("rteu_calibration" %in% sqlite_export_tables && !is.null(global$calibration) && nrow(global$calibration) > 0) {
+    enabled <- c(enabled, "rteu_calibration")
+  }
+  
+  if ("rteu_bearings" %in% sqlite_export_tables && !is.null(global$bearing) && nrow(global$bearing) > 0) {
+    enabled <- c(enabled, "rteu_bearings")
+  }
+  
+  if ("rteu_triangulations" %in% sqlite_export_tables && !is.null(global$triangulation) && nrow(global$triangulation) > 0) {
+    enabled <- c(enabled, "rteu_triangulations")
+  }
+  
+  if ("rteu_manual_markers" %in% sqlite_export_tables && !is.null(global$map_markers) && nrow(global$map_markers) > 0) {
+    enabled <- c(enabled, "rteu_manual_markers")
+  }
+  
+  updateAwesomeCheckboxGroup(
+    inputId = "download_checkbox_tables", 
+    selected = enabled
+  )
+  
+  alply(.data=sqlite_export_tables, .margins = 1, .expand = F, .fun = function(t) {
+    if (t %in% enabled) {
+      shinyjs::enable(selector = paste0("input[value = '", t, "']"))
+    } else {
+      shinyjs::disable(selector = paste0("input[value = '", t, "']"))
+    }
+  })
+})
+
 output$filtered_data_sqlite <- downloadHandler(
   filename = function() {
     "filtered_data.sqlite"
   },
   content = function(file) {
     con <- dbConnect(RSQLite::SQLite(), file)
-    if(!is.null(filtered_data())){
+    if("rteu_logger_data" %in% input$download_checkbox_tables && !is.null(filtered_data())){
       dbWriteTable(con,"rteu_logger_data",filtered_data(),overwrite=TRUE)
     }
-    if(!is.null(global$frequencies)){
+    if("rteu_freqs" %in% input$download_checkbox_tables &&!is.null(global$frequencies)){
       dbWriteTable(con,"rteu_freqs",global$frequencies,overwrite=TRUE)
     }
-    if(!is.null(global$receivers)){
+    if("rteu_antenna" %in% input$download_checkbox_tables &&!is.null(global$receivers)){
       dbWriteTable(con,"rteu_antenna",global$receivers,overwrite=TRUE)
     }
-    if(!is.null(global$connections)){
+    if("rteu_connections" %in% input$download_checkbox_tables &&!is.null(global$connections)){
       dbWriteTable(con,"rteu_connections",global$connections,overwrite=TRUE)
     }
-    if(!is.null(global$calibration)){
+    if("rteu_calibration" %in% input$download_checkbox_tables && !is.null(global$calibration)){
       dbWriteTable(con,"rteu_calibration",global$calibration,overwrite=TRUE)
     }
-    if(!is.null(global$map_markers)){
-      dbWriteTable(con,"rteu_map_markers",global$map_markers,overwrite=TRUE)
+    if("rteu_bearings" %in% input$download_checkbox_tables && !is.null(global$bearing)){
+      dbWriteTable(con,"rteu_bearings", global$bearing, overwrite=TRUE)
     }
+    if("rteu_triangulations" %in% input$download_checkbox_tables && !is.null(global$triangulation)){
+      dbWriteTable(con,"rteu_triangulations",global$triangulation,overwrite=TRUE)
+    }
+    if("rteu_manual_markers" %in% input$download_checkbox_tables && !is.null(global$map_markers)){
+      dbWriteTable(con,"rteu_manual_markers",global$map_markers,overwrite=TRUE)
+    }
+    
     calibration_state <- data.frame(global$calibrated)
-    print(calibration_state)
     dbWriteTable(con, "rteu_calibrated", calibration_state, overwrite=TRUE)
     
     dbDisconnect(con)
