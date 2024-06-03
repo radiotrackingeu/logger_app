@@ -131,23 +131,23 @@ get_logger_files <- function() {
 #   }
 #   )
 # }
-
-filter_data_and_save <- function(filepath_db,filepath_filterSettings, receiver){
-  # open db
-  con <- dbConnect(RSQLite::SQLite(),filepath_db)
-  # import data
-  data<- dbReadTable(con,receiver)
-  # read file with filter settings
-  filterSettings<-read.csv2(filepath_filterSettings,dec=".", stringsAsFactors = FALSE, row.names = NULL)
-  # filter for characteristic length
-  data<-filter_data_length(data,filterSettings$duration)
-  # filter for bandwith
-  data<-filter_signal_bandwith(data,filterSettings$bandwith)
-  # filter for signal strength
-  data<-filter_signal_strength(data,filterSettings$strength)
-  #disconnect
-  dbDisconnect(con)
-}
+# 
+# filter_data_and_save <- function(filepath_db,filepath_filterSettings, receiver){
+#   # open db
+#   con <- dbConnect(RSQLite::SQLite(),filepath_db)
+#   # import data
+#   data<- dbReadTable(con,receiver)
+#   # read file with filter settings
+#   filterSettings<-read.csv2(filepath_filterSettings,dec=".", stringsAsFactors = FALSE, row.names = NULL)
+#   # filter for characteristic length
+#   data<-filter_data_length(data,filterSettings$duration)
+#   # filter for bandwith
+#   data<-filter_signal_bandwith(data,filterSettings$bandwith)
+#   # filter for signal strength
+#   data<-filter_signal_strength(data,filterSettings$strength)
+#   #disconnect
+#   dbDisconnect(con)
+# }
 
 
 
