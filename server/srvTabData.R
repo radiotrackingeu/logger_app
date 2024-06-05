@@ -366,17 +366,6 @@ bearings_list  <- reactive({
   blist[, timestamp:=as.POSIXct(timestamp, tz = "UTC", origin="1970-01-01 00:00:00 UTC")]
   blist[, time_matched:=as.POSIXct(time_matched, tz = "UTC", origin="1970-01-01 00:00:00 UTC")]
   return(unique(blist))
-  # for (i in seq_along(input$SQLite_filepath[, "datapath"])) {
-  #   con <- dbConnect(RSQLite::SQLite(), input$SQLite_filepath[i, "datapath"])
-  #   if (dbExistsTable(con, "rteu_bearings")) {
-  #     b <- dbReadTable(con, "rteu_bearings")
-  #     setDT(b)
-  #     b[, bId:=bId*100+i]
-  #     tmp <- rbind(tmp, b)
-  #   }
-  #   dbDisconnect(con)
-  # }
-  # return(unique(tmp))
 })
 
 triangulations_list  <- reactive({
@@ -400,17 +389,6 @@ triangulations_list  <- reactive({
   tlist <- rbindlist(tlist, fill=T)
   tlist[, timestamp:=as.POSIXct(timestamp, tz = "UTC", origin="1970-01-01 00:00:00 UTC")]
   return(unique(tlist))
-  # for (i in seq_along(input$SQLite_filepath[, "datapath"])) {
-  #   con <- dbConnect(RSQLite::SQLite(), input$SQLite_filepath[i, "datapath"])
-  #   if (dbExistsTable(con, "rteu_bearings")) {
-  #     b <- dbReadTable(con, "rteu_bearings")
-  #     setDT(b)
-  #     b[, bId:=bId*100+i]
-  #     tmp <- rbind(tmp, b)
-  #   }
-  #   dbDisconnect(con)
-  # }
-  # return(unique(tmp))
 })
 
 gpx_data <- reactive({
@@ -792,3 +770,4 @@ observe({
         disable(id="add_data")
     }
   )
+})
