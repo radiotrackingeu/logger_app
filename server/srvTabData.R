@@ -756,7 +756,39 @@ observeEvent(input$SQLite_filepath, ignoreNULL = T, {
     enable(id='add_data')
 })
 
-# observeEvent(input$logger_filepath, ignoreNULL = T, {
-#   if (!is.null(input$logger_filepath$datapath))
-#     enable(id='add_data')
-# })
+observe({
+  enable(id = "add_data")
+  switch (input$data_type_input,
+    "SQLite File" = {
+      if (is.null(input$SQLite_filepath))
+        disable(id="add_data")
+    },
+    "Excel Files" = {
+      switch(input$excel_data_content,
+        "Antennas" = {
+          if (is.null(input$excel_filepath_receivers))
+            disable(id="add_data")
+        },
+        "Frequencies" = {
+          if (is.null(input$excel_filepath_frequencies))
+            disable(id="add_data")
+        },
+        "Connections" = {
+          if (is.null(input$excel_filepath_remote))
+            disable(id="add_data")
+        },
+        "Calibration" = {
+          if (is.null(input$excel_filepath_calibration))
+            disable(id="add_data")
+        },
+        "Map Markers" = {
+          if (is.null(input$excel_filepath_map_markers))
+            disable(id="add_data")
+        }
+      )
+    },
+    "Miscellaneous" = {
+      if (is.null(input$coordinates_filepath))
+        disable(id="add_data")
+    }
+  )
