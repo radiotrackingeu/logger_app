@@ -137,7 +137,7 @@ tabPanel("File Input",
              id = "data_tab_tabset",
              tabPanel("Preview of upload",
                       dataTableOutput("data_tab_preview")),
-             tabPanel("All Logger Data",
+             tabPanel("Logger Data",
                       dataTableOutput("data_tab_logger_table"),
                       actionButton("clear_logger_data", "Clear table")
              ),
@@ -149,9 +149,17 @@ tabPanel("File Input",
                       dataTableOutput("data_tab_remote_con_table"),
                       actionButton("clear_connections_data", "Clear table")
              ),
-             tabPanel("Frequencies used",
+             tabPanel("Frequencies",
                       dataTableOutput("data_tab_freq_table"),
                       actionButton("clear_frequencies_data", "Clear table")
+             ),
+             tabPanel("Bearings",
+                      dataTableOutput("data_tab_bearings_table"),
+                      actionButton("clear_bearings_data", "Clear table")
+             ),
+             tabPanel("Triangulations",
+                      dataTableOutput("data_tab_triangulations_table"),
+                      actionButton("clear_triangulations_data", "Clear table")
              ),
              tabPanel("Calibration",
                       dataTableOutput("data_tab_calibration_table"),

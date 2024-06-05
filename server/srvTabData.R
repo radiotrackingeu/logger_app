@@ -22,10 +22,24 @@ global$calibrated = FALSE
 # Add Data Button is pressed
 observeEvent(input$add_data,{
   global$connections <- unique.data.frame(rbind(remote_connections(), global$connections))
-  global$receivers<-unique(rbind(receiver_list(), global$receivers), fill=T)
+  global$receivers <- unique(rbind(receiver_list(), global$receivers), fill=T)
   global$frequencies <- unique.data.frame(rbind(frequencies_list(), global$frequencies))
   global$calibration <- unique.data.frame(rbind(calibration_list(), global$calibration))
   global$map_markers <- unique.data.frame(rbind(map_markers(), global$map_markers))
+  
+  if (!is.null(global$bearing) && nrow(global$bearing) > 0){
+    global$bearing$bId <- global$bearing$bId*10
+    bearings_list()[, bId:=bId*10+1]
+  }
+  global$bearing <- unique(rbindlist(list(bearings_list(), global$bearing)), by=names(global$bearing)[!names(global$bearing) == "bId"] )
+
+  if (!is.null(global$triangulation) && nrow(global$triangulation) > 0){
+    global$triangulation$tId <- global$triangulation$tId*10
+    global$triangulation$bearing_bIds <- laply(strsplit(global$triangulation$bearing_bIds, split="/", fixed = T), .fun = function(bs){ paste(as.numeric(bs) * 10, collapse = "/")})
+    triangulations_list()[, tId:=tId*10+1]
+    triangulations_list()[, bearing_bIds:= laply(strsplit(bearing_bIds, split="/", fixed = T), .fun = function(bs){ paste(as.numeric(bs) * 10+1, collapse = "/")})]
+  }
+  global$triangulation <- as.data.frame(unique(rbindlist(list(triangulations_list(), global$triangulation)), by=names(global$triangulation)[!names(global$triangulation) %in% c("bearing_bIds", "tId")] ))
   
   if (!is.null(global$extra_points) && length(global$extra_points) > 0) {
     # Append new data
@@ -126,6 +140,16 @@ observe({
 })
 
 observe({
+    input$clear_bearings_data
+    global$bearing <- NULL
+})
+
+observe({
+    input$clear_frequencies_data
+    global$triangulation <- NULL
+})
+
+observe({
     input$clear_connections_data
     input$clear_connections_data_from_live
     global$connections <- NULL
@@ -167,6 +191,8 @@ observe({update_single_tab_title_colour(global$signals, "Logger data")})
 observe({update_single_tab_title_colour(global$receivers, "Antennas")})
 observe({update_single_tab_title_colour(global$connections, "Connections")})
 observe({update_single_tab_title_colour(global$frequencies, "Frequencies")})
+observe({update_single_tab_title_colour(global$bearing, "Bearings")})
+observe({update_single_tab_title_colour(global$triangulation, "Triangulations")})
 observe({update_single_tab_title_colour(global$calibration, "Calibration")})
 observe({update_single_tab_title_colour(global$map_markers, "Map Markers")})
 observe({update_single_tab_title_colour(global$keepalives, "Keepalives")})
@@ -310,6 +336,74 @@ calibration_list <- reactive({
             }
         )
     tmp
+})
+
+bearings_list  <- reactive({
+  tmp <- data.table()
+  req(input$data_type_input == "SQLite File")
+  if (nrow(input$SQLite_filepath) > 99)
+    stop("Can't open more than 99 files at the same time")
+    
+  blist <- alply(.data=cbind(input$SQLite_filepath, num=seq_len(nrow(input$SQLite_filepath))), .margins = 1, .expand = F, .fun = function(file) {
+    con <- dbConnect(RSQLite::SQLite(), file$datapath)
+    if (dbExistsTable(con, "rteu_bearings")) {
+      b <- dbReadTable(con, "rteu_bearings")
+      setDT(b)
+      b[, bId:=bId*100+file$num]
+    }
+    dbDisconnect(con)
+    b
+  })
+  
+  blist <- rbindlist(blist, fill=T)
+  blist[, timestamp:=as.POSIXct(timestamp, tz = "UTC", origin="1970-01-01 00:00:00 UTC")]
+  blist[, time_matched:=as.POSIXct(time_matched, tz = "UTC", origin="1970-01-01 00:00:00 UTC")]
+  return(unique(blist))
+  # for (i in seq_along(input$SQLite_filepath[, "datapath"])) {
+  #   con <- dbConnect(RSQLite::SQLite(), input$SQLite_filepath[i, "datapath"])
+  #   if (dbExistsTable(con, "rteu_bearings")) {
+  #     b <- dbReadTable(con, "rteu_bearings")
+  #     setDT(b)
+  #     b[, bId:=bId*100+i]
+  #     tmp <- rbind(tmp, b)
+  #   }
+  #   dbDisconnect(con)
+  # }
+  # return(unique(tmp))
+})
+
+triangulations_list  <- reactive({
+  tmp <- data.table()
+  req(input$data_type_input == "SQLite File")
+  if (nrow(input$SQLite_filepath) > 99)
+    stop("Can't open more than 99 files at the same time")
+    
+  tlist <- alply(.data=cbind(input$SQLite_filepath, num=seq_len(nrow(input$SQLite_filepath))), .margins = 1, .expand = F, .fun = function(file) {
+    con <- dbConnect(RSQLite::SQLite(), file$datapath)
+    if (dbExistsTable(con, "rteu_triangulations")) {
+      t <- dbReadTable(con, "rteu_triangulations")
+      setDT(t)
+      t[, tId:=tId*100+file$num]
+      t[, bearing_bIds:=laply(strsplit(bearing_bIds, split="/", fixed = T), .fun = function(bs){ paste(as.numeric(bs) * 100 + 1, collapse = "/")})]
+    }
+    dbDisconnect(con)
+    t
+  })
+  
+  tlist <- rbindlist(tlist, fill=T)
+  tlist[, timestamp:=as.POSIXct(timestamp, tz = "UTC", origin="1970-01-01 00:00:00 UTC")]
+  return(unique(tlist))
+  # for (i in seq_along(input$SQLite_filepath[, "datapath"])) {
+  #   con <- dbConnect(RSQLite::SQLite(), input$SQLite_filepath[i, "datapath"])
+  #   if (dbExistsTable(con, "rteu_bearings")) {
+  #     b <- dbReadTable(con, "rteu_bearings")
+  #     setDT(b)
+  #     b[, bId:=bId*100+i]
+  #     tmp <- rbind(tmp, b)
+  #   }
+  #   dbDisconnect(con)
+  # }
+  # return(unique(tmp))
 })
 
 gpx_data <- reactive({
@@ -613,6 +707,16 @@ output$data_tab_logger_table <- renderDataTable({
 output$data_tab_freq_table <- renderDataTable({
   shiny::validate(need(global$frequencies, "Please provide frequency data file."))
   global$frequencies
+}, options = list(pageLength = 10), rownames=F)
+
+output$data_tab_bearings_table <- renderDataTable({
+  shiny::validate(need(global$bearing, "Please provide or calculate bearings data."))
+  global$bearing[,.(timestamp, station, angle, freq_tag, strength)]
+}, options = list(pageLength = 10), rownames=F)
+
+output$data_tab_triangulations_table <- renderDataTable({
+  shiny::validate(need(global$triangulation, "Please provide or calculate triangulations data."))
+  global$triangulation[,c("timestamp", "freq_tag", "pos.X", "pos.Y", "tri_stations")]
 }, options = list(pageLength = 10), rownames=F)
 
 output$data_tab_calibration_table <- renderDataTable({
