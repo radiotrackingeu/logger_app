@@ -170,26 +170,33 @@ observe({
     global$keepalives <- NULL
 })
 
-js$mark_invalid("Frequencies")
-js$mark_invalid("Receivers")
-js$mark_invalid("Connections")
-js$mark_invalid("Logger data")
-js$mark_invalid("Calibration")
-js$mark_invalid("Map Markers")
-js$mark_invalid("Keepalives")
+for (label in c(
+  "Logger Data",
+  "Antennas",
+  "Remote Connections",
+  "Frequencies",
+  "Bearings",
+  "Triangulations",
+  "Calibration",
+  "Map Markers",
+  "Keepalives"
+)) {
+  addCssClass(selector = paste0("#data_tab_tabset a:contains('", label, "')"), class = "needed")
+}
+
 
 update_single_tab_title_colour <- function(data, label) {
     if (!is.null(data)) {
-        js$mark_valid(label)
+      addCssClass(selector = paste0("#data_tab_tabset a:contains('", label, "')"), class = "available")
     }
     else {
-        js$mark_invalid(label)
+      removeCssClass(selector = paste0("#data_tab_tabset a:contains('", label, "')"), class = "available")
     }
 }
 
-observe({update_single_tab_title_colour(global$signals, "Logger data")})
+observe({update_single_tab_title_colour(global$signals, "Logger Data")})
 observe({update_single_tab_title_colour(global$receivers, "Antennas")})
-observe({update_single_tab_title_colour(global$connections, "Connections")})
+observe({update_single_tab_title_colour(global$connections, "Remote Connections")})
 observe({update_single_tab_title_colour(global$frequencies, "Frequencies")})
 observe({update_single_tab_title_colour(global$bearing, "Bearings")})
 observe({update_single_tab_title_colour(global$triangulation, "Triangulations")})

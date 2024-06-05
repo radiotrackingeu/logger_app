@@ -53,7 +53,6 @@ ui <- tagList(
   useShinyjs(),
   includeCSS("style.css"),
   includeCSS("tooltip.css"),
-  extendShinyjs("script.js", functions = c("mark_valid", "mark_invalid")),
   add_busy_spinner(spin="circle", height = "30px", width = "30px"),
   navbarPage(id = "navbar", "rteu-logger-app A33",
     source("ui/uiTabData.R")$value,
