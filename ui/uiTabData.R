@@ -13,7 +13,7 @@ tabPanel("File Input",
                  "SQLite_filepath",
                  "Upload data",
                  multiple = TRUE,
-                 accept = NULL,
+                 accept = c(".sqlite", ".db"),
                  width = NULL
                ) %>% {
                  temp = .
