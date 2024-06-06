@@ -335,7 +335,7 @@ observeEvent(input$map_shape_click, ignoreNULL = T, ignoreInit = T, {
           })
         }
         leafletProxy("map") %>%
-          addDetectionCones(cones(), bearings)
+          addDetectionCones(cones(), bearings, group="Antenna Cones")
         selected_tri <<- input$map_shape_click$id
       }
     } else {
@@ -457,12 +457,12 @@ observeEvent(input$map_groups, ignoreInit = T, {
 observeEvent(input$keys, {
   if (input$navbar=="Map"){
     if (input$keys == HOTKEY_TOGGLE_CONES) {
-      if (isTRUE(toggleState$Stations))
-        leafletProxy("map") %>% hideGroup("Masts") %>% hideGroup("Antenna Cones") %>% hideGroup("Detection Cones")
+      if (isTRUE(toggleState$`Antenna Cones`))
+        leafletProxy("map") %>% hideGroup("Antenna Cones")
       else
-        leafletProxy("map") %>% showGroup("Masts") %>% showGroup("Antenna Cones") %>% showGroup("Detection Cones")
+        leafletProxy("map") %>% showGroup("Antenna Cones")
     
-      toggleState$Stations <<- !toggleState$Stations
+      toggleState$`Antenna Cones` <<- !toggleState$`Antenna Cones`
     }
     if ("Bearings" %in% input$map_groups){
       selected_range <- abs(difftime(input$slider_bearings_time[1], input$slider_bearings_time[2], units = "secs"))

@@ -172,7 +172,7 @@ addStations <-function(m, data, ...) {
 #'   return(m)
 #' }
 
-addDetectionCones <- function(m, cones, bearings, zIndex=300) {
+addDetectionCones <- function(m, cones, bearings, zIndex=300, group="Detection Cones") {
   a_ply(.data = bearings, .margins = 1, .fun = function(b) {
     receivers <- tstrsplit(b$recs_all, "/")
     strengths <- tstrsplit(b$strengths,"/", type.convert = T)
@@ -189,7 +189,7 @@ addDetectionCones <- function(m, cones, bearings, zIndex=300) {
         )
         m <<- m %>%
           addPolygons(
-            lng=cone$x, lat=cone$y, fillColor = color_palette()(strengths[[r]]), fillOpacity=0.8, stroke=FALSE, popup=label_cone, group="cones", options = tileOptions(zIndex = zIndex)
+            lng=cone$x, lat=cone$y, fillColor = color_palette()(strengths[[r]]), fillOpacity=0.8, stroke=FALSE, popup=label_cone, group=group, options = tileOptions(zIndex = zIndex)
           )
       }
     }
