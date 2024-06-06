@@ -33,7 +33,8 @@ required_packages<-c(
   #"sp",
   "sf",
   "purrr",
-  "stringr"
+  "stringr",
+  "keys"
 )
 
 # try to load packages and install missing ones
@@ -49,8 +50,12 @@ for (package in required_packages) {
 options(digits.secs = 3)
 options(shiny.maxRequestSize=400000*1024^2)
 
+source("hotkeys.R")
+
 ui <- tagList(
   useShinyjs(),
+  useKeys(),
+  keysInput("keys", hotkeys),
   includeCSS("style.css"),
   includeCSS("tooltip.css"),
   add_busy_spinner(spin="circle", height = "30px", width = "30px"),

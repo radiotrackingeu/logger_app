@@ -3,6 +3,13 @@
 selected_tri <- ""
 selected_station <- ""
 
+toggleState<-list(
+  # "Stations" = T,
+  # "Masts" = T,
+  "Antenna Cones" = T
+  # "Detection Cones" = T
+)
+
 # render map and add stations
 output$map <- renderLeaflet({
   l<-leaflet() %>%
@@ -444,6 +451,30 @@ observeEvent(input$map_groups, ignoreInit = T, {
     showElement(id="panel_bearings_time")
   } else{
     hideElement(id="panel_bearings_time")
+  }
+})
+
+observeEvent(input$keys, {
+  if (input$navbar=="Map"){
+    if (input$keys == HOTKEY_TOGGLE_CONES) {
+      if (isTRUE(toggleState$Stations))
+        leafletProxy("map") %>% hideGroup("Masts") %>% hideGroup("Antenna Cones") %>% hideGroup("Detection Cones")
+      else
+        leafletProxy("map") %>% showGroup("Masts") %>% showGroup("Antenna Cones") %>% showGroup("Detection Cones")
+    
+      toggleState$Stations <<- !toggleState$Stations
+    }
+    if ("Bearings" %in% input$map_groups){
+      selected_range <- abs(difftime(input$slider_bearings_time[1], input$slider_bearings_time[2], units = "secs"))
+      if (input$keys == HOTKEY_TIMESLOT_DOWN)
+        updateSliderInput(inputId = "slider_bearings_time", value=input$slider_bearings_time-selected_range)
+      if (input$keys == HOTKEY_TIMESLOT_UP)
+        updateSliderInput(inputId = "slider_bearings_time", value=input$slider_bearings_time+selected_range)
+      if (input$keys == HOTKEY_TIME_30DOWN)
+        updateSliderInput(inputId = "slider_bearings_time", value=input$slider_bearings_time-30)
+      if (input$keys == HOTKEY_TIME_30UP)
+        updateSliderInput(inputId = "slider_bearings_time", value=input$slider_bearings_time+30)
+    }
   }
 })
 
