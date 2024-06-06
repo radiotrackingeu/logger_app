@@ -3,13 +3,6 @@
 selected_tri <- ""
 selected_station <- ""
 
-toggleState<-list(
-  # "Stations" = T,
-  # "Masts" = T,
-  "Antenna Cones" = T
-  # "Detection Cones" = T
-)
-
 # render map and add stations
 output$map <- renderLeaflet({
   l<-leaflet() %>%
@@ -457,12 +450,16 @@ observeEvent(input$map_groups, ignoreInit = T, {
 observeEvent(input$keys, {
   if (input$navbar=="Map"){
     if (input$keys == HOTKEY_TOGGLE_CONES) {
-      if (isTRUE(toggleState$`Antenna Cones`))
+      if ("Antenna Cones" %in% input$map_groups)
         leafletProxy("map") %>% hideGroup("Antenna Cones")
       else
         leafletProxy("map") %>% showGroup("Antenna Cones")
-    
-      toggleState$`Antenna Cones` <<- !toggleState$`Antenna Cones`
+    }
+    if (input$keys == HOTKEY_TOGGLE_BEARINGS) {
+      if ("Bearings" %in% input$map_groups)
+        leafletProxy("map") %>% hideGroup("Bearings")
+      else
+        leafletProxy("map") %>% showGroup("Bearings")
     }
     if ("Bearings" %in% input$map_groups){
       selected_range <- abs(difftime(input$slider_bearings_time[1], input$slider_bearings_time[2], units = "secs"))
