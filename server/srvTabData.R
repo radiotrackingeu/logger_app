@@ -27,20 +27,23 @@ observeEvent(input$add_data,{
   global$calibration <- unique.data.frame(rbind(calibration_list(), global$calibration))
   global$map_markers <- unique.data.frame(rbind(map_markers(), global$map_markers))
   
-  if (!is.null(global$bearing) && nrow(global$bearing) > 0){
-    global$bearing$bId <- global$bearing$bId*10
-    bearings_list()[, bId:=bId*10+1]
+  if (!is.null(bearings_list())) {
+    if (!is.null(global$bearing) && nrow(global$bearing) > 0){
+      global$bearing$bId <- global$bearing$bId*10
+      bearings_list()[, bId:=bId*10+1]
+    }
+    global$bearing <- unique(rbindlist(list(bearings_list(), global$bearing)), by=names(global$bearing)[!names(global$bearing) == "bId"] )
   }
-  global$bearing <- unique(rbindlist(list(bearings_list(), global$bearing)), by=names(global$bearing)[!names(global$bearing) == "bId"] )
-
-  if (!is.null(global$triangulation) && nrow(global$triangulation) > 0){
-    global$triangulation$tId <- global$triangulation$tId*10
-    global$triangulation$bearing_bIds <- laply(strsplit(global$triangulation$bearing_bIds, split="/", fixed = T), .fun = function(bs){ paste(as.numeric(bs) * 10, collapse = "/")})
-    triangulations_list()[, tId:=tId*10+1]
-    triangulations_list()[, bearing_bIds:= laply(strsplit(bearing_bIds, split="/", fixed = T), .fun = function(bs){ paste(as.numeric(bs) * 10+1, collapse = "/")})]
-  }
-  global$triangulation <- as.data.frame(unique(rbindlist(list(triangulations_list(), global$triangulation)), by=names(global$triangulation)[!names(global$triangulation) %in% c("bearing_bIds", "tId")] ))
   
+  if (!is.null(triangulations_list())) {
+    if (!is.null(global$triangulation) && nrow(global$triangulation) > 0){
+      global$triangulation$tId <- global$triangulation$tId*10
+      global$triangulation$bearing_bIds <- laply(strsplit(global$triangulation$bearing_bIds, split="/", fixed = T), .fun = function(bs){ paste(as.numeric(bs) * 10, collapse = "/")})
+      triangulations_list()[, tId:=tId*10+1]
+      triangulations_list()[, bearing_bIds:= laply(strsplit(bearing_bIds, split="/", fixed = T), .fun = function(bs){ paste(as.numeric(bs) * 10+1, collapse = "/")})]
+    }
+    global$triangulation <- as.data.frame(unique(rbindlist(list(triangulations_list(), global$triangulation)), by=names(global$triangulation)[!names(global$triangulation) %in% c("bearing_bIds", "tId")] ))
+  }
   if (!is.null(global$extra_points) && length(global$extra_points) > 0) {
     # Append new data
     #global$extra_points <- unique(c(global$extra_points, gpx_data()))
@@ -352,6 +355,7 @@ bearings_list  <- reactive({
     stop("Can't open more than 99 files at the same time")
     
   blist <- alply(.data=cbind(input$SQLite_filepath, num=seq_len(nrow(input$SQLite_filepath))), .margins = 1, .expand = F, .fun = function(file) {
+    b <- NULL
     con <- dbConnect(RSQLite::SQLite(), file$datapath)
     if (dbExistsTable(con, "rteu_bearings")) {
       b <- dbReadTable(con, "rteu_bearings")
@@ -363,9 +367,12 @@ bearings_list  <- reactive({
   })
   
   blist <- rbindlist(blist, fill=T)
-  blist[, timestamp:=as.POSIXct(timestamp, tz = "UTC", origin="1970-01-01 00:00:00 UTC")]
-  blist[, time_matched:=as.POSIXct(time_matched, tz = "UTC", origin="1970-01-01 00:00:00 UTC")]
-  return(unique(blist))
+  if (nrow(blist) > 0){
+    blist[, timestamp:=as.POSIXct(timestamp, tz = "UTC", origin="1970-01-01 00:00:00 UTC")]
+    blist[, time_matched:=as.POSIXct(time_matched, tz = "UTC", origin="1970-01-01 00:00:00 UTC")]
+    return(unique(blist))
+  } else
+    return(NULL)
 })
 
 triangulations_list  <- reactive({
@@ -375,6 +382,7 @@ triangulations_list  <- reactive({
     stop("Can't open more than 99 files at the same time")
     
   tlist <- alply(.data=cbind(input$SQLite_filepath, num=seq_len(nrow(input$SQLite_filepath))), .margins = 1, .expand = F, .fun = function(file) {
+    t <- NULL
     con <- dbConnect(RSQLite::SQLite(), file$datapath)
     if (dbExistsTable(con, "rteu_triangulations")) {
       t <- dbReadTable(con, "rteu_triangulations")
@@ -387,8 +395,11 @@ triangulations_list  <- reactive({
   })
   
   tlist <- rbindlist(tlist, fill=T)
-  tlist[, timestamp:=as.POSIXct(timestamp, tz = "UTC", origin="1970-01-01 00:00:00 UTC")]
-  return(unique(tlist))
+  if (nrow(tlist) > 0){
+    tlist[, timestamp:=as.POSIXct(timestamp, tz = "UTC", origin="1970-01-01 00:00:00 UTC")]
+    return(unique(tlist))
+  } else 
+    return(NULL)
 })
 
 gpx_data <- reactive({
