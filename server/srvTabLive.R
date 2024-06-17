@@ -12,6 +12,38 @@ observeEvent(input$add_manual_connection, {
     }
 })
 
+live_datetime_after <- eventReactive(ignoreNULL = F, ignoreInit = F, {
+  input$live_after_date; input$live_after_time
+  },
+  {
+    if (is.null(input$live_after_date) || is.null(input$live_after_time))
+      return(NULL)
+    tryCatch(
+      expr = {
+          as.POSIXct(paste0(input$live_after_date, " ", input$live_after_time), tz="GMT")
+      },
+      error= function(e) {
+        NULL
+      }
+    )
+}) %>% debounce(750)
+
+live_datetime_before <- eventReactive(ignoreNULL = F, ignoreInit = F, {
+  input$live_before_date; input$live_before_time
+  },
+  {
+    if (is.null(input$live_before_date) || is.null(input$live_before_time))
+      return(NULL)
+    tryCatch(
+      expr = {
+          as.POSIXct(paste0(input$live_before_date, " ", input$live_before_time), tz="GMT")
+      },
+      error= function(e) {
+        NULL
+      }
+    )
+}) %>% debounce(750)
+
 output$con_tags <- renderUI({
     selectizeInput("select_connection", multiple=TRUE,selected=global$connections$Name,label="Connections selection", choices = global$connections$Name)
 })
@@ -257,8 +289,12 @@ keepalive_data <- reactive({
             else {
               if(dbIsValid(open_connections()[[i]]$conn)) {
                 query <- paste0("SELECT k.timestamp, device FROM `keepalives` k INNER JOIN runs r ON r.id = k.run ")
-                if (!is.null(input$datetime_filter)) {
-                  query <- paste0(query, "WHERE k.timestamp >= '", input$datetime_filter, "' ")
+                if (!is.null(live_datetime_after()) && !is.null(live_datetime_before())) {
+                  query <- paste0(query, "WHERE k.timestamp BETWEEN '", live_datetime_after(), "' AND '", live_datetime_before(), "' ")
+                } else if (!is.null(live_datetime_after())) {
+                  query <- paste0(query, "WHERE k.timestamp >= '", live_datetime_after(), "' ")
+                } else if (!is.null(live_datetime_before())) {
+                  query <- paste0(query, "WHERE k.timestamp <= '", live_datetime_before(), "' ")
                 }
                 if (!input$live_last_points==0)
                   query <- paste0(query, "LIMIT ", input$live_last_points, ";")
@@ -303,9 +339,16 @@ fake_keepalives <- function() {
 
 build_signals_query <- function(table) {
   filters <- list()
-    if (!is.null(input$datetime_filter)) {
-      filters$timestamp <- paste0("(timestamp >= '", input$datetime_filter, "')")
+    if (!is.null(live_datetime_after()) && !is.null(live_datetime_before())) {
+      filters$timestamp <- paste0("(timestamp BETWEEN '", live_datetime_after(), "' AND '", live_datetime_before(), "')")
+    } else if (!is.null(live_datetime_after())) {
+      filters$timestamp <- paste0("(timestamp >= '", live_datetime_after(), "')")
+    } else if (!is.null(live_datetime_before())) {
+      filters$timestamp <- paste0("(timestamp <= '", live_datetime_before(), "')")
     }
+    # if (!is.null(live_datetime_after())) {
+    #   filters$timestamp <- paste0("(timestamp >= '", live_datetime_after(), "')")
+    # }
 
     if(input$check_sql_duration){
       filters$duration <- paste("(duration BETWEEN", input$query_filter_duration[1], "AND", input$query_filter_duration[2],")")
@@ -367,7 +410,7 @@ build_signals_query <- function(table) {
     # query <- paste0(query, ") s INNER JOIN `runs` r ON s.run = r.id;")
     query <- paste0(query, ";")
     
-    print(query)
+    # print(query)
     query
 }
 
@@ -428,3 +471,11 @@ observeEvent(global$frequencies, {
   updateSelectInput(session=session, "query_filter_tag", choices = global$frequencies$Name)
   updateSelectInput(session=session, "query_filter_multiple_frequency", choices = global$frequencies$Name)
 })
+
+# observeEvent(live_datetime_after(), ignoreNULL = F, ignoreInit = F, {
+#   print(live_datetime_after())
+# })
+# 
+# observeEvent(live_datetime_before(), ignoreNULL = F, ignoreInit = F, {
+#   print(live_datetime_before())
+# })

@@ -3,7 +3,18 @@ tabPanel("Live Data",
            sidebarPanel(
              uiOutput('con_tags'),
              numericInput("live_last_points", "Number of entries to read (0 to get all)", 50, min=0),
-             airDatepickerInput("datetime_filter", label = "Load signals recorded after", timepicker=TRUE, addon="none"),
+             tags$div(
+               tags$label(class="control-label", `for`="live_datetime", "Timeframe"),
+               tags$div(
+                 id = "live_datetime",
+                 tags$input(id="live_after_date", type="date", value="", class="datetimeinput date"),
+                 tags$input(id="live_after_time", type="time", value="", class="datetimeinput time"),
+                 tags$div(style="display:inline-block; min-width:3%; text-align:center", "-"),
+                 tags$input(id="live_before_date", type="date", value="", class="datetimeinput date"),
+                 tags$input(id="live_before_time", type="time", value="", class="datetimeinput time"),
+               ),
+             ),
+             tags$br(),
              actionButton("connect_mysql","Connect to DBs"),
              actionButton("load_mysql_data","Load Data"),
              checkboxInput("app_live_mode", "Live Mode"),
@@ -128,5 +139,25 @@ tabPanel("Live Data",
                       br(),
                       "2) Check the preview window if it is the correct data"
                       )
-           ))
-         ))
+           )),
+         ),
+  tags$script("
+    document.getElementById('live_after_time').onchange = function() {
+      var time = document.getElementById('live_after_time').value;
+			Shiny.setInputValue('live_after_time', time, {priority: 'event'});
+		};
+		document.getElementById('live_after_date').onchange = function() {
+			var date = document.getElementById('live_after_date').value;
+			Shiny.setInputValue('live_after_date', date, {priority: 'event'});
+		};
+    document.getElementById('live_before_time').onchange = function() {
+      var time = document.getElementById('live_before_time').value;
+			Shiny.setInputValue('live_before_time', time, {priority: 'event'});
+		};
+		document.getElementById('live_before_date').onchange = function() {
+			var date = document.getElementById('live_before_date').value;
+			Shiny.setInputValue('live_before_date', date, {priority: 'event'});
+		};
+    "
+  )
+)
