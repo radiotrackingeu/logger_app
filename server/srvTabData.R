@@ -546,7 +546,7 @@ get_signals <- reactive({
                       query <- "SELECT signals.*, hostname, device, orientation, latitude, longitude FROM signals INNER JOIN runs ON signals.run = runs.id"
                       tmp_data <- dbGetQuery(con, query)
                       setDT(tmp_data)
-                      tmp_data[, receiver := paste(hostname, device, orientation, sep = "_")]
+                      tmp_data[, receiver := paste(hostname, device, str_pad(orientation, 3, side="left", pad="0"), sep = "_")]
                       tmp_data[, device:=NULL]
                       # fix column names 
                       setnames(tmp_data,c("hostname"), c("Station"))
