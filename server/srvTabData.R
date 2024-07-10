@@ -26,6 +26,7 @@ observeEvent(input$add_data,{
   global$frequencies <- unique.data.frame(rbind(frequencies_list(), global$frequencies))
   global$calibration <- unique.data.frame(rbind(calibration_list(), global$calibration))
   global$map_markers <- unique.data.frame(rbind(map_markers(), global$map_markers))
+  global$man_points <- unique.data.frame(rbind(man_points(), global$man_points))
   
   if (!is.null(bearings_list())) {
     if (!is.null(global$bearing) && nrow(global$bearing) > 0){
@@ -169,6 +170,11 @@ observe({
 })
 
 observe({
+    input$clear_man_points_data
+    global$man_points <- NULL
+})
+
+observe({
     input$clear_keepalive_data
     global$keepalives <- NULL
 })
@@ -182,6 +188,7 @@ for (label in c(
   "Triangulations",
   "Calibration",
   "Map Markers",
+  "Manual Positions",
   "Keepalives"
 )) {
   addCssClass(selector = paste0("#data_tab_tabset a:contains('", label, "')"), class = "needed")
@@ -205,6 +212,7 @@ observe({update_single_tab_title_colour(global$bearing, "Bearings")})
 observe({update_single_tab_title_colour(global$triangulation, "Triangulations")})
 observe({update_single_tab_title_colour(global$calibration, "Calibration")})
 observe({update_single_tab_title_colour(global$map_markers, "Map Markers")})
+observe({update_single_tab_title_colour(global$man_points, "Manual Positions")})
 observe({update_single_tab_title_colour(global$keepalives, "Keepalives")})
 
 ### get data stored in the data folder ###
@@ -509,6 +517,34 @@ map_markers <- reactive({
   return(markers)
 })
 
+man_points <- reactive({
+  points <- NULL
+  switch(input$data_type_input,
+    # "Data folder" = {
+    #   markers<-safe_read_excel_silent("data/MapMarkers.xlsx")
+    # },
+    "Excel Files" = {
+      if (input$excel_data_content == "Manual Positions" && !is.null(input$excel_filepath_man_points)) {
+        points <- safe_read_excel(input$excel_filepath_man_points$datapath)
+        setDT(points)
+        setnames(points, c("Time", "Individual", "Longitude", "Latitude"),  c("timestamp", "freq_tag", "longitude", "latitude"), skip_absent = T)
+        points <- points[, .(timestamp, freq_tag, longitude, latitude)]
+      }
+    },
+    "SQLite File" = {
+        for (file in input$SQLite_filepath[, "datapath"]) {
+            con <- dbConnect(RSQLite::SQLite(), file)
+            if (dbExistsTable(con, "rteu_man_points")) {
+                points <- rbind(points, dbReadTable(con, "rteu_man_points"))
+            }
+            dbDisconnect(con)
+        }
+      points <- unique(points)
+    }
+  )
+  return(points)
+})
+
 local_logger_data <- reactive({
     tmp <- NULL
     if (input$data_type_input == "Data folder") {
@@ -585,6 +621,9 @@ preview_content <- reactive({
                 },
                 "Map Markers" = {
                     tmp <- map_markers()
+                },
+                "Manual Positions" = {
+                    tmp <- man_points()[, .("Time"=timestamp, "Individual"=freq_tag, "Longitude"=longitude, "Latitude"=latitude)]
                 }
             )
         },
@@ -725,6 +764,22 @@ output$data_tab_map_markers_table <- renderDataTable({
   global$map_markers
 }, options = list(pageLength = 10), rownames=F)
 
+output$data_tab_man_points_table <- renderDataTable({
+    shiny::validate(need(global$man_points, "Please provide manual positions data file."))
+    global$man_points[, .("Time"=timestamp, "Individual"=freq_tag, "Longitude"=longitude, "Latitude"=latitude)]
+  }, 
+  options = list(
+    pageLength = 10,
+    columns = list(
+      list(title="Time"),
+      list(title="Individual"),
+      list(title="Longitude"),
+      list(title="Latitude")
+    )
+  ), 
+  rownames=F
+)
+
 output$data_tab_antennae_table <- renderDataTable({
   shiny::validate(need(global$receivers, "Please provide antenna data file."))
   global$receivers
@@ -772,6 +827,10 @@ observe({
         },
         "Map Markers" = {
           if (is.null(input$excel_filepath_map_markers))
+            disable(id="add_data")
+        },
+        "Manual Positions" = {
+          if (is.null(input$excel_filepath_man_points))
             disable(id="add_data")
         }
       )

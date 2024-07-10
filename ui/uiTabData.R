@@ -42,7 +42,7 @@ tabPanel("File Input",
              conditionalPanel(
                condition = "input.data_type_input == 'Excel Files'",
                radioButtons("excel_data_content",
-                            choices = c("Antennas", "Frequencies", "Connections"),#, "Calibration", "Map Markers"),
+                            choices = c("Antennas", "Frequencies", "Connections", "Manual Positions"),#, "Calibration", "Map Markers"),
                             label = "Add following data:"
                ),
                conditionalPanel(
@@ -94,6 +94,17 @@ tabPanel("File Input",
                  h6("Map markers with comments"),
                  fileInput(
                    "excel_filepath_map_markers",
+                   "",
+                   multiple = FALSE,
+                   accept = c(".xlsx", ".xls"),
+                   width = NULL
+                 )
+               ),
+               conditionalPanel(
+                 condition = "input.excel_data_content == 'Manual Positions'",
+                 h6("Manually set tag positions"),
+                 fileInput(
+                   "excel_filepath_man_points",
                    "",
                    multiple = FALSE,
                    accept = c(".xlsx", ".xls"),
@@ -169,6 +180,10 @@ tabPanel("File Input",
              tabPanel("Map Markers",
                       dataTableOutput("data_tab_map_markers_table"),
                       actionButton("clear_map_markers_data", "Clear table")
+             ),
+             tabPanel("Manual Positions",
+                      dataTableOutput("data_tab_man_points_table"),
+                      actionButton("clear_man_points_data", "Clear table")
              ),
              tabPanel("Keepalives",
                       dataTableOutput("data_tab_keepalive_table"),

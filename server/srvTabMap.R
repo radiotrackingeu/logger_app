@@ -442,9 +442,46 @@ observeEvent(filtered_bearings(), ignoreNULL = T, ignoreInit = F, {
 observeEvent(input$map_groups, ignoreInit = T, {
   if ("Bearings" %in% input$map_groups) {
     showElement(id="panel_bearings_time")
+    leafletProxy("map") %>% showGroup("Manual Positions")
   } else{
     hideElement(id="panel_bearings_time")
+    leafletProxy("map") %>% hideGroup("Manual Positions")
   }
+})
+
+filtered_man_points <- reactive({
+  if (is.null(global$man_points))
+    return(NULL)
+  req("Bearings" %in% input$map_groups)
+  global$man_points[timestamp %between% input$slider_bearings_time]
+}) %>% debounce(millis = 750)
+
+observeEvent(filtered_man_points(), ignoreNULL = F, ignoreInit = F, {
+  leafletProxy("map") %>% clearGroup("Manual Positions")
+  req(filtered_man_points())
+  req(any(!is.na(filtered_man_points()$longitude)))
+  if (length(unique(filtered_man_points()$freq_tag))>1){
+    fColor <- filtered_man_points()$freq_tag
+  } else{
+    fColor <- filtered_man_points()$timestamp
+  }
+  leafletProxy("map") %>%
+    addCircles(
+      lat=filtered_man_points()$latitude,
+      lng=filtered_man_points()$longitude, 
+      group="Manual Positions", 
+      layerId=paste0("man_pos_", seq_len(nrow(filtered_man_points()))), 
+      label = paste0(filtered_man_points()$freq_tag, " @ ", filtered_man_points()$timestamp),
+      radius = 6,
+      color = "black", #tri_palette()$pal(fColor),
+      opacity = 0.9,
+      stroke = T,
+      weight = 3,
+      fill = T,
+      fillColor = tri_palette()$pal(fColor),#"black",
+      fillOpacity = 0.5
+      
+    )
 })
 
 observeEvent(input$keys, {
