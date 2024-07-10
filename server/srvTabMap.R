@@ -471,7 +471,7 @@ observeEvent(filtered_man_points(), ignoreNULL = F, ignoreInit = F, {
       lng=filtered_man_points()$longitude, 
       group="Manual Positions", 
       layerId=paste0("man_pos_", seq_len(nrow(filtered_man_points()))), 
-      label = paste0(filtered_man_points()$freq_tag, " @ ", filtered_man_points()$timestamp),
+      label = paste0(filtered_man_points()$freq_tag, " @ ", as.POSIXct(filtered_man_points()$timestamp, origin="1970-01-01")),
       radius = 6,
       color = "black", #tri_palette()$pal(fColor),
       opacity = 0.9,
@@ -480,7 +480,6 @@ observeEvent(filtered_man_points(), ignoreNULL = F, ignoreInit = F, {
       fill = T,
       fillColor = tri_palette()$pal(fColor),#"black",
       fillOpacity = 0.5
-      
     )
 })
 
