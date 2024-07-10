@@ -8,8 +8,9 @@ sqlite_export_tables <- c(
   "Remote Connections" = "rteu_connections", 
   # "Calibration Data" = "rteu_calibration", 
   "Calculated Bearings" = "rteu_bearings", 
-  "Calculated Triangulations" = "rteu_triangulations"#, 
+  "Calculated Triangulations" = "rteu_triangulations", 
   # "Manual Map Markers" = "rteu_manual_markers"
+  "Manual Positions" = "rteu_man_points"
 )
 
 output$download_ui_tables <- renderUI(
@@ -59,6 +60,10 @@ observeEvent(input$navbar, {
     enabled <- c(enabled, "rteu_manual_markers")
   }
   
+  if ("rteu_man_points" %in% sqlite_export_tables && !is.null(global$man_points) && nrow(global$man_points) > 0) {
+    enabled <- c(enabled, "rteu_man_points")
+  }
+  
   updateAwesomeCheckboxGroup(
     inputId = "download_checkbox_tables", 
     selected = enabled
@@ -102,6 +107,9 @@ output$filtered_data_sqlite <- downloadHandler(
     }
     if("rteu_manual_markers" %in% input$download_checkbox_tables && !is.null(global$map_markers)){
       dbWriteTable(con,"rteu_manual_markers",global$map_markers,overwrite=TRUE)
+    }
+    if("rteu_man_points" %in% input$download_checkbox_tables && !is.null(global$man_points)){
+      dbWriteTable(con,"rteu_man_points",global$man_points,overwrite=TRUE)
     }
     
     calibration_state <- data.frame(global$calibrated)
@@ -228,6 +236,18 @@ output$download_excel_map_markers <- downloadHandler(
   content = function(file) {
     if (!is.null(global$map_markers)) {
       write_xlsx(global$map_markers, file)
+    }
+    else {
+      write_xlsx(data.frame(), file)
+    }
+  }
+)
+
+output$download_excel_man_points <- downloadHandler(
+  filename = "ManualPositions.xlsx",
+  content = function(file) {
+    if (!is.null(global$man_points)) {
+      write_xlsx(as.data.table(global$man_points)[,.("Time"=timestamp, "Individual"=freq_tag, "Longitude"=longitude, "Latitude"=latitude)], file)
     }
     else {
       write_xlsx(data.frame(), file)
