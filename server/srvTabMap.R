@@ -2,6 +2,7 @@
 
 selected_tri <- ""
 selected_station <- ""
+selected_man_point <- reactiveVal(NULL)
 
 # render map and add stations
 output$map <- renderLeaflet({
@@ -105,8 +106,8 @@ tri_palette <- reactive({
   } else {
     req(!is.null(filtered_bearings()) && nrow(filtered_bearings())>0)
     pal <- list()
-    if (uniqueN(global$bearing$freq_tag) > 1) {
-      pal$values <- sort(unique(global$bearing$freq_tag))
+    if (uniqueN(global$bearing$freq_tag) > 1 || (!is.null(global$man_points) && uniqueN(global$man_points$freq_tag) > 1)) {
+      pal$values <- sort(unique(c(global$bearing$freq_tag, global$man_points$freq_tag)))
       pal$pal <- colorFactor("Dark2", domain = pal$values)
       pal$labFormat <- function(type, x) {sprintf(x)}
       pal$title <- "Tag (time-filtered)"
@@ -449,12 +450,6 @@ observeEvent(input$map_groups, ignoreInit = T, {
   }
 })
 
-filtered_man_points <- reactive({
-  if (is.null(global$man_points))
-    return(NULL)
-  req("Bearings" %in% input$map_groups)
-  global$man_points[timestamp %between% input$slider_bearings_time]
-}) %>% debounce(millis = 750)
 observeEvent({global$man_points; tri_palette()}, ignoreNULL = F, ignoreInit = F, {
   a <- 6
   lat_degrees_per_meter <- 1/111120
@@ -485,6 +480,82 @@ observeEvent({global$man_points; tri_palette()}, ignoreNULL = F, ignoreInit = F,
       fillOpacity = 0.5
     )
 })
+
+
+
+observeEvent(selected_man_point(), ignoreNULL = F, ignoreInit = F, {
+  leafletProxy("map") %>% clearGroup("active_man_point") 
+  req(selected_man_point())
+  selection <- global$man_points[global$man_points$id==selected_man_point(),]
+  req(!anyNA(selection[,.(longitude, latitude)]))
+  leafletProxy("map") %>%
+    addCircles(
+      label = paste0(selection$freq_tag, " @ ", as.POSIXct(selection$timestamp, origin="1970-01-01")),
+      lat = selection$latitude,
+      lng = selection$longitude, 
+      group = "active_man_point", 
+      radius = 11,
+      weight = 7,
+      fill = F,
+      color = "white",
+      opacity = 1,
+      layerId = paste0("active_man_pos_", selection$id)
+    )
+})
+
+mean_bearing_time <- reactive({
+  req(input$slider_bearings_time)
+  mean(input$slider_bearings_time)
+}) %>% debounce(millis = 750)
+
+## handles clicks on map to create new man points
+observeEvent(input$map_click, ignoreInit=T, {
+  req("Bearings" %in% input$map_groups)
+  req(length(unique(filtered_bearings()$freq_tag))==1)
+  req(input$slider_bearings_time)
+  
+  point <- data.table(
+    timestamp = mean_bearing_time(), 
+    longitude = input$map_click$lng, 
+    latitude = input$map_click$lat, 
+    freq_tag = filtered_bearings()$freq_tag[1], 
+    id = max(global$man_points$id + 1, 1)
+  )
+  if (
+    is.null(input$map_shape_click) || 
+      input$map_shape_click$lat!=input$map_click$lat || 
+      input$map_shape_click$lng!=input$map_click$lng || 
+      ! input$map_shape_click$group %in% c("Manual Positions", "active_man_point")
+  ) {
+    if (mean_bearing_time() %in% global$man_points$timestamp){
+      # global$man_points <- copy(global$man_points[timestamp == mean_bearing_time(), c("longitude", "latitude", "freq_tag") := list(point$longitude, point$latitude, point$freq_tag)])
+      point$id = global$man_points[global$man_points$timestamp == mean_bearing_time()]$id
+      global$man_points <- rbind(global$man_points[!global$man_points$timestamp == mean_bearing_time(), ], point)
+      
+    } else {
+      global$man_points <- rbind(global$man_points, point)
+    }
+  }
+})
+
+## handles clicks on man_points
+observeEvent(input$map_shape_click, {
+  req(input$map_shape_click$group %in% c("Manual Positions", "active_man_point"))
+  clicked_id <- as.numeric(str_extract(input$map_shape_click$id, pattern="(?<=man_pos_)\\d+"))
+  if(!is.null(selected_man_point()) && selected_man_point() == clicked_id) {
+    # deselect currently selected man point
+    selected_man_point(NULL)
+  } else {
+    # select new man point
+    selected_man_point(clicked_id)
+    timestamp <- global$man_points[global$man_points$id==clicked_id, timestamp]
+    min <- min(global$bearing$timestamp, na.rm = T)
+    max <- max(global$bearing$timestamp, na.rm = T) 
+    half_range <- as.numeric(abs(difftime(input$slider_bearings_time[1], input$slider_bearings_time[2], units = "secs"))/2)
+    updateSliderInput(inputId = "slider_bearings_time", value = c(max(min, timestamp - half_range), min(max, timestamp + half_range)))
+  }
+})
+
 
 observeEvent(input$keys, {
   if (input$navbar=="Map"){
