@@ -529,6 +529,9 @@ man_points <- reactive({
         setDT(points)
         setnames(points, c("Time", "Individual", "Longitude", "Latitude"),  c("timestamp", "freq_tag", "longitude", "latitude"), skip_absent = T)
         points <- points[, .(timestamp, freq_tag, longitude, latitude)]
+        points <- unique(points)
+        points[, id:=seq_len(.N)]
+        points[, timestamp := as.POSIXct(timestamp, origin="1970-01-01", tz="UTC")]
       }
     },
     "SQLite File" = {
@@ -539,8 +542,12 @@ man_points <- reactive({
             }
             dbDisconnect(con)
         }
-      setDT(points)
-      points <- unique(points)
+      if (!is.null(points)){
+        setDT(points)
+        points <- unique(points)
+        points[, id:=seq_len(.N)]
+        points[, timestamp := as.POSIXct(timestamp, origin="1970-01-01", tz="UTC")]
+      }
     }
   )
   return(points)
