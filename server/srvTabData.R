@@ -26,7 +26,7 @@ observeEvent(input$add_data,{
   global$frequencies <- unique.data.frame(rbind(frequencies_list(), global$frequencies))
   global$calibration <- unique.data.frame(rbind(calibration_list(), global$calibration))
   global$map_markers <- unique.data.frame(rbind(map_markers(), global$map_markers))
-  global$man_points <- unique(rbind(man_points(), global$man_points))
+  global$man_points <- unique.data.frame(rbind(man_points(), global$man_points))
   
   if (!is.null(bearings_list())) {
     if (!is.null(global$bearing) && nrow(global$bearing) > 0){
@@ -767,7 +767,7 @@ output$data_tab_map_markers_table <- renderDataTable({
 
 output$data_tab_man_points_table <- renderDataTable({
     shiny::validate(need(global$man_points, "Please provide manual positions data file."))
-    global$man_points[, .("Time"=timestamp, "Individual"=freq_tag, "Longitude"=longitude, "Latitude"=latitude)]
+    as.data.table(global$man_points)[, .("Time"=timestamp, "Individual"=freq_tag, "Longitude"=longitude, "Latitude"=latitude)]
   }, 
   options = list(
     pageLength = 10,
