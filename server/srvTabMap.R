@@ -455,28 +455,31 @@ filtered_man_points <- reactive({
   req("Bearings" %in% input$map_groups)
   global$man_points[timestamp %between% input$slider_bearings_time]
 }) %>% debounce(millis = 750)
-
-observeEvent(filtered_man_points(), ignoreNULL = F, ignoreInit = F, {
-  leafletProxy("map") %>% clearGroup("Manual Positions")
-  req(filtered_man_points())
-  req(any(!is.na(filtered_man_points()$longitude)))
-  if (length(unique(filtered_man_points()$freq_tag))>1){
-    fColor <- filtered_man_points()$freq_tag
+observeEvent({global$man_points; tri_palette()}, ignoreNULL = F, ignoreInit = F, {
+  a <- 6
+  lat_degrees_per_meter <- 1/111120
+  leafletProxy("map") %>% clearGroup("Manual Positions") 
+  req(global$man_points)
+  req(any(!is.na(global$man_points$longitude)))
+  if (length(unique(global$man_points$freq_tag))>1){
+    fColor <- global$man_points$freq_tag
   } else{
-    fColor <- filtered_man_points()$timestamp
+    fColor <- as.numeric(global$man_points$timestamp)
   }
   leafletProxy("map") %>%
-    addCircles(
-      lat=filtered_man_points()$latitude,
-      lng=filtered_man_points()$longitude, 
+    addRectangles(
+      lat1 = global$man_points$latitude-a*lat_degrees_per_meter,
+      lat2 = global$man_points$latitude+a*lat_degrees_per_meter,
+      lng1 = global$man_points$longitude-a*lat_degrees_per_meter/cospi(global$man_points$latitude/180), 
+      lng2 = global$man_points$longitude+a*lat_degrees_per_meter/cospi(global$man_points$latitude/180), 
       group="Manual Positions", 
-      layerId=paste0("man_pos_", seq_len(nrow(filtered_man_points()))), 
-      label = paste0(filtered_man_points()$freq_tag, " @ ", as.POSIXct(filtered_man_points()$timestamp, origin="1970-01-01")),
-      radius = 6,
-      color = "black", #tri_palette()$pal(fColor),
+      layerId=paste0("man_pos_", global$man_points$id), 
+      label = paste0(global$man_points$freq_tag, " @ ", as.POSIXct(global$man_points$timestamp, origin="1970-01-01")),
+      # radius = 6,
+      color = tri_palette()$pal(fColor),
       opacity = 0.9,
       stroke = T,
-      weight = 3,
+      weight = 6,
       fill = T,
       fillColor = tri_palette()$pal(fColor),#"black",
       fillOpacity = 0.5
