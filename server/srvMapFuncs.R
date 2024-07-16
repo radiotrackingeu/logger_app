@@ -189,7 +189,7 @@ addDetectionCones <- function(m, cones, bearings, zIndex=300, group="Detection C
         )
         m <<- m %>%
           addPolygons(
-            lng=cone$x, lat=cone$y, fillColor = color_palette()(strengths[[r]]), fillOpacity=0.8, stroke=FALSE, popup=label_cone, group=group, options = tileOptions(zIndex = zIndex)
+            lng=cone$x, lat=cone$y, fillColor = color_palette()(strengths[[r]]), fillOpacity=0.8, stroke=FALSE, popup=label_cone, group=group, options = pathOptions(zIndex = zIndex)
           )
       }
     }
