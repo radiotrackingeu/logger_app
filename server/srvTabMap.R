@@ -581,9 +581,18 @@ observeEvent(input$keys, {
         updateSliderInput(inputId = "slider_bearings_time", value=input$slider_bearings_time-30)
       if (input$keys == HOTKEY_TIME_30UP)
         updateSliderInput(inputId = "slider_bearings_time", value=input$slider_bearings_time+30)
+      if (input$keys == HOTKEY_DEL_MAN_POINT){
+        if (!is.null(selected_man_point())) {
+          global$man_points <- global$man_points[!global$man_points$id==selected_man_point()]
+          selected_man_point(NULL)
+        } else {
+          showNotification(ui="Can't delete: No manual position marker selected.", type="message")
+        }
+      }
     }
   }
 })
+
 
 
 ################################# deactivated code ################################################
