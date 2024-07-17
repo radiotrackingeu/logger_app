@@ -31,11 +31,13 @@ output$map <- renderLeaflet({
 outputOptions(output, "map", suspendWhenHidden = FALSE)
 
 observeEvent(global$bearing, ignoreNULL = T, ignoreInit = T, {
+  minTS = min(global$bearing$timestamp, na.rm = T)
+  maxTS = min(minTS+600, max(global$bearing$timestamp, na.rm = T)) # select only first 5 minutes at startup to avoid drawing a lot of bearings
   updateSliderInput(
     inputId = "slider_bearings_time", 
-    min = min(global$bearing$timestamp, na.rm = T), 
+    min = minTS, 
     max = max(global$bearing$timestamp, na.rm = T), 
-    value = c(min(global$bearing$timestamp, na.rm = T), max(global$bearing$timestamp, na.rm = T)), 
+    value = c(min(global$bearing$timestamp, na.rm = T), maxTS), 
     timeFormat = "%Y-%m-%d %H:%M"
   )
 })
