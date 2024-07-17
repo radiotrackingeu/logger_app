@@ -72,9 +72,18 @@
   width: 18%;
 }
 
-
-  
 .date {
   border-radius: 4px 0px 0px 4px;
   width:29%;
+}
+
+.irs-grid-pol.center_mark {
+  background-color: red;
+  width: 2px;
+}
+
+.irs-grid-text.center_mark {
+  color: red;
+  top: 27px;
+  font-weight: bold;
 }

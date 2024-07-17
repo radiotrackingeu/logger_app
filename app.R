@@ -58,6 +58,7 @@ ui <- tagList(
   keysInput("keys", hotkeys),
   includeCSS("style.css"),
   includeCSS("tooltip.css"),
+  includeScript("js/slider_center_mark.js"),
   add_busy_spinner(spin="circle", height = "30px", width = "30px"),
   navbarPage(id = "navbar", "rteu-logger-app A33",
     source("ui/uiTabData.R")$value,

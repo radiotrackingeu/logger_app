@@ -556,6 +556,25 @@ observeEvent(input$map_shape_click, {
   }
 })
 
+observeEvent(input$slider_bearings_time, {
+  req(global$bearing)
+  req("Bearings" %in% input$map_groups)
+  min = min(global$bearing$timestamp, na.rm = T) 
+  max = max(global$bearing$timestamp, na.rm = T)
+  center <- mean_bearing_time()
+  range <- as.numeric(max - min)
+  left <- as.numeric(center - min)
+  
+  session$sendCustomMessage(
+    type = "slider_set_center_mark",
+    message = list(
+      id_slider = "slider_bearings_time", 
+      id_center_mark = "slider_bearings_time_center_mark", 
+      value = paste0(left / range * 100, "%"), 
+      label = format(center, "%Y-%m-%d %H:%M")
+    )
+  )
+})
 
 observeEvent(input$keys, {
   if (input$navbar=="Map"){
