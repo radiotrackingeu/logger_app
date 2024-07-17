@@ -396,7 +396,7 @@ filtered_bearings <- reactive({
   req(global$bearing)
   req("Bearings" %in% input$map_groups)
   global$bearing[timestamp %between% input$slider_bearings_time]
-}) %>% debounce(millis = 750)
+}) %>% debounce(millis = 450)
 
 observeEvent(filtered_bearings(), ignoreNULL = T, ignoreInit = F, {
   leafletProxy("map") %>%
@@ -506,7 +506,7 @@ observeEvent(selected_man_point(), ignoreNULL = F, ignoreInit = F, {
 mean_bearing_time <- reactive({
   req(input$slider_bearings_time)
   mean(input$slider_bearings_time)
-}) %>% debounce(millis = 750)
+}) %>% debounce(millis = 450)
 
 ## handles clicks on map to create new man points
 observeEvent(input$map_click, ignoreInit=T, {
