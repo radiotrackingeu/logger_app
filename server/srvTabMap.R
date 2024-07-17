@@ -556,9 +556,8 @@ observeEvent(input$map_shape_click, {
   }
 })
 
-observeEvent(input$slider_bearings_time, {
+observeEvent(mean_bearing_time(), {
   req(global$bearing)
-  req("Bearings" %in% input$map_groups)
   min = min(global$bearing$timestamp, na.rm = T) 
   max = max(global$bearing$timestamp, na.rm = T)
   center <- mean_bearing_time()
