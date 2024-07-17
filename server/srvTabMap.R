@@ -593,14 +593,14 @@ observeEvent(input$keys, {
     }
     if ("Bearings" %in% input$map_groups){
       selected_range <- abs(difftime(input$slider_bearings_time[1], input$slider_bearings_time[2], units = "secs"))
-      if (input$keys == HOTKEY_TIMESLOT_DOWN)
+      if (input$keys == HOTKEY_TIME_DOWN_RANGE)
         updateSliderInput(inputId = "slider_bearings_time", value=input$slider_bearings_time-selected_range)
-      if (input$keys == HOTKEY_TIMESLOT_UP)
+      if (input$keys == HOTKEY_TIME_UP_RANGE)
         updateSliderInput(inputId = "slider_bearings_time", value=input$slider_bearings_time+selected_range)
-      if (input$keys == HOTKEY_TIME_30DOWN)
-        updateSliderInput(inputId = "slider_bearings_time", value=input$slider_bearings_time-30)
-      if (input$keys == HOTKEY_TIME_30UP)
-        updateSliderInput(inputId = "slider_bearings_time", value=input$slider_bearings_time+30)
+      if (input$keys == HOTKEY_TIME_DOWN_STEP)
+        updateSliderInput(inputId = "slider_bearings_time", value=input$slider_bearings_time-HOTKEY_TIME_STEP)
+      if (input$keys == HOTKEY_TIME_UP_STEP)
+        updateSliderInput(inputId = "slider_bearings_time", value=input$slider_bearings_time+HOTKEY_TIME_STEP)
       if (input$keys == HOTKEY_DEL_MAN_POINT){
         if (!is.null(selected_man_point())) {
           global$man_points <- global$man_points[!global$man_points$id==selected_man_point()]
