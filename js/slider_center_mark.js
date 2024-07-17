@@ -8,7 +8,7 @@ Shiny.addCustomMessageHandler(
     if ($("#"+params.id_center_mark+"_label").length === 0) {
       $("#"+params.id_slider).siblings(".irs").children(".irs-grid").append("<span id='"+params.id_center_mark+"_label' class='irs-grid-text center_mark' style='left: 0%;'></span>");
     }
-    margin_l = $("#slider_bearings_time").siblings(".irs").children(".irs-grid").children(".js-grid-text-1").css("margin-left");
+    margin_l = $("#"+params.id_slider).siblings(".irs").children(".irs-grid").children(".js-grid-text-0").css("margin-left");
     center_mark = $("#"+params.id_center_mark);
     center_mark.css({ left: params.value});
     center_mark_label = $("#"+params.id_center_mark+"_label");
