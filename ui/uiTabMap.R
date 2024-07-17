@@ -55,7 +55,7 @@ tabPanel("Map",
           max=as.POSIXct(Sys.Date()+1)-1, 
           value=c(as.POSIXct(Sys.Date()), as.POSIXct(Sys.Date()+1)-1), 
           timezone = "+0000", 
-          step = 60, 
+          step = 15, 
           timeFormat = "%Y-%m-%d %H:%M",
           width = "100%"
         )
